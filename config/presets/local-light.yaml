@@ -1,0 +1,10 @@
+# xgh BYOP preset: local-light
+# Free, fully offline, no persistence (vectors lost on restart)
+llm:
+  provider: ollama
+  model: llama3.2:3b
+embeddings:
+  provider: ollama
+  model: nomic-embed-text
+vector_store:
+  type: in-memory
