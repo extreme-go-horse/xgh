@@ -1,0 +1,12 @@
+# xgh BYOP preset: anthropic
+# ~$0.01/session, requires ANTHROPIC_API_KEY
+llm:
+  provider: anthropic
+  model: claude-haiku-4-5-20251001
+  api_key: ${ANTHROPIC_API_KEY}
+embeddings:
+  provider: ollama
+  model: nomic-embed-text
+vector_store:
+  type: qdrant
+  url: http://localhost:6333

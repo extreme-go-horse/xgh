@@ -1,0 +1,11 @@
+# xgh BYOP preset: local (default)
+# Free, fully offline, no API keys needed
+llm:
+  provider: ollama
+  model: llama3.2:3b
+embeddings:
+  provider: ollama
+  model: nomic-embed-text
+vector_store:
+  type: qdrant
+  url: http://localhost:6333
