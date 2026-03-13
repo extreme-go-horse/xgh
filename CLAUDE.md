@@ -23,7 +23,7 @@ XGH_DRY_RUN=1 XGH_LOCAL_PACK=. bash install.sh
 
 ### Implementation plans
 
-All tasks are tracked with `- [ ]` checkboxes in `docs/plans/`. Work through them in order (Plan 2 → 3 → 4 → 5 → 6). Mark steps complete with `- [x]` as you finish them.
+All tasks are tracked with `- [ ]` checkboxes in `docs/plans/`. Plans 1-6 are implemented; use the plan docs for maintenance, extensions, and verification history.
 
 ### Slash commands available in this repo
 

@@ -127,11 +127,11 @@ No build step — this is a shell-based project with no compiled artifacts.
 | Plan | Title | Status |
 |------|-------|--------|
 | Plan 1 | Foundation — scaffold, BYOP config, installer | ✅ Complete |
-| Plan 2 | Context Tree Engine — CRUD, BM25 search, sync | ⏳ Not started |
-| Plan 3 | Hooks & Core Skills — real hook implementations | ⏳ Not started |
-| Plan 4 | Team Collaboration Skills | ⏳ Not started |
-| Plan 5 | Multi-Agent Collaboration Bus | ⏳ Not started |
-| Plan 6 | Workflow Skills (investigate, implement-design, implement-ticket) | ⏳ Not started |
+| Plan 2 | Context Tree Engine — CRUD, BM25 search, sync | ✅ Complete |
+| Plan 3 | Hooks & Core Skills — real hook implementations | ✅ Complete |
+| Plan 4 | Team Collaboration Skills | ✅ Complete |
+| Plan 5 | Multi-Agent Collaboration Bus | ✅ Complete |
+| Plan 6 | Workflow Skills (investigate, implement-design, implement-ticket) | ✅ Complete |
 
 See `docs/plans/` for detailed implementation plans with task checklists.
 

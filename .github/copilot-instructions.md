@@ -26,4 +26,4 @@ bash tests/test-uninstall.sh
 
 ## Current status
 
-Plan 1 (Foundation) is complete. Plans 2–6 are pending — see [`AGENTS.md`](../AGENTS.md#implementation-status) for the full roadmap.
+Plans 1-6 are complete — see [`AGENTS.md`](../AGENTS.md#implementation-status) for detailed status and maintenance guidance.

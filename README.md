@@ -5,7 +5,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Plan 1](https://img.shields.io/badge/Plan%201%20Foundation-complete-brightgreen)](#implementation-roadmap)
-[![Plans 2–6](https://img.shields.io/badge/Plans%202–6-in%20progress-yellow)](#implementation-roadmap)
+[![Plans 2–6](https://img.shields.io/badge/Plans%202–6-complete-brightgreen)](#implementation-roadmap)
 
 ---
 
@@ -184,6 +184,10 @@ After installation, these commands are available in Claude Code:
 | `/xgh curate <knowledge>` | Store knowledge in Cipher + sync to context tree *(Plan 3)* |
 | `/xgh status` | Memory stats, context tree health, agent registry *(Plan 3)* |
 | `/xgh collaborate <workflow>` | Start multi-agent workflow *(Plan 5)* |
+| `/xgh-collaborate <workflow>` | Run workflow templates from `config/workflows/` *(Plan 5)* |
+| `/xgh investigate <problem>` | Structured investigation workflow *(Plan 6)* |
+| `/xgh implement-design <design-context>` | Design-to-implementation workflow *(Plan 6)* |
+| `/xgh implement <ticket-context>` | Ticket execution workflow *(Plan 6)* |
 
 ---
 
@@ -252,7 +256,7 @@ The xgh development follows a 6-plan design-first roadmap. Each plan has a detai
 ### Progress Overview
 
 ```
-Overall: ██░░░░░░░░░░  17% (1 of 6 plans complete)
+Overall: ████████████  100% (6 of 6 plans complete)
 ```
 
 ---
@@ -276,96 +280,96 @@ Overall: ██░░░░░░░░░░  17% (1 of 6 plans complete)
 
 ---
 
-### Plan 2 — Context Tree Engine ⏳ Not started
+### Plan 2 — Context Tree Engine ✅ Complete
 
 > CRUD operations, BM25 search, scoring/maturity, archival, Cipher sync
 
-**Will deliver:**
-- [ ] `scripts/context-tree.sh` — main dispatcher (create/read/update/delete/list/search/score/archive/sync)
-- [ ] `scripts/ct-frontmatter.sh` — YAML frontmatter parse/write helpers
-- [ ] `scripts/ct-scoring.sh` — importance/recency/maturity calculations
-- [ ] `scripts/ct-manifest.sh` — manifest + `_index.md` management
-- [ ] `scripts/ct-archive.sh` — archival and restore logic
-- [ ] `scripts/ct-search.sh` — BM25 + Cipher result merge
-- [ ] `scripts/ct-sync.sh` — curate + query orchestration
-- [ ] `scripts/bm25.py` — Python TF-IDF/BM25 search engine
-- [ ] `tests/test-ct-*.sh` — full test suite for all context tree operations
+**Delivered:**
+- [x] `scripts/context-tree.sh` — main dispatcher (create/read/update/delete/list/search/score/archive/sync)
+- [x] `scripts/ct-frontmatter.sh` — YAML frontmatter parse/write helpers
+- [x] `scripts/ct-scoring.sh` — importance/recency/maturity calculations
+- [x] `scripts/ct-manifest.sh` — manifest + `_index.md` management
+- [x] `scripts/ct-archive.sh` — archival and restore logic
+- [x] `scripts/ct-search.sh` — BM25 + Cipher result merge
+- [x] `scripts/ct-sync.sh` — curate + query orchestration
+- [x] `scripts/bm25.py` — Python TF-IDF/BM25 search engine
+- [x] `tests/test-ct-*.sh` — full test suite for all context tree operations
 
 📄 [Plan 2 document](docs/plans/2026-03-13-plan-2-context-tree.md)
 
 ---
 
-### Plan 3 — Hooks & Core Skills ⏳ Not started
+### Plan 3 — Hooks & Core Skills ✅ Complete
 
 > Replace placeholder hooks, implement 5 core skills + 3 slash commands
 
-**Will deliver:**
-- [ ] `hooks/session-start.sh` — real implementation (load context tree, inject top-5 knowledge files)
-- [ ] `hooks/prompt-submit.sh` — real implementation (inject decision table, auto-query/auto-curate)
-- [ ] `skills/continuous-learning/` — iron law enforcement skill
-- [ ] `skills/curate-knowledge/` — knowledge curation guidance
-- [ ] `skills/query-strategies/` — tiered query routing
-- [ ] `skills/context-tree-maintenance/` — scoring, maturity, archival
-- [ ] `skills/memory-verification/` — verify store/retrieve correctness
-- [ ] `commands/query.md` — `/xgh query` slash command
-- [ ] `commands/curate.md` — `/xgh curate` slash command
-- [ ] `commands/status.md` — `/xgh status` slash command
-- [ ] `tests/test-hooks.sh`, `test-skills.sh`, `test-commands.sh`
+**Delivered:**
+- [x] `hooks/session-start.sh` — real implementation (load context tree, inject top-5 knowledge files)
+- [x] `hooks/prompt-submit.sh` — real implementation (inject decision table, auto-query/auto-curate)
+- [x] `skills/continuous-learning/` — iron law enforcement skill
+- [x] `skills/curate-knowledge/` — knowledge curation guidance
+- [x] `skills/query-strategies/` — tiered query routing
+- [x] `skills/context-tree-maintenance/` — scoring, maturity, archival
+- [x] `skills/memory-verification/` — verify store/retrieve correctness
+- [x] `commands/query.md` — `/xgh query` slash command
+- [x] `commands/curate.md` — `/xgh curate` slash command
+- [x] `commands/status.md` — `/xgh status` slash command
+- [x] `tests/test-hooks.sh`, `test-skills.sh`, `test-commands.sh`
 
 📄 [Plan 3 document](docs/plans/2026-03-13-plan-3-hooks-and-skills.md)
 
 ---
 
-### Plan 4 — Team Collaboration Skills ⏳ Not started
+### Plan 4 — Team Collaboration Skills ✅ Complete
 
-> 6 team collaboration skills, `/xgh-collaborate` command, collaboration dispatcher agent
+> 6 team collaboration skills, `/xgh collaborate` command, collaboration dispatcher agent
 
-**Will deliver:**
-- [ ] `skills/pr-context-bridge/` — auto-curate PR reasoning
-- [ ] `skills/knowledge-handoff/` — structured handoff on merge
-- [ ] `skills/convention-guardian/` — enforce team conventions
-- [ ] `skills/cross-team-pollinator/` — org-wide knowledge sharing
-- [ ] `skills/subagent-pair-programming/` — TDD via spec writer + implementer
-- [ ] `skills/onboarding-accelerator/` — new dev context bootstrapping
-- [ ] `commands/collaborate.md` — `/xgh-collaborate` command
-- [ ] `agents/collaboration-dispatcher.md` — multi-agent orchestration agent
-- [ ] `tests/test-team-skills.sh`, `test-collaborate-command.sh`, `test-collaboration-agent.sh`
+**Delivered:**
+- [x] `skills/pr-context-bridge/` — auto-curate PR reasoning
+- [x] `skills/knowledge-handoff/` — structured handoff on merge
+- [x] `skills/convention-guardian/` — enforce team conventions
+- [x] `skills/cross-team-pollinator/` — org-wide knowledge sharing
+- [x] `skills/subagent-pair-programming/` — TDD via spec writer + implementer
+- [x] `skills/onboarding-accelerator/` — new dev context bootstrapping
+- [x] `commands/collaborate.md` — `/xgh collaborate` command
+- [x] `agents/collaboration-dispatcher.md` — multi-agent orchestration agent
+- [x] `tests/test-team-skills.sh`, `test-collaborate-command.sh`, `test-collaboration-agent.sh`
 
 📄 [Plan 4 document](docs/plans/2026-03-13-plan-4-team-collaboration.md)
 
 ---
 
-### Plan 5 — Multi-Agent Collaboration Bus ⏳ Not started
+### Plan 5 — Multi-Agent Collaboration Bus ✅ Complete
 
 > Agent registry, workflow templates, message protocol, dispatcher
 
-**Will deliver:**
-- [ ] `config/agents.yaml` — agent registry (Claude Code, Codex, Cursor, custom)
-- [ ] `config/workflows/plan-review.yaml` — 2-agent plan→review→implement
-- [ ] `config/workflows/parallel-impl.yaml` — N-agent parallel implementation
-- [ ] `config/workflows/validation.yaml` — implement→validate loop
-- [ ] `config/workflows/security-review.yaml` — implement→review→fix→re-review
-- [ ] `skills/agent-collaboration/` — message protocol + dispatch conventions skill
-- [ ] `agents/collaboration-dispatcher.md` — orchestration agent
-- [ ] `commands/xgh-collaborate.md` — `/xgh-collaborate` command
-- [ ] `tests/test-multi-agent.sh`
+**Delivered:**
+- [x] `config/agents.yaml` — agent registry (Claude Code, Codex, Cursor, custom)
+- [x] `config/workflows/plan-review.yaml` — 2-agent plan→review→implement
+- [x] `config/workflows/parallel-impl.yaml` — N-agent parallel implementation
+- [x] `config/workflows/validation.yaml` — implement→validate loop
+- [x] `config/workflows/security-review.yaml` — implement→review→fix→re-review
+- [x] `skills/agent-collaboration/` — message protocol + dispatch conventions skill
+- [x] `agents/collaboration-dispatcher.md` — orchestration agent
+- [x] `commands/xgh-collaborate.md` — `/xgh-collaborate` command
+- [x] `tests/test-multi-agent.sh`
 
 📄 [Plan 5 document](docs/plans/2026-03-13-plan-5-multi-agent.md)
 
 ---
 
-### Plan 6 — Workflow Skills ⏳ Not started
+### Plan 6 — Workflow Skills ✅ Complete
 
 > `xgh:investigate`, `xgh:implement-design`, `xgh:implement-ticket` — MCP-powered workflow skills
 
-**Will deliver:**
-- [ ] `skills/investigate/investigate.md` — Superpowers-style investigation workflow with MCP auto-detection (Slack, Figma, Atlassian)
-- [ ] `skills/implement-design/implement-design.md` — design-to-implementation workflow
-- [ ] `skills/implement-ticket/implement-ticket.md` — ticket-to-implementation workflow
-- [ ] `commands/investigate.md` — `/xgh investigate` command
-- [ ] `commands/implement-design.md` — `/xgh implement-design` command
-- [ ] `commands/implement.md` — `/xgh implement` command
-- [ ] `tests/test-workflow-skills.sh`
+**Delivered:**
+- [x] `skills/investigate/investigate.md` — Superpowers-style investigation workflow with MCP auto-detection (Slack, Figma, Atlassian)
+- [x] `skills/implement-design/implement-design.md` — design-to-implementation workflow
+- [x] `skills/implement-ticket/implement-ticket.md` — ticket-to-implementation workflow
+- [x] `commands/investigate.md` — `/xgh investigate` command
+- [x] `commands/implement-design.md` — `/xgh implement-design` command
+- [x] `commands/implement.md` — `/xgh implement` command
+- [x] `tests/test-workflow-skills.sh`
 
 📄 [Plan 6 document](docs/plans/2026-03-13-plan-6-workflow-skills.md)
 
