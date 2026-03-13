@@ -1,7 +1,7 @@
 # xgh — eXtreme Go Horse 🐴
 
-> **Context-aware AI coding conventions powered by Cipher memory and a living context tree.**
-> An open, self-hosted alternative to ByteRover — team knowledge that grows with every session.
+> **Context-aware AI coding conventions powered by [Cipher](https://github.com/campfirein/cipher) memory and a living context tree.**
+> Persistent team knowledge that grows with every session — for productive engineering work, solo or within teams.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Plan 1](https://img.shields.io/badge/Plan%201%20Foundation-complete-brightgreen)](#implementation-roadmap)
@@ -432,4 +432,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-*xgh is inspired by [ByteRover](https://byterover.dev) and the [Superpowers methodology](https://www.claudesuperpowers.com). It is an open, self-hosted, provider-agnostic alternative.*
+*Built around the [Cipher](https://github.com/campfirein/cipher) memory layer by [ByteRover](https://byterover.dev) — thank you for making it possible. Also inspired by the [Superpowers methodology](https://www.claudesuperpowers.com).*
