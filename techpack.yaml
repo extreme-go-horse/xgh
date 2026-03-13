@@ -40,7 +40,22 @@ components:
     type: hook
     hookEvent: SessionStart
     source: hooks/session-start.sh
-    description: "Load context tree and inject conventions at session start"
+    description: "Load context tree and inject conventions at session start. Set XGH_BRIEFING=1 to trigger the briefing skill automatically."
+
+  - id: briefing-skill
+    type: skill
+    source: skills/briefing/briefing.md
+    description: "Session briefing skill — checks Slack, Jira, and GitHub and produces an actionable summary"
+
+  - id: briefing-command
+    type: command
+    source: commands/briefing.md
+    description: "Slash command /xgh-briefing — triggers the xgh:briefing skill on demand"
+
+  - id: mcp-detect
+    type: script
+    source: scripts/mcp-detect.sh
+    description: "MCP availability detection helpers sourced by workflow skills and hooks"
 
   - id: prompt-submit-hook
     type: hook
