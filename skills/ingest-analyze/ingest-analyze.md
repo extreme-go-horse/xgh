@@ -133,6 +133,8 @@ When count mod 5 == 0:
 
 ## Step 7 — Write to Cipher
 
+> **Note:** Cipher writes are always allowed regardless of provider access levels. Cipher is internal memory, not an external provider — the `providers.<type>.access` setting only governs writes back to external services (Slack, Jira, Confluence, GitHub, Figma).
+
 Route based on `content_types.<type>.promote_to` from `ingest.yaml`:
 
 **workspace** → call workspace-write.js:
@@ -202,6 +204,8 @@ tags: [digest, daily]
 ```
 
 Urgency emoji: 🔴 (>50h old), 🟡 (8–50h), 🟢 (<8h). Update `open_replies` and `urgency_peak` counts.
+
+> **Auto-post:** If `providers.slack.access` is `auto` and `notifications.digest_channel` is set, post the digest summary to that Slack channel automatically. If `ask`, propose the post and wait for user confirmation. If `read` (default), only write the local file.
 
 ## Step 11 — Log and track usage
 

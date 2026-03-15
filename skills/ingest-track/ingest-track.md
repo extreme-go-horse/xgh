@@ -41,6 +41,12 @@ Ask each question below separately. Validate before moving to the next.
 8. **GitHub repos** (optional) — `org/repo` format. Store as refs. If provided, ask:
    `Index codebase now? [y/n]` — if yes, invoke the xgh:ingest-index-repo skill in quick mode.
 
+9. **Default access level** — ask: "Default access level for all providers? (`read` / `ask` / `auto`)" Default to `read` if the user skips.
+   - `read` — observe only; can fetch data, never writes back to the provider.
+   - `ask` — can propose write actions, but must confirm with the user first.
+   - `auto` — fully autonomous writes (e.g., auto-post digests, transition tickets).
+   Set all five providers (slack, jira, confluence, github, figma) to the chosen level. Note that the user can customize per-provider later in `~/.xgh/ingest.yaml`.
+
 ## Step 2 — Initial backfill
 
 Read the last 200 messages from each Slack channel using `slack_read_channel`. For each message containing a Jira/Confluence/GitHub link, stash it to `~/.xgh/inbox/` and add the ref to the enrichment list.
@@ -61,6 +67,12 @@ projects:
     status: active
     my_role: ios-lead
     my_intent: "Own iOS implementation, delegate QA to platform team, coordinate backend API changes"
+    providers:
+      slack:      { access: read }
+      jira:       { access: read }
+      confluence: { access: read }
+      github:     { access: read }
+      figma:      { access: read }
     slack:
       - "#ptech-31204-general"
       - "#ptech-31204-engineering"
