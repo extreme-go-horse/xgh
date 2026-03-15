@@ -59,10 +59,40 @@ curl -fsSL https://raw.githubusercontent.com/ipedro/xgh/main/install.sh | bash
 │   ├── session-start.sh             # Injects context tree at session start
 │   └── prompt-submit.sh             # Injects decision table on prompt submit
 ├── skills/                          # Claude Code skill definitions (markdown)
-│   └── mcp-setup/
-│       └── mcp-setup.md
+│   ├── mcp-setup/mcp-setup.md
+│   ├── brief/brief.md
+│   ├── ask/ask.md
+│   ├── curate/curate.md
+│   ├── collab/collab.md
+│   ├── design/design.md
+│   ├── implement/implement.md
+│   ├── investigate/investigate.md
+│   ├── profile/profile.md
+│   ├── retrieve/retrieve.md
+│   ├── analyze/analyze.md
+│   ├── track/track.md
+│   ├── doctor/doctor.md
+│   ├── index/index.md
+│   ├── calibrate/calibrate.md
+│   └── init/init.md
 ├── commands/                        # Claude Code slash commands (markdown)
-│   └── setup.md
+│   ├── setup.md
+│   ├── brief.md
+│   ├── ask.md
+│   ├── curate.md
+│   ├── collab.md
+│   ├── design.md
+│   ├── implement.md
+│   ├── investigate.md
+│   ├── profile.md
+│   ├── retrieve.md
+│   ├── analyze.md
+│   ├── track.md
+│   ├── doctor.md
+│   ├── index.md
+│   ├── calibrate.md
+│   ├── init.md
+│   └── help.md
 ├── agents/                          # Sub-agent definitions (Plan 5)
 ├── templates/
 │   └── instructions.md              # Template injected into target CLAUDE.local.md
