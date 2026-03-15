@@ -24,6 +24,13 @@ claude -p "/xgh-retrieve" \
   --max-turns 3
 ```
 
+## Context window management
+
+MCP tool calls (Slack, Jira, Confluence, Figma) return directly into context — these cannot be wrapped.
+However, **all Bash processing scripts** (urgency scoring, inbox stashing, link extraction) that may produce >20 lines of output SHOULD be routed through `ctx_execute(language: "python", code: "...")` or `ctx_batch_execute` when the context-mode plugin is available. This keeps only the printed summary in context.
+
+If context-mode is not available, use standard Bash but keep script output concise (print summaries, not raw data).
+
 ## Guard checks (run before anything else)
 
 1. If `~/.xgh/ingest.yaml` does not exist: `echo "ERROR: ~/.xgh/ingest.yaml not found. Run /xgh-track."` and exit.

@@ -545,20 +545,51 @@ cat > "${CLAUDE_DIR}/.mcp.json" <<MCPEOF
 MCPEOF
 
 # ── 5. Hooks ────────────────────────────────────────────
-info "Installing hooks..."
-mkdir -p "${CLAUDE_DIR}/hooks"
+XGH_HOOKS_SCOPE="${XGH_HOOKS_SCOPE:-}"
+
+if [ -z "$XGH_HOOKS_SCOPE" ] && [ "$XGH_DRY_RUN" -eq 0 ]; then
+  echo ""
+  echo -e "  ${GREEN}Install hooks to:${NC}"
+  echo ""
+  echo "    1) Global (~/.claude) — recommended, works in all projects"
+  echo "    2) Project (.claude)  — only this project"
+  echo ""
+  read -r -p "  Choice [1]: " hooks_choice
+  hooks_choice="${hooks_choice:-1}"
+  if [ "$hooks_choice" = "2" ]; then
+    XGH_HOOKS_SCOPE="project"
+  else
+    XGH_HOOKS_SCOPE="global"
+  fi
+elif [ -z "$XGH_HOOKS_SCOPE" ]; then
+  XGH_HOOKS_SCOPE="global"
+fi
+
+if [ "$XGH_HOOKS_SCOPE" = "global" ]; then
+  HOOKS_DIR="${HOME}/.claude/hooks"
+  SETTINGS_FILE="${HOME}/.claude/settings.json"
+  HOOKS_CMD_PREFIX="~/.claude/hooks"
+  info "Installing hooks globally (~/.claude/hooks)..."
+else
+  HOOKS_DIR="${CLAUDE_DIR}/hooks"
+  SETTINGS_FILE="${CLAUDE_DIR}/settings.local.json"
+  HOOKS_CMD_PREFIX=".claude/hooks"
+  info "Installing hooks to project (.claude/hooks)..."
+fi
+
+mkdir -p "${HOOKS_DIR}"
 
 # Copy hook files (or create placeholders if not in pack yet)
 for hook in session-start prompt-submit; do
   src="${PACK_DIR}/hooks/${hook}.sh"
-  dst="${CLAUDE_DIR}/hooks/xgh-${hook}.sh"
+  dst="${HOOKS_DIR}/xgh-${hook}.sh"
   if [ -f "$src" ]; then
     cp "$src" "$dst"
   else
     # Placeholder hook
     cat > "$dst" <<'HOOKEOF'
 #!/usr/bin/env bash
-# xgh placeholder hook — replaced by Plan 3
+# xgh placeholder hook
 exit 0
 HOOKEOF
   fi
@@ -568,7 +599,7 @@ done
 # -- Cipher Pre/PostToolUse hooks (detect extraction failures, suggest direct storage) --
 info "Installing cipher Pre/PostToolUse hooks..."
 
-cat > "${CLAUDE_DIR}/hooks/cipher-pre-hook.sh" <<'PREHOOKEOF'
+cat > "${HOOKS_DIR}/cipher-pre-hook.sh" <<'PREHOOKEOF'
 #!/bin/bash
 # PreToolUse hook for cipher memory tools.
 # Detects structured/complex content that cipher's 3B extraction model
@@ -638,9 +669,9 @@ MARKDOWN
     }'
 fi
 PREHOOKEOF
-chmod +x "${CLAUDE_DIR}/hooks/cipher-pre-hook.sh"
+chmod +x "${HOOKS_DIR}/cipher-pre-hook.sh"
 
-cat > "${CLAUDE_DIR}/hooks/cipher-post-hook.sh" <<'POSTHOOKEOF'
+cat > "${HOOKS_DIR}/cipher-post-hook.sh" <<'POSTHOOKEOF'
 #!/bin/bash
 # PostToolUse hook for cipher memory tools.
 # Detects when cipher's extraction returned 0 results and
@@ -713,44 +744,59 @@ MARKDOWN
     }'
 fi
 POSTHOOKEOF
-chmod +x "${CLAUDE_DIR}/hooks/cipher-post-hook.sh"
+chmod +x "${HOOKS_DIR}/cipher-post-hook.sh"
 
 # ── 6. Settings ─────────────────────────────────────────
 info "Configuring Claude Code settings..."
-SETTINGS_FILE="${CLAUDE_DIR}/settings.local.json"
+# SETTINGS_FILE was set in section 5 based on scope
 
-# Start with hooks-settings as base, merge with existing if present
 HOOKS_SETTINGS="${PACK_DIR}/config/hooks-settings.json"
 PERMS_SETTINGS="${PACK_DIR}/config/settings.json"
 
+# Resolve hook command paths from template placeholder
+RESOLVED_HOOKS=$(python3 -c "
+import json
+with open('${HOOKS_SETTINGS}') as f:
+    data = json.load(f)
+# Replace __HOOKS_DIR__ placeholder with actual path
+raw = json.dumps(data)
+raw = raw.replace('__HOOKS_DIR__', '${HOOKS_CMD_PREFIX}')
+print(raw)
+" 2>/dev/null)
+
 if [ -f "$SETTINGS_FILE" ] && [ -s "$SETTINGS_FILE" ]; then
   # Merge: existing + hooks + permissions
-  # Use python3 for reliable JSON merge (available on macOS)
   python3 -c "
 import json, sys
 base = json.load(open('${SETTINGS_FILE}'))
-for f in sys.argv[1:]:
-    with open(f) as fh:
-        overlay = json.load(fh)
-        for k, v in overlay.items():
-            if k in base and isinstance(base[k], dict) and isinstance(v, dict):
-                base[k].update(v)
-            else:
-                base[k] = v
+hooks_data = json.loads('''${RESOLVED_HOOKS}''')
+perms_data = json.load(open('${PERMS_SETTINGS}'))
+for overlay in [hooks_data, perms_data]:
+    for k, v in overlay.items():
+        if k in base and isinstance(base[k], dict) and isinstance(v, dict):
+            base[k].update(v)
+        else:
+            base[k] = v
 json.dump(base, open('${SETTINGS_FILE}', 'w'), indent=2)
-" "$HOOKS_SETTINGS" "$PERMS_SETTINGS" 2>/dev/null || {
-    # Fallback: just use hooks settings
-    cp "$HOOKS_SETTINGS" "$SETTINGS_FILE"
+" 2>/dev/null || {
+    warn "Could not merge settings — writing fresh"
+    python3 -c "
+import json
+hooks_data = json.loads('''${RESOLVED_HOOKS}''')
+perms_data = json.load(open('${PERMS_SETTINGS}'))
+merged = {**hooks_data, **perms_data}
+json.dump(merged, open('${SETTINGS_FILE}', 'w'), indent=2)
+" 2>/dev/null
   }
 else
   # No existing settings — merge hooks + permissions
   python3 -c "
 import json
-hooks = json.load(open('${HOOKS_SETTINGS}'))
-perms = json.load(open('${PERMS_SETTINGS}'))
-merged = {**hooks, **perms}
+hooks_data = json.loads('''${RESOLVED_HOOKS}''')
+perms_data = json.load(open('${PERMS_SETTINGS}'))
+merged = {**hooks_data, **perms_data}
 json.dump(merged, open('${SETTINGS_FILE}', 'w'), indent=2)
-" 2>/dev/null || cp "$HOOKS_SETTINGS" "$SETTINGS_FILE"
+" 2>/dev/null
 fi
 
 # Add cipher Pre/PostToolUse hooks to settings
@@ -763,7 +809,6 @@ cipher_matcher = 'mcp__cipher__cipher_extract_and_operate_memory|mcp__cipher__ci
 # Add PreToolUse hook if not already present
 if 'PreToolUse' not in hooks:
     hooks['PreToolUse'] = []
-# Check if cipher hook already exists
 pre_exists = any(
     cipher_matcher in str(h.get('matcher', ''))
     for h in hooks.get('PreToolUse', [])
@@ -771,7 +816,7 @@ pre_exists = any(
 if not pre_exists:
     hooks['PreToolUse'].append({
         'matcher': cipher_matcher,
-        'hooks': [{'type': 'command', 'command': 'bash .claude/hooks/cipher-pre-hook.sh'}]
+        'hooks': [{'type': 'command', 'command': 'bash ${HOOKS_CMD_PREFIX}/cipher-pre-hook.sh'}]
     })
 
 # Add PostToolUse hook if not already present
@@ -784,7 +829,7 @@ post_exists = any(
 if not post_exists:
     hooks['PostToolUse'].append({
         'matcher': cipher_matcher,
-        'hooks': [{'type': 'command', 'command': 'bash .claude/hooks/cipher-post-hook.sh'}]
+        'hooks': [{'type': 'command', 'command': 'bash ${HOOKS_CMD_PREFIX}/cipher-post-hook.sh'}]
     })
 
 json.dump(settings, open('${SETTINGS_FILE}', 'w'), indent=2)
@@ -1069,7 +1114,7 @@ echo "  LLM:          ${XGH_LLM_MODEL}"
 echo "  Embeddings:   ${XGH_EMBED_MODEL}"
 echo "  Context tree: ${XGH_CONTEXT_TREE}/"
 echo "  Cipher MCP:   .claude/.mcp.json (using cipher-mcp wrapper)"
-echo "  Hooks:        .claude/hooks/xgh-*.sh + cipher-{pre,post}-hook.sh"
+echo "  Hooks:        ${HOOKS_DIR}/xgh-*.sh + cipher-{pre,post}-hook.sh (${XGH_HOOKS_SCOPE})"
 echo "  Skill:        ~/.claude/skills/store-memory/"
 echo ""
 echo "  To start the model server:"
@@ -1079,6 +1124,7 @@ echo "  Then start Claude Code — your memory layer is active."
 echo ""
 echo "  Customize: XGH_TEAM=my-team XGH_PRESET=openai ./install.sh"
 echo "  Skip models: XGH_LLM_MODEL=... XGH_EMBED_MODEL=... ./install.sh"
+echo "  Hooks scope:  XGH_HOOKS_SCOPE=global ./install.sh  (or =project)"
 echo "  Skip plugins: XGH_INSTALL_PLUGINS=skip ./install.sh"
 echo "  Install all:  XGH_INSTALL_PLUGINS=all ./install.sh"
 echo ""
