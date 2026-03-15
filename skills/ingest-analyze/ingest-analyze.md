@@ -24,6 +24,14 @@ claude -p "/xgh-analyze" \
   --max-turns 10
 ```
 
+## Context window management
+
+All heavy processing (classification, dedup batching, payload extraction, digest generation) SHOULD be routed through `ctx_execute(language: "python", code: "...")` when the context-mode plugin is available. Only print the summary (counts, errors, top items) — never dump raw inbox content into context.
+
+MCP tool calls (cipher_memory_search for dedup) return directly into context and cannot be wrapped.
+
+If context-mode is not available, use standard Bash but keep script output to summaries only.
+
 ## Guard checks
 
 Same as retriever: check config exists, check daily cap via `~/.xgh/lib/usage-tracker.sh`.

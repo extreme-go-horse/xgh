@@ -25,16 +25,20 @@ Ask each question below separately. Validate before moving to the next.
 1. **Project name** — free text. Derive config key: lowercase, spaces → hyphens, no special chars.
    Example: "Passcode Feature" → `passcode-feature`
 
-2. **Slack channels** — comma-separated channel names (with or without `#`).
+2. **Your role in this project** (`my_role`) — suggest common values: `ios-lead`, `mobile-lead`, `engineer`, `reviewer`, `observer`. Let the user type any value. Default to `engineer` if they skip.
+
+3. **What you own / coordinate** (`my_intent`) — free text describing what the user owns, delegates, or coordinates in this project. Example: "I own the iOS implementation, delegate QA to the platform team, and coordinate with backend on API changes." Let the user skip with empty.
+
+4. **Slack channels** — comma-separated channel names (with or without `#`).
    For each, verify accessibility via `slack_search_channels`. If not found, show error and re-ask.
 
-3. **Jira project key** (optional) — e.g. `PTECH-31204`. If provided, call `getJiraIssue` with a search to verify. Show count of open issues if found.
+5. **Jira project key** (optional) — e.g. `PTECH-31204`. If provided, call `getJiraIssue` with a search to verify. Show count of open issues if found.
 
-4. **Confluence links** (optional) — paste RFC/spec/wiki URLs one per line. For each, call `getConfluencePage` to verify access, then use `cipher_extract_and_operate_memory` to index the content.
+6. **Confluence links** (optional) — paste RFC/spec/wiki URLs one per line. For each, call `getConfluencePage` to verify access, then use `cipher_extract_and_operate_memory` to index the content.
 
-5. **Figma links** (optional) — store as plain refs (no indexing in v1).
+7. **Figma links** (optional) — store as plain refs (no indexing in v1).
 
-6. **GitHub repos** (optional) — `org/repo` format. Store as refs. If provided, ask:
+8. **GitHub repos** (optional) — `org/repo` format. Store as refs. If provided, ask:
    `Index codebase now? [y/n]` — if yes, invoke the xgh:ingest-index-repo skill in quick mode.
 
 ## Step 2 — Initial backfill
@@ -55,6 +59,8 @@ Use python3 to safely read, update, and write `~/.xgh/ingest.yaml` (read → mod
 projects:
   passcode-feature:
     status: active
+    my_role: ios-lead
+    my_intent: "Own iOS implementation, delegate QA to platform team, coordinate backend API changes"
     slack:
       - "#ptech-31204-general"
       - "#ptech-31204-engineering"
@@ -77,6 +83,7 @@ projects:
 
 ```
 ✓ Project "passcode-feature" added to ~/.xgh/ingest.yaml
+  Role: ios-lead
   Channels: #ptech-31204-general, #ptech-31204-engineering
   Initial backfill: 15 items queued in ~/.xgh/inbox/
   Next retriever run will include this project.

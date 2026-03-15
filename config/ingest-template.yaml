@@ -148,5 +148,45 @@ calibration:
   last_run: null
   last_threshold: null
 
+# projects — per-project monitoring config, populated via /xgh-track
+#
+# Schema:
+#   <project-key>:
+#     status: active | paused             # monitoring state
+#     my_role: <string>                   # your role in this project (ios-lead, mobile-lead, engineer, reviewer, observer, ...)
+#     my_intent: <string>                 # what you own, delegate, or coordinate in this project
+#     slack: [<channel>, ...]             # Slack channels to monitor
+#     jira: <project-key>                 # Jira project key (optional)
+#     confluence: [<page-path>, ...]      # Confluence page paths (optional)
+#     github: [<org/repo>, ...]           # GitHub repos (optional)
+#     figma: [<url>, ...]                 # Figma links (optional)
+#     rfcs: []                            # discovered RFCs
+#     index:                              # codebase indexing config
+#       last_full: null
+#       schedule: weekly
+#       watch_paths: []
+#     last_scan: null
+#
+# Example:
+#   passcode-feature:
+#     status: active
+#     my_role: ios-lead
+#     my_intent: "Own iOS implementation, delegate QA to platform team, coordinate backend API changes"
+#     slack:
+#       - "#ptech-31204-general"
+#       - "#ptech-31204-engineering"
+#     jira: PTECH-31204
+#     confluence:
+#       - /spaces/PTECH/pages/rfc-passcode-v2
+#     github:
+#       - acme-corp/acme-ios
+#     figma:
+#       - https://figma.com/design/abc123/passcode-screens
+#     rfcs: []
+#     index:
+#       last_full: null
+#       schedule: weekly
+#       watch_paths: []
+#     last_scan: null
+
 projects: {}
-# Populated via /xgh-track
