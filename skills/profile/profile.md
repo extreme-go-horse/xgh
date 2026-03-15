@@ -1,12 +1,12 @@
 ---
-name: xgh:team-profile
+name: xgh:profile
 description: >
   Analyzes engineer Jira history to produce throughput profiles, ticket affinity,
   and data-driven time estimates for task assignment. Supports single engineer
   and team-view modes.
 type: flexible
 triggers:
-  - when invoked via /xgh-team-profile command
+  - when invoked via /xgh-profile command
   - when the user asks about engineer capacity, assignment, or estimation
 mcp_dependencies:
   required:
@@ -15,17 +15,17 @@ mcp_dependencies:
     - cipher: "Cipher MCP — store/recall profile data across sessions"
 ---
 
-# xgh:team-profile — Engineer Throughput & Affinity Analysis
+# xgh:profile — Engineer Throughput & Affinity Analysis
 
 Analyze an engineer's Jira history to produce throughput profiles, ticket type affinity, and data-driven estimates for open work. Supports single-engineer and team-view (multi-engineer) modes.
 
 ## Trigger
 
 ```
-/xgh-team-profile <engineer name> [project key]
-/xgh-team-profile Alice
-/xgh-team-profile Alice PTECH
-/xgh-team-profile Alice,Bob,Carol PTECH
+/xgh-profile <engineer name> [project key]
+/xgh-profile Alice
+/xgh-profile Alice PTECH
+/xgh-profile Alice,Bob,Carol PTECH
 ```
 
 - `<engineer name>` — Required. The engineer's display name (or comma-separated names for team view).

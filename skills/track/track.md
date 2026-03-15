@@ -1,5 +1,5 @@
 ---
-name: xgh:ingest-track
+name: xgh:track
 description: >
   Interactive project onboarding. Prompts for Slack channels, Jira, Confluence, Figma,
   and GitHub refs, validates connectivity, runs initial backfill of recent Slack history,
@@ -14,7 +14,7 @@ mcp_dependencies:
   - mcp__claude_ai_Atlassian__getConfluencePage
 ---
 
-# xgh:ingest-track — Project Onboarding
+# xgh:track — Project Onboarding
 
 Interactive skill to add a new project to xgh monitoring. Ask one question at a time.
 
@@ -39,7 +39,7 @@ Ask each question below separately. Validate before moving to the next.
 7. **Figma links** (optional) — store as plain refs (no indexing in v1).
 
 8. **GitHub repos** (optional) — `org/repo` format. Store as refs. If provided, ask:
-   `Index codebase now? [y/n]` — if yes, invoke the xgh:ingest-index-repo skill in quick mode.
+   `Index codebase now? [y/n]` — if yes, invoke the xgh:index skill in quick mode.
 
 9. **Default access level** — ask: "Default access level for all providers? (`read` / `ask` / `auto`)" Default to `read` if the user skips.
    - `read` — observe only; can fetch data, never writes back to the provider.

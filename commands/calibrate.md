@@ -5,7 +5,7 @@ description: Calibrate the dedup similarity threshold by evaluating real memory 
 
 # /xgh-calibrate — Dedup Threshold Calibration
 
-Run the `xgh:ingest-calibrate` skill to tune the dedup threshold for your embedding model.
+Run the `xgh:calibrate` skill to tune the dedup threshold for your embedding model.
 
 ## Usage
 

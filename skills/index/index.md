@@ -1,12 +1,12 @@
 ---
-name: xgh:ingest-index-repo
+name: xgh:index
 description: >
   Codebase architecture extraction. Scans a repository to extract modules, patterns,
   navigation flows, naming conventions, and feature flags into Cipher memory.
   Supports quick (~5 min) and full (~30 min) modes.
 type: flexible
 triggers:
-  - when the user runs /xgh-index-repo
+  - when the user runs /xgh-index
   - when the user says "index repo", "index codebase", "scan the codebase"
   - when invoked by ingest-track after adding a GitHub repo
 mcp_dependencies:
@@ -14,7 +14,7 @@ mcp_dependencies:
   - mcp__cipher__cipher_memory_search
 ---
 
-# xgh:ingest-index-repo — Codebase Indexing
+# xgh:index — Codebase Indexing
 
 ## Arguments
 
@@ -104,5 +104,5 @@ Use python3 to safely update the YAML (read → modify → write).
 ✓ Indexed acme-ios (iOS/Swift) in quick mode
   15 memories stored in Cipher
   Modules found: Auth, Home, Passcode, Payments, Settings
-  Run /xgh-index-repo --depth full for deeper extraction
+  Run /xgh-index --depth full for deeper extraction
 ```

@@ -1,5 +1,5 @@
 ---
-name: query-strategies
+name: xgh:ask
 description: "Tiered query routing: when to use Cipher semantic search vs context tree BM25 vs both. Query refinement patterns for maximum recall."
 type: flexible
 triggers:
@@ -8,7 +8,7 @@ triggers:
   - manual-query
 ---
 
-# xgh:query-strategies
+# xgh:ask
 
 ## Purpose
 

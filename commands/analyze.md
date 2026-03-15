@@ -5,7 +5,7 @@ description: Run the xgh context analysis loop. Reads ~/.xgh/inbox/, classifies 
 
 # /xgh-analyze — Context Analysis Loop
 
-Run the `xgh:ingest-analyze` skill to process all queued inbox items.
+Run the `xgh:analyze` skill to process all queued inbox items.
 
 ## Usage
 

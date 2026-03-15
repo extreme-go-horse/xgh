@@ -44,4 +44,4 @@ Start a systematic investigation of a bug or incident. Reads context from Slack,
 ## Related Skills
 
 - `xgh:investigate` — the full workflow skill this command triggers
-- `xgh:implement-ticket` — after investigation, implement the fix via ticket
+- `xgh:implement` — after investigation, implement the fix via ticket

@@ -33,7 +33,7 @@ When the user invokes `/xgh-curate`, follow this procedure exactly:
 
 ### Step 2: Classify and Structure
 
-Use the `xgh:curate-knowledge` skill to:
+Use the `xgh:curate` skill to:
 
 1. **Determine category:** convention, decision, pattern, bug-fix, discovery, constraint
 2. **Determine domain/topic path:** e.g., `authentication/jwt-implementation/token-refresh.md`

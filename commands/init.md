@@ -21,8 +21,8 @@ No arguments. The skill walks you through everything interactively.
 2. **Profile setup** — name, role, squad, platforms
 3. **Add first project** — invokes `/xgh-track` for full project onboarding
 4. **Initial retrieval** — backfills recent Slack messages and linked resources
-5. **Team profiling** (optional) — runs `/xgh-team-profile` for each team member
-6. **Index codebase** (optional) — runs `/xgh-ingest-index-repo` in quick mode
+5. **Team profiling** (optional) — runs `/xgh-profile` for each team member
+6. **Index codebase** (optional) — runs `/xgh-index` in quick mode
 
 ## Prerequisites
 
@@ -33,5 +33,5 @@ No arguments. The skill walks you through everything interactively.
 
 - `xgh:init` — the full workflow skill this command triggers
 - `xgh:mcp-setup` — standalone MCP configuration audit
-- `xgh:ingest-track` — add additional projects after initial setup
-- `xgh:briefing` — your first command after init completes
+- `xgh:track` — add additional projects after initial setup
+- `xgh:brief` — your first command after init completes

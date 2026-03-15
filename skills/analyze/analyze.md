@@ -1,5 +1,5 @@
 ---
-name: xgh:ingest-analyze
+name: xgh:analyze
 description: >
   Headless analyzer loop. Reads ~/.xgh/inbox/, classifies content types, extracts
   structured memories, deduplicates against Cipher, writes to workspace or personal
@@ -15,7 +15,7 @@ mcp_dependencies:
   - mcp__cipher__cipher_extract_and_operate_memory
 ---
 
-# xgh:ingest-analyze — Analysis Loop
+# xgh:analyze — Analysis Loop
 
 Invoked headlessly:
 ```

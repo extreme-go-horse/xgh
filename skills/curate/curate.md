@@ -1,5 +1,5 @@
 ---
-name: curate-knowledge
+name: xgh:curate
 description: "How to structure knowledge for maximum retrieval quality. Guides classification into domain/topic, frontmatter construction, and tag selection."
 type: flexible
 triggers:
@@ -9,7 +9,7 @@ triggers:
   - manual-curate
 ---
 
-# xgh:curate-knowledge
+# xgh:curate
 
 ## Purpose
 

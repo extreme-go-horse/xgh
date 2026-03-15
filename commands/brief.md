@@ -1,11 +1,11 @@
 ---
-name: xgh-briefing
+name: xgh-brief
 description: Run a session briefing — checks Slack, Jira, and GitHub and produces an actionable summary of what needs attention right now.
 ---
 
-# /xgh-briefing — Session Briefing
+# /xgh-brief — Session Briefing
 
-Run the `xgh:briefing` skill to generate a structured morning/session briefing.
+Run the `xgh:brief` skill to generate a structured morning/session briefing.
 
 The briefing will:
 
@@ -17,7 +17,7 @@ The briefing will:
 ## Usage
 
 ```
-/xgh-briefing
+/xgh-brief
 ```
 
 No arguments needed. Run it at the start of any work session to get oriented.

@@ -1,7 +1,7 @@
 ---
-name: xgh:implement-design
+name: xgh:design
 description: "Figma-driven UI implementation — from design file to convention-compliant code"
-trigger: "/xgh implement-design"
+trigger: "/xgh-design"
 mcp_dependencies:
   required: []
   optional:
@@ -11,15 +11,15 @@ mcp_dependencies:
     - slack: "Slack MCP — find design discussions"
 ---
 
-# xgh:implement-design — Figma-Driven UI Implementation
+# xgh:design — Figma-Driven UI Implementation
 
 Takes a Figma design URL and produces a complete, convention-compliant implementation. Gathers ALL available context from the design file, enriches with xgh memory and team conventions, confirms states interactively, then generates and executes a Superpowers writing-plans implementation plan with TDD.
 
 ## Trigger
 
 ```
-/xgh implement-design <figma-url>
-/xgh implement-design
+/xgh-design <figma-url>
+/xgh-design
 ```
 
 If no URL is provided, prompt the user for a Figma file URL or node URL.

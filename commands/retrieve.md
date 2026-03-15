@@ -5,7 +5,7 @@ description: Run the xgh context retrieval loop. Scans configured Slack channels
 
 # /xgh-retrieve — Context Retrieval Loop
 
-Run the `xgh:ingest-retrieve` skill to scan all active projects for new messages and linked resources.
+Run the `xgh:retrieve` skill to scan all active projects for new messages and linked resources.
 
 ## Usage
 

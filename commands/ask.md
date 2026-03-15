@@ -1,16 +1,16 @@
-# /xgh-query
+# /xgh-ask
 
 Search xgh memory (Cipher vectors + context tree) and return ranked results.
 
 ## Usage
 
 ```
-/xgh-query <question or keywords>
+/xgh-ask <question or keywords>
 ```
 
 ## Instructions
 
-When the user invokes `/xgh-query`, follow this procedure exactly:
+When the user invokes `/xgh-ask`, follow this procedure exactly:
 
 ### Step 1: Parse the Query
 

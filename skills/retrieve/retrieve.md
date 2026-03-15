@@ -1,5 +1,5 @@
 ---
-name: xgh:ingest-retrieve
+name: xgh:retrieve
 description: >
   Headless retrieval loop. Scans configured Slack channels, follows links 1-hop to
   Jira/Confluence/GitHub/Figma, stashes raw content to ~/.xgh/inbox/, and detects urgency.
@@ -15,7 +15,7 @@ mcp_dependencies:
   - mcp__claude_ai_Figma__get_metadata
 ---
 
-# xgh:ingest-retrieve — Retrieval Loop
+# xgh:retrieve — Retrieval Loop
 
 Invoked headlessly:
 ```

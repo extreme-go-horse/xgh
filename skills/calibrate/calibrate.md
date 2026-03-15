@@ -1,5 +1,5 @@
 ---
-name: xgh:ingest-calibrate
+name: xgh:calibrate
 description: >
   Calibrate the dedup similarity threshold against real data. Pulls sample pairs from
   Cipher workspace memory, evaluates them for semantic duplication, computes F1 scores
@@ -12,7 +12,7 @@ mcp_dependencies:
   - mcp__cipher__cipher_memory_search
 ---
 
-# xgh:ingest-calibrate — Dedup Threshold Calibration
+# xgh:calibrate — Dedup Threshold Calibration
 
 Modes: interactive (default), headless (`--auto`), comparison (`--compare`).
 
