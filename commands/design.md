@@ -1,24 +1,24 @@
 ---
-name: implement-design
+name: design
 description: "Implement a UI component from a Figma design with full context extraction"
-usage: "/xgh implement-design [figma-url]"
+usage: "/xgh-design [figma-url]"
 aliases: ["design", "figma"]
 ---
 
-# /xgh implement-design
+# /xgh-design
 
 Implement a UI component from a Figma design. Extracts ALL available context (design tokens, states, FigJam notes, Code Connect mappings), enriches with xgh memory and codebase conventions, reviews interactively, then generates and executes a TDD implementation plan.
 
 ## Usage
 
 ```
-/xgh implement-design <figma-url>
-/xgh implement-design
+/xgh-design <figma-url>
+/xgh-design
 ```
 
 ## Behavior
 
-1. Load the `xgh:implement-design` skill from `skills/implement-design/implement-design.md`
+1. Load the `xgh:design` skill from `skills/design/design.md`
 2. Auto-detect available MCP integrations (Figma, Cipher, Jira, Slack)
 3. If a Figma URL was provided, begin design mining immediately
 4. If no URL was provided, ask the user for a Figma file or node URL
@@ -38,12 +38,12 @@ Implement a UI component from a Figma design. Extracts ALL available context (de
 ## Examples
 
 ```
-/xgh implement-design https://www.figma.com/file/abc123/MyDesign?node-id=34079:43248
-/xgh implement-design https://www.figma.com/design/abc123/MyDesign
-/xgh implement-design
+/xgh-design https://www.figma.com/file/abc123/MyDesign?node-id=34079:43248
+/xgh-design https://www.figma.com/design/abc123/MyDesign
+/xgh-design
 ```
 
 ## Related Skills
 
-- `xgh:implement-design` — the full workflow skill this command triggers
-- `xgh:implement-ticket` — if the design is linked to a ticket, use implement instead
+- `xgh:design` — the full workflow skill this command triggers
+- `xgh:implement` — if the design is linked to a ticket, use implement instead

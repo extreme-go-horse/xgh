@@ -1,18 +1,18 @@
 ---
-name: xgh:briefing
+name: xgh:brief
 description: >
   Morning/session briefing skill. Checks Slack, Jira, and GitHub for urgent
   items and produces a structured, actionable summary before the user starts
-  work. Invoked by /xgh-briefing or automatically by the SessionStart hook
+  work. Invoked by /xgh-brief or automatically by the SessionStart hook
   when XGH_BRIEFING=1.
 type: flexible
 triggers:
-  - when the user runs /xgh-briefing
+  - when the user runs /xgh-brief
   - when the SessionStart hook detects XGH_BRIEFING=1
   - when the user says "brief me", "what's up", "morning briefing", or similar
 ---
 
-# xgh:briefing — Session Briefing
+# xgh:brief — Session Briefing
 
 Produce a structured session briefing by checking available data sources
 (Slack, Jira, GitHub) and summarising what needs attention right now.
@@ -148,7 +148,7 @@ What would you like to work on today?
 ## Composability
 
 This skill is invoked by:
-- `/xgh-briefing` command (direct user invocation)
+- `/xgh-brief` command (direct user invocation)
 - `session-start.sh` hook when `XGH_BRIEFING=1` is set in the environment
 - Other skills that want to surface a briefing mid-session (rare)
 

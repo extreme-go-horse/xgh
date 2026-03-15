@@ -1,20 +1,20 @@
 ---
-name: xgh-team-profile
+name: xgh-profile
 description: "Analyze an engineer's Jira history to produce throughput profiles, ticket affinity, and data-driven estimates for task assignment."
-usage: "/xgh-team-profile <engineer name> [project key]"
+usage: "/xgh-profile <engineer name> [project key]"
 aliases: ["team-profile", "profile"]
 ---
 
-# /xgh-team-profile — Engineer Throughput & Affinity Analysis
+# /xgh-profile — Engineer Throughput & Affinity Analysis
 
-Run the `xgh:team-profile` skill to analyze an engineer's Jira history and produce actionable throughput metrics, ticket affinity data, and data-driven time estimates.
+Run the `xgh:profile` skill to analyze an engineer's Jira history and produce actionable throughput metrics, ticket affinity data, and data-driven time estimates.
 
 ## Usage
 
 ```
-/xgh-team-profile <engineer name>
-/xgh-team-profile <engineer name> <project key>
-/xgh-team-profile <name1>,<name2>,<name3> <project key>
+/xgh-profile <engineer name>
+/xgh-profile <engineer name> <project key>
+/xgh-profile <name1>,<name2>,<name3> <project key>
 ```
 
 ## Arguments
@@ -27,9 +27,9 @@ Run the `xgh:team-profile` skill to analyze an engineer's Jira history and produ
 ## Examples
 
 ```
-/xgh-team-profile Alice
-/xgh-team-profile Alice PTECH
-/xgh-team-profile Alice,Bob,Carol PTECH
+/xgh-profile Alice
+/xgh-profile Alice PTECH
+/xgh-profile Alice,Bob,Carol PTECH
 ```
 
 ## What It Does
@@ -52,6 +52,6 @@ Run the `xgh:team-profile` skill to analyze an engineer's Jira history and produ
 
 ## Related Skills
 
-- `xgh:team-profile` — the full workflow skill this command triggers
-- `xgh:briefing` — session briefing that can surface capacity issues
-- `xgh:implement-ticket` — uses profile data to inform assignment decisions
+- `xgh:profile` — the full workflow skill this command triggers
+- `xgh:brief` — session briefing that can surface capacity issues
+- `xgh:implement` — uses profile data to inform assignment decisions

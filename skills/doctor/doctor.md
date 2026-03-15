@@ -1,5 +1,5 @@
 ---
-name: xgh:ingest-doctor
+name: xgh:doctor
 description: >
   Pipeline health check. Validates config completeness, Slack/Jira/Qdrant/Cipher
   connectivity, scheduler freshness, workspace stats, and codebase index status.
@@ -10,7 +10,7 @@ triggers:
   - when the user says "check ingest", "health check", "is the pipeline running"
 ---
 
-# xgh:ingest-doctor — Pipeline Health Check
+# xgh:doctor — Pipeline Health Check
 
 Run all checks and output a structured report. Use `✓` for pass, `✗` for fail.
 
@@ -57,7 +57,7 @@ Show: exists ✓/✗, vector count, approximate size.
 ## Check 6 — Codebase index
 
 For each project with `github:` entries, check `index.last_full` against `index.schedule`:
-- Never indexed: ✗ (suggest `/xgh-index-repo`)
+- Never indexed: ✗ (suggest `/xgh-index`)
 - Overdue per schedule: ⚠
 - Current: ✓
 
@@ -92,7 +92,7 @@ Workspace
 
 Codebase Index
   ✓ acme-ios: indexed 2 days ago (schedule: weekly — OK)
-  ✗ passcode-service: never indexed — run /xgh-index-repo
+  ✗ passcode-service: never indexed — run /xgh-index
 
 Summary: 9 passed, 0 warnings, 2 failures
 Fix: Check #channel-missing name. Run: claude -p "/xgh-analyze" to clear overdue analyzer.

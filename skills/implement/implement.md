@@ -1,5 +1,5 @@
 ---
-name: xgh:implement-ticket
+name: xgh:implement
 description: "Full-context ticket implementation — from ticket to PR with cross-platform context gathering"
 trigger: "/xgh implement"
 mcp_dependencies:
@@ -11,7 +11,7 @@ mcp_dependencies:
     - cipher: "Cipher MCP — search past work, conventions, store learnings"
 ---
 
-# xgh:implement-ticket — Full-Context Ticket Implementation
+# xgh:implement — Full-Context Ticket Implementation
 
 The most comprehensive workflow skill. Takes a ticket from any task manager, gathers ALL available context (ticket details, Slack discussions, Figma designs, xgh memory, codebase patterns), interviews the user for missing context using Superpowers brainstorming, proposes a design with trade-offs, generates a detailed TDD implementation plan, and executes it with subagent-driven development.
 
@@ -168,7 +168,7 @@ If designs found, use `mcp__claude_ai_Figma__get_design_context` and `mcp__claud
 - Design tokens
 - FigJam notes and acceptance criteria
 
-Consider delegating to `xgh:implement-design` if the ticket is UI-heavy.
+Consider delegating to `xgh:design` if the ticket is UI-heavy.
 
 ### Step 2.3: xgh Memory (if Cipher MCP available)
 
@@ -498,11 +498,11 @@ Generate a PR with full context for reviewers:
 
 ## Skill Composition
 
-`xgh:implement-ticket` composes with other xgh skills:
+`xgh:implement` composes with other xgh skills:
 
 | Skill | When Used | Purpose |
 |-------|-----------|---------|
-| `xgh:implement-design` | When Figma designs are linked to the ticket | Delegates UI implementation |
+| `xgh:design` | When Figma designs are linked to the ticket | Delegates UI implementation |
 | `xgh:investigate` | When ticket references a bug that needs root cause analysis first | Runs investigation before implementation |
 | `xgh:subagent-pair-programming` | During Phase 6 execution | TDD enforcement and two-stage review |
 

@@ -192,7 +192,7 @@ Run a single retrieval cycle to backfill recent messages from the configured cha
 Running initial retrieval to catch up on recent activity...
 ```
 
-Follow the `xgh:ingest-retrieve` skill logic:
+Follow the `xgh:retrieve` skill logic:
 - Scan each configured Slack channel for recent messages
 - Follow links 1-hop to Jira/Confluence/GitHub/Figma
 - Stash raw content to `~/.xgh/inbox/`
@@ -216,7 +216,7 @@ Ask:
 ```
 Want to profile your team members for smart task assignment?
 This analyzes their Jira history to build throughput and affinity profiles.
-You can skip this and do it later with /xgh-team-profile.
+You can skip this and do it later with /xgh-profile.
 
 Profile team now? [y/N]
 ```
@@ -227,9 +227,9 @@ If **yes**:
 2. Verify Atlassian MCP is available. If not:
    ```
    Atlassian MCP is required for team profiling. Skipping for now.
-   Run /xgh-setup to add Atlassian, then /xgh-team-profile to profile your team.
+   Run /xgh-setup to add Atlassian, then /xgh-profile to profile your team.
    ```
-3. For each name provided, invoke the `xgh:team-profile` skill workflow.
+3. For each name provided, invoke the `xgh:profile` skill workflow.
 4. Show a summary of profiles generated.
 
 If **no** (or user skips): Continue to Step 6.
@@ -243,14 +243,14 @@ Ask:
 ```
 Want to index your codebase into Cipher memory?
 This makes your code searchable for future tasks and investigations.
-You can skip this and do it later with /xgh-ingest-index-repo.
+You can skip this and do it later with /xgh-index.
 
 Index codebase now? [y/N]
 ```
 
 If **yes**:
 
-1. Invoke the `xgh:ingest-index-repo` skill in **quick mode**.
+1. Invoke the `xgh:index` skill in **quick mode**.
 2. Show indexing progress and summary.
 
 If **no** (or user skips): Continue to Step 7.
@@ -280,7 +280,7 @@ xgh setup complete!
   Codebase Index: [indexed / skipped]
 
   Next steps:
-    - Run /xgh-briefing to get your first daily briefing
+    - Run /xgh-brief to get your first daily briefing
     - Run /xgh-retrieve to trigger a manual retrieval cycle
     - Run /xgh-setup to add any missing MCP integrations
 ```
@@ -316,7 +316,7 @@ This skill chains together existing skills rather than duplicating their logic:
 | Step | Delegates to |
 |------|-------------|
 | Step 1 — MCP checks | `xgh:mcp-setup` detection protocol |
-| Step 3 — Add project | `xgh:ingest-track` full flow |
-| Step 4 — Retrieval | `xgh:ingest-retrieve` single cycle |
-| Step 5 — Team profiles | `xgh:team-profile` per engineer |
-| Step 6 — Index codebase | `xgh:ingest-index-repo` quick mode |
+| Step 3 — Add project | `xgh:track` full flow |
+| Step 4 — Retrieval | `xgh:retrieve` single cycle |
+| Step 5 — Team profiles | `xgh:profile` per engineer |
+| Step 6 — Index codebase | `xgh:index` quick mode |

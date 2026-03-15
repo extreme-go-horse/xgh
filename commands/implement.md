@@ -19,7 +19,7 @@ Implement a ticket end-to-end. Gathers context from every available source (tick
 
 ## Behavior
 
-1. Load the `xgh:implement-ticket` skill from `skills/implement-ticket/implement-ticket.md`
+1. Load the `xgh:implement` skill from `skills/implement/implement.md`
 2. Auto-detect available MCP integrations (Jira, Slack, Figma, Cipher)
 3. If a ticket ID was provided, fetch it immediately
 4. If no ticket ID was provided:
@@ -48,6 +48,6 @@ Implement a ticket end-to-end. Gathers context from every available source (tick
 
 ## Related Skills
 
-- `xgh:implement-ticket` — the full workflow skill this command triggers
-- `xgh:implement-design` — delegates to this skill for UI-heavy tickets
+- `xgh:implement` — the full workflow skill this command triggers
+- `xgh:design` — delegates to this skill for UI-heavy tickets
 - `xgh:investigate` — delegates to this skill when ticket references a bug needing root cause

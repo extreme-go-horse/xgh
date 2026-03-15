@@ -201,7 +201,7 @@ If a step does not complete within a reasonable time:
 
 ## Composability
 
-- Dispatched by **/xgh-collaborate** command
+- Dispatched by **/xgh-collab** command
 - Dispatches **subagent-pair-programming** for TDD-based work items
 - All dispatched agents use **convention-guardian** for convention compliance
 - Completed workflows feed into **pr-context-bridge** and **knowledge-handoff**

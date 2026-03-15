@@ -1,11 +1,11 @@
-# /xgh-collaborate
+# /xgh-collab
 
 Start a multi-agent collaboration workflow using Cipher workspace as the async communication bus.
 
 ## Usage
 
 ```
-/xgh-collaborate <workflow> [options]
+/xgh-collab <workflow> [options]
 ```
 
 ### Arguments
@@ -21,16 +21,16 @@ Start a multi-agent collaboration workflow using Cipher workspace as the async c
 
 ```bash
 # Plan-review: one agent plans, another reviews
-/xgh-collaborate plan-review --task "Add rate limiting to API endpoints"
+/xgh-collab plan-review --task "Add rate limiting to API endpoints"
 
 # Parallel implementation: split work across agents
-/xgh-collaborate parallel-impl --task "Implement user preferences CRUD" --agents "claude,codex"
+/xgh-collab parallel-impl --task "Implement user preferences CRUD" --agents "claude,codex"
 
 # Validation: implement then validate
-/xgh-collaborate validation --task "Refactor auth middleware"
+/xgh-collab validation --task "Refactor auth middleware"
 
 # Security review chain
-/xgh-collaborate security-review --task "Add file upload endpoint"
+/xgh-collab security-review --task "Add file upload endpoint"
 ```
 
 ---

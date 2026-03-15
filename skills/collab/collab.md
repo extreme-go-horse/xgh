@@ -1,11 +1,11 @@
-# xgh:agent-collaboration
+# xgh:collab
 
 > Skill for multi-agent collaboration workflows. Teaches agents how to participate in structured collaboration via the xgh message protocol and Cipher workspace.
 
 ## When to Activate
 
 This skill activates when:
-- A user requests `/xgh-collaborate` or mentions multi-agent collaboration
+- A user requests `/xgh-collab` or mentions multi-agent collaboration
 - A collaboration workflow message is found in Cipher workspace addressed to this agent
 - The dispatcher agent delegates a task as part of a workflow
 

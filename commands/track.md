@@ -5,7 +5,7 @@ description: Add a new project to xgh context monitoring. Interactive onboarding
 
 # /xgh-track — Add Project to Monitoring
 
-Run the `xgh:ingest-track` skill to add a new project to the continuous ingestion pipeline.
+Run the `xgh:track` skill to add a new project to the continuous ingestion pipeline.
 
 ## Usage
 
