@@ -5,6 +5,8 @@ usage: "/xgh investigate [slack-thread-url]"
 aliases: ["debug", "inv"]
 ---
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh investigate`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 # /xgh investigate
 
 Start a systematic investigation of a bug or incident. Reads context from Slack, task managers, and xgh memory, then applies Superpowers systematic-debugging methodology to find the root cause.

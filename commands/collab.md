@@ -1,5 +1,7 @@
 # /xgh-collab
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh collab`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 Start a multi-agent collaboration workflow using Cipher workspace as the async communication bus.
 
 ## Usage

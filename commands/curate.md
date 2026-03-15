@@ -1,5 +1,7 @@
 # /xgh-curate
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh curate`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 Store knowledge in Cipher memory and sync to the context tree.
 
 ## Usage
@@ -81,27 +83,28 @@ Use the `xgh:memory-verification` skill:
 
 Display a summary:
 
-```
-== xgh Curate Complete ==
+```markdown
+## 🐴🤖 xgh curate
 
-Stored: "<title>"
-Category: <category>
-Path: .xgh/context-tree/<domain>/<topic>/<filename>.md
-Maturity: draft (new entry)
-Tags: <tag1, tag2, ...>
+Stored: **"<title>"**
 
-Verification:
-  Cipher search (title): PASS (rank #N)
-  Cipher search (question): PASS (rank #N)
-  Context tree file: PASS
-  Manifest updated: PASS
+| Field | Value |
+|-------|-------|
+| Category | <category> |
+| Path | `<path>` |
+| Maturity | draft |
+| Tags | <tags> |
 
-== End Curate ==
+### Verification
+
+| Check | Status |
+|-------|--------|
+| Cipher search (title) | ✅ rank #N / ❌ |
+| Cipher search (question) | ✅ rank #N / ❌ |
+| Context tree file | ✅ / ❌ |
+| Manifest updated | ✅ / ❌ |
 ```
 
-If any verification fails:
-```
-Verification:
-  Cipher search (title): FAIL — re-curating with improved keywords...
-  [... retry details ...]
-```
+If any verification fails, show ❌ in the Status column and add a retry note below the table:
+
+*❌ Cipher search (title) failed — re-curating with improved keywords...*

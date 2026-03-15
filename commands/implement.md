@@ -5,6 +5,8 @@ usage: "/xgh implement [ticket-id]"
 aliases: ["impl", "ticket"]
 ---
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh implement`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 # /xgh implement
 
 Implement a ticket end-to-end. Gathers context from every available source (ticket, Slack, Figma, xgh memory, codebase), interviews for missing context, proposes a design with trade-offs, generates a TDD implementation plan, and executes with subagent-driven development.
