@@ -30,6 +30,22 @@ All tasks are tracked with `- [ ]` checkboxes in `docs/plans/`. Work through the
 After installing xgh into this project with `XGH_LOCAL_PACK=. bash install.sh`, the following commands become available:
 
 - `/xgh-setup` — interactive MCP configuration
+- `/xgh-help` — contextual guide and command reference
+- `/xgh-brief` — session briefing
+- `/xgh-ask` — search memory and context tree
+- `/xgh-curate` — store knowledge in Cipher and context tree
+- `/xgh-collab` — multi-agent collaboration
+- `/xgh-design` — Figma-driven UI implementation
+- `/xgh-implement` — ticket implementation
+- `/xgh-investigate` — systematic debugging
+- `/xgh-profile` — engineer throughput analysis
+- `/xgh-retrieve` — run retrieval loop
+- `/xgh-analyze` — run analysis loop
+- `/xgh-track` — add project to monitoring
+- `/xgh-doctor` — validate pipeline health
+- `/xgh-index` — index a codebase
+- `/xgh-calibrate` — calibrate dedup threshold
+- `/xgh-init` — first-run onboarding
 
 ### Memory usage
 
