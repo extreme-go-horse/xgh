@@ -155,6 +155,12 @@ calibration:
 #     status: active | paused             # monitoring state
 #     my_role: <string>                   # your role in this project (ios-lead, mobile-lead, engineer, reviewer, observer, ...)
 #     my_intent: <string>                 # what you own, delegate, or coordinate in this project
+#     providers:                          # per-provider access level (optional — defaults to read)
+#       slack:    { access: read }        # read | ask | auto
+#       jira:     { access: read }
+#       confluence: { access: read }
+#       github:   { access: read }
+#       figma:    { access: read }
 #     slack: [<channel>, ...]             # Slack channels to monitor
 #     jira: <project-key>                 # Jira project key (optional)
 #     confluence: [<page-path>, ...]      # Confluence page paths (optional)
@@ -172,6 +178,12 @@ calibration:
 #     status: active
 #     my_role: ios-lead
 #     my_intent: "Own iOS implementation, delegate QA to platform team, coordinate backend API changes"
+#     providers:
+#       slack:      { access: read }
+#       jira:       { access: read }
+#       confluence: { access: read }
+#       github:     { access: read }
+#       figma:      { access: read }
 #     slack:
 #       - "#ptech-31204-general"
 #       - "#ptech-31204-engineering"

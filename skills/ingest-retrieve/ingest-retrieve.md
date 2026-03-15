@@ -45,6 +45,8 @@ Read `~/.xgh/inbox/.cursors.json` (JSON: `{"#channel-name": "last_iso_timestamp"
 
 ## Step 2 — Scan Slack channels
 
+> **Access level guard:** Before scanning, check `providers.slack.access` for this project (default: `read`). If `read`, only fetch data — never write back to Slack. If `ask` or `auto`, write actions (e.g., posting digests, reacting) may be performed in later steps.
+
 For each active project, for each Slack channel in its `slack:` list:
 
 1. Call `slack_read_channel` with the channel name
@@ -55,6 +57,8 @@ For each active project, for each Slack channel in its `slack:` list:
 **Rate limiting:** On 429 or timeout, back off (2s → 4s → 8s) up to `retriever.max_retries` times, then skip the channel and note it in the log.
 
 ## Step 3 — Follow links 1-hop
+
+> **Access level guard:** Before following links, check the relevant `providers.<type>.access` level for the target provider (jira, confluence, github, figma). If `read`, only fetch data. If `ask` or `auto`, write actions (e.g., transitioning Jira tickets, posting PR comments) may be performed in later steps.
 
 For each message containing a URL, up to `retriever.max_links_to_follow` per cycle:
 
