@@ -680,7 +680,7 @@ On project creation, the skill reads recent history from the listed Slack channe
 
 ## 9. Codebase Indexing: `/xgh-index-repo`
 
-Reusable skill that systematically scans a repository and stores architectural knowledge in Cipher memory. Based on the methodology proven during the tr-ios codebase indexing.
+Reusable skill that systematically scans a repository and stores architectural knowledge in Cipher memory. Based on the methodology proven during prior codebase indexing.
 
 ### 9.1 What it extracts
 
