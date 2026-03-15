@@ -1,5 +1,7 @@
 # /xgh-ask
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh ask`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 Search xgh memory (Cipher vectors + context tree) and return ranked results.
 
 ## Usage
@@ -50,37 +52,34 @@ Where:
 
 Display results in this format:
 
-```
-== xgh Query Results ==
-Query: "<user's query>"
-Sources: Cipher (N results) + Context Tree (M results)
+```markdown
+## 🐴🤖 xgh ask
 
-1. [CORE] <Title> (score: 0.XX)
-   Path: <context-tree-path>
-   Tags: <tag1, tag2, ...>
-   Summary: <first 2-3 lines of Narrative section>
+Query: "<user's query>" · Sources: Cipher (**N**) + Context Tree (**M**)
 
-2. [VALIDATED] <Title> (score: 0.XX)
-   Path: <context-tree-path>
-   ...
+| # | Maturity | Title | Score | Tags |
+|---|----------|-------|-------|------|
+| 1 | core | **<Title>** | 0.XX | <tags> |
+| 2 | validated | **<Title>** | 0.XX | <tags> |
+| 3 | draft | **<Title>** | 0.XX | <tags> |
 
-3. [DRAFT] <Title> (score: 0.XX)
-   ...
-
-== End Results (showing top 5 of N total) ==
+*Showing top 5 of N total. Want me to read the full content of any entry?*
 ```
 
 If no results are found from either engine:
-```
-== xgh Query Results ==
-Query: "<user's query>"
-No results found.
 
-Suggestions:
-- Try broader terms: "<suggested broader query>"
-- Try synonyms: "<suggested synonym query>"
-- Check context tree domains: <list available domains>
-- This may be new territory — consider curating after you learn about it.
+```markdown
+## 🐴🤖 xgh ask
+
+Query: "<user's query>" · **No results found.**
+
+| Suggestion | |
+|------------|-|
+| Broader terms | "<suggested broader query>" |
+| Synonyms | "<suggested synonym query>" |
+| Available domains | <list available domains> |
+
+*This may be new territory — consider curating after you learn about it.*
 ```
 
 ### Step 5: Offer Follow-Up

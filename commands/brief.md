@@ -3,6 +3,8 @@ name: xgh-brief
 description: Run a session briefing — checks Slack, Jira, and GitHub and produces an actionable summary of what needs attention right now.
 ---
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh brief`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 # /xgh-brief — Session Briefing
 
 Run the `xgh:brief` skill to generate a structured morning/session briefing.

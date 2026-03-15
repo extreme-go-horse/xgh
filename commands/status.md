@@ -1,5 +1,7 @@
 # /xgh-status
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh status`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 Show xgh memory statistics, context tree health, and system status.
 
 ## Usage
@@ -19,11 +21,13 @@ When the user invokes `/xgh-status`, follow this procedure exactly:
 2. Parse the manifest and collect statistics
 
 If the manifest does not exist:
-```
-== xgh Status ==
-Context tree: NOT FOUND
-Run the xgh installer or /xgh-curate to initialize.
-== End Status ==
+
+```markdown
+## 🐴🤖 xgh status
+
+Context tree: **NOT FOUND**
+
+*Run the xgh installer or `/xgh-curate` to initialize.*
 ```
 
 ### Step 2: Compute Health Metrics
@@ -48,35 +52,37 @@ From the manifest, calculate:
 
 ### Step 4: Display Status
 
-```
-== xgh Status ==
+```markdown
+## 🐴🤖 xgh status
 
-Team: <team-name>
-Context Tree: <path>
+Team: **<team-name>** · Context tree: `<path>`
 
-Knowledge Base:
-  Total entries:     <N>
-  Core:              <N> (maturity >= 85)
-  Validated:         <N> (maturity >= 65)
-  Draft:             <N>
-  Archived:          <N>
+### Knowledge Base
 
-Health:
-  Avg importance:    <N>/100  [HEALTHY|WARNING|CRITICAL]
-  Avg recency:       <0.XX>  [HEALTHY|WARNING|CRITICAL]
-  Stale entries:     <N>/<total> (<percent>%)  [HEALTHY|WARNING|CRITICAL]
-  Orphaned entries:  <N>  [HEALTHY|WARNING|CRITICAL]
+| Metric | Count |
+|--------|-------|
+| Total entries | **<N>** |
+| Core | <N> |
+| Validated | <N> |
+| Draft | <N> |
 
-Cipher MCP:
-  Status:            [CONNECTED|DISCONNECTED]
-  Memory count:      <N> (from cipher search)
+### Health
 
-Domains:
-  <domain-1>/       <N> entries (<N> core, <N> validated, <N> draft)
-  <domain-2>/       <N> entries (...)
-  ...
+| Check | Value | Status |
+|-------|-------|--------|
+| Avg importance | <N>/100 | ✅/⚠️/❌ |
+| Avg recency | <N> | ✅/⚠️/❌ |
+| Stale entries | <N>/<total> (<percent>%) | ✅/⚠️/❌ |
+| Orphaned | <N> | ✅/⚠️/❌ |
+| Cipher MCP | Connected/Disconnected | ✅/❌ |
 
-== End Status ==
+### Domains
+
+| Domain | Entries | Breakdown |
+|--------|---------|-----------|
+| <domain>/ | <N> | <breakdown> |
+
+*<recommendation or "All metrics healthy — no action needed.">*
 ```
 
 Health thresholds:
@@ -88,20 +94,17 @@ Health thresholds:
 
 If any metric is WARNING or CRITICAL, provide specific recommendations:
 
-```
-Recommendations:
-- [WARNING] Low average recency (0.32): Consider updating stale entries or running maintenance
-- [CRITICAL] No core entries: Promote your most important validated entries to core maturity
-- [WARNING] 3 orphaned entries: Run context tree maintenance to clean up manifest
-```
+Include specific recommendations in the italicized closing line. For example:
+
+*⚠️ Low average recency (0.32) — consider updating stale entries. ❌ No core entries — promote your most important validated entries.*
 
 If `--detailed` flag is provided, also show a per-entry table:
 
-```
-Detailed Entries:
+```markdown
+### Detailed Entries
+
 | Path | Maturity | Importance | Recency | Last Updated |
-|---|---|---|---|---|
-| api-design/rest-conventions.md | core | 92 | 0.85 | 2026-03-10 |
-| auth/jwt-refresh.md | validated | 71 | 0.62 | 2026-03-05 |
-| ... | ... | ... | ... | ... |
+|------|----------|------------|---------|--------------|
+| api-design/rest-conventions.md | core | **92** | 0.85 | 2026-03-10 |
+| auth/jwt-refresh.md | validated | **71** | 0.62 | 2026-03-05 |
 ```

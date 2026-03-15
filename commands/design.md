@@ -5,6 +5,8 @@ usage: "/xgh-design [figma-url]"
 aliases: ["design", "figma"]
 ---
 
+> **Output format:** Follow the [xgh output style guide](../templates/output-style.md). Start with `## 🐴🤖 xgh design`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
+
 # /xgh-design
 
 Implement a UI component from a Figma design. Extracts ALL available context (design tokens, states, FigJam notes, Code Connect mappings), enriches with xgh memory and codebase conventions, reviews interactively, then generates and executes a TDD implementation plan.
