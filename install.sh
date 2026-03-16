@@ -590,6 +590,18 @@ CIPHERYMLEOF
   }
   ensure_qdrant_collections
 
+  # -- Post-install Cipher health check --
+  if command -v cipher &>/dev/null && [ -f "${HOME}/.cipher/cipher.yml" ]; then
+    info "Verifying Cipher MCP server..."
+    if echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | \
+       timeout 5 "$CIPHER_MCP_BIN" 2>/dev/null | \
+       grep -q '"result"'; then
+      info "Cipher MCP responding ✓"
+    else
+      warn "Cipher MCP test inconclusive — will verify at first use via /xgh-doctor"
+    fi
+  fi
+
 else
   info "Dry run — skipping the heavy lifting 🏋️"
   XGH_LLM_MODEL="${XGH_LLM_MODEL:-mlx-community/Llama-3.2-3B-Instruct-4bit}"
