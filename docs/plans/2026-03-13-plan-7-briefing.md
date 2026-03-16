@@ -1,6 +1,6 @@
 # Session Briefing Skill Implementation Plan
 
-> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Build `xgh:briefing` — an intelligent session briefing skill that aggregates Slack, Jira, GitHub, Gmail, Calendar, Figma, and xgh team memory into a prioritized executive summary with a suggested focus, triggered on session start or on demand via `/xgh-briefing`.
 
@@ -44,7 +44,7 @@ tests/
 
 The workflow skills (investigate, implement-design, implement-ticket, briefing) all need to check MCP availability. Centralise this in one helper sourced by all of them.
 
-- [ ] **Step 1: Write the failing test for mcp-detect.sh**
+- [x] **Step 1: Write the failing test for mcp-detect.sh**
 
 Create `tests/test-briefing.sh`:
 
@@ -80,14 +80,14 @@ echo "Briefing test (partial): $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] || exit 1
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 bash tests/test-briefing.sh
 ```
 Expected: FAIL — `scripts/mcp-detect.sh` missing
 
-- [ ] **Step 3: Create scripts/mcp-detect.sh**
+- [x] **Step 3: Create scripts/mcp-detect.sh**
 
 ```bash
 #!/usr/bin/env bash
@@ -158,7 +158,7 @@ list_mcps() {
 }
 ```
 
-- [ ] **Step 4: Make executable and run test**
+- [x] **Step 4: Make executable and run test**
 
 ```bash
 chmod +x scripts/mcp-detect.sh
@@ -166,7 +166,7 @@ bash tests/test-briefing.sh
 ```
 Expected: All pass
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/mcp-detect.sh tests/test-briefing.sh
@@ -182,7 +182,7 @@ git commit -m "feat: add shared MCP detection helper"
 - Create: `commands/briefing.md`
 - Modify: `tests/test-briefing.sh` (add skill validation)
 
-- [ ] **Step 1: Add skill validation to the test**
+- [x] **Step 1: Add skill validation to the test**
 
 Append to `tests/test-briefing.sh` (before the final echo/exit):
 
@@ -206,14 +206,14 @@ assert_contains "${REPO_ROOT}/commands/briefing.md" "compact"
 assert_contains "${REPO_ROOT}/commands/briefing.md" "focus"
 ```
 
-- [ ] **Step 2: Run test to verify new assertions fail**
+- [x] **Step 2: Run test to verify new assertions fail**
 
 ```bash
 bash tests/test-briefing.sh
 ```
 Expected: FAILs for skill and command files
 
-- [ ] **Step 3: Create skills/briefing/briefing.md**
+- [x] **Step 3: Create skills/briefing/briefing.md**
 
 ```markdown
 ---
@@ -482,7 +482,7 @@ cipher_extract_and_operate_memory:
 - Informs `xgh:convention-guardian` (team pulse surfaces new conventions)
 ```
 
-- [ ] **Step 4: Create commands/briefing.md**
+- [x] **Step 4: Create commands/briefing.md**
 
 ```markdown
 ---
@@ -515,14 +515,14 @@ export XGH_BRIEFING=compact   # Recommended for daily use
 ```
 ```
 
-- [ ] **Step 5: Run the full test**
+- [x] **Step 5: Run the full test**
 
 ```bash
 bash tests/test-briefing.sh
 ```
 Expected: All pass
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/briefing/briefing.md commands/briefing.md tests/test-briefing.sh
@@ -541,7 +541,7 @@ git commit -m "feat: add xgh:briefing skill and /xgh-briefing command"
 
 The SessionStart hook (implemented in Plan 3) outputs a JSON `{"result": "..."}` block. When `XGH_BRIEFING=compact` or `XGH_BRIEFING=auto`, append a trigger note to the result that tells Claude to invoke `xgh:briefing`.
 
-- [ ] **Step 1: Add hook integration test**
+- [x] **Step 1: Add hook integration test**
 
 In `tests/test-hooks.sh`, add:
 
@@ -551,14 +551,14 @@ result=$(XGH_BRIEFING=compact XGH_DRY_RUN=1 bash hooks/session-start.sh 2>/dev/n
 assert_contains "$result" "briefing" "XGH_BRIEFING=compact should trigger briefing mention"
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 ```bash
 bash tests/test-hooks.sh
 ```
 Expected: FAIL on the new assertion
 
-- [ ] **Step 3: Update hooks/session-start.sh**
+- [x] **Step 3: Update hooks/session-start.sh**
 
 At the end of `hooks/session-start.sh`, before the final JSON output, add:
 
@@ -575,14 +575,14 @@ fi
 
 Then include `$BRIEFING_NOTE` in the JSON result string.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 bash tests/test-hooks.sh
 ```
 Expected: All pass
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add hooks/session-start.sh tests/test-hooks.sh
@@ -599,7 +599,7 @@ git commit -m "feat: wire XGH_BRIEFING into SessionStart hook"
 - Modify: `techpack.yaml`
 - Modify: `docs/plans/2026-03-13-xgh-design.md`
 
-- [ ] **Step 1: Add briefing to techpack.yaml**
+- [x] **Step 1: Add briefing to techpack.yaml**
 
 In `techpack.yaml`, under the skills components section, add after the existing skills:
 
@@ -617,7 +617,7 @@ In `techpack.yaml`, under the skills components section, add after the existing 
       destination: xgh-briefing.md
 ```
 
-- [ ] **Step 2: Add briefing to design doc**
+- [x] **Step 2: Add briefing to design doc**
 
 In `docs/plans/2026-03-13-xgh-design.md`, in Section 7 (CLI Commands & Skills), add to the skills table:
 
@@ -631,7 +631,7 @@ And add to the slash commands table:
 | `/xgh-briefing [compact\|focus]` | Session briefing — prioritized summary + suggested focus |
 ```
 
-- [ ] **Step 3: Add a new Section 12 (Briefing) to the design doc**
+- [x] **Step 3: Add a new Section 12 (Briefing) to the design doc**
 
 Add before the Installation section:
 
@@ -673,14 +673,14 @@ export XGH_BRIEFING=off       # Manual only (default)
 ```
 ```
 
-- [ ] **Step 4: Run all tests to verify nothing broken**
+- [x] **Step 4: Run all tests to verify nothing broken**
 
 ```bash
 bash tests/test-briefing.sh && bash tests/test-techpack.sh
 ```
 Expected: All pass
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add techpack.yaml docs/plans/2026-03-13-xgh-design.md
@@ -691,14 +691,14 @@ git commit -m "feat: register xgh:briefing in techpack and design doc"
 
 ## Final Verification
 
-- [ ] **Run all test suites**
+- [x] **Run all test suites**
 
 ```bash
 bash tests/test-briefing.sh
 bash tests/test-techpack.sh
 ```
 
-- [ ] **Verify file structure**
+- [x] **Verify file structure**
 
 ```bash
 find skills/briefing commands/briefing.md scripts/mcp-detect.sh -type f | sort
@@ -710,7 +710,7 @@ scripts/mcp-detect.sh
 skills/briefing/briefing.md
 ```
 
-- [ ] **Final commit if any cleanup needed**
+- [x] **Final commit if any cleanup needed**
 
 ```bash
 git add -A

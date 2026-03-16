@@ -1,5 +1,5 @@
 ---
-name: xgh:brief
+name: xgh:briefing
 description: >
   Morning/session briefing skill. Checks Slack, Jira, and GitHub for urgent
   items and produces a structured, actionable summary before the user starts
