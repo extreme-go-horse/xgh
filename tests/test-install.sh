@@ -51,9 +51,21 @@ bash "${XGH_LOCAL_PACK}/install.sh"
 # Verify .claude directory structure
 assert_dir_exists ".claude"
 assert_dir_exists ".claude/hooks"
-assert_dir_exists ".claude/skills"
-assert_dir_exists ".claude/commands"
-assert_dir_exists ".claude/agents"
+
+# Plugin structure (checked in source pack, not install destination)
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/gemini-extension.json"
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/README.md"
+assert_dir_exists  "${XGH_LOCAL_PACK}/plugin/skills"
+assert_dir_exists  "${XGH_LOCAL_PACK}/plugin/commands"
+assert_dir_exists  "${XGH_LOCAL_PACK}/plugin/hooks"
+assert_dir_exists  "${XGH_LOCAL_PACK}/plugin/agents"
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/skills/init/init.md"
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/commands/init.md"
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/hooks/session-start.sh"
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/agents/collaboration-dispatcher.md"
+assert_file_exists "${XGH_LOCAL_PACK}/plugin/agents/code-reviewer.md"
+assert_contains    "${XGH_LOCAL_PACK}/plugin/gemini-extension.json" '"name": "xgh"'
+assert_contains    "${XGH_LOCAL_PACK}/plugin/gemini-extension.json" '"version"'
 
 # Verify MCP config (global: ~/.claude.json)
 assert_file_exists "${HOME}/.claude.json"
@@ -83,6 +95,16 @@ assert_contains "CLAUDE.local.md" "test-team"
 # Verify .gitignore updated
 assert_file_exists ".gitignore"
 assert_contains ".gitignore" ".xgh/local/"
+
+# Plugin registration (after install)
+PLUGINS_JSON="${HOME}/.claude/plugins/installed_plugins.json"
+assert_file_exists "$PLUGINS_JSON"
+assert_contains    "$PLUGINS_JSON" '"xgh@ipedro"'
+assert_contains    "$PLUGINS_JSON" '"scope": "user"'
+assert_dir_exists  "${HOME}/.claude/plugins/cache/ipedro/xgh"
+assert_file_exists "${HOME}/.claude/plugins/cache/ipedro/xgh/1.0.0/gemini-extension.json"
+assert_dir_exists  "${HOME}/.claude/plugins/cache/ipedro/xgh/1.0.0/skills"
+assert_dir_exists  "${HOME}/.claude/plugins/cache/ipedro/xgh/1.0.0/commands"
 
 echo ""
 echo "Install test: $PASS passed, $FAIL failed"

@@ -1557,35 +1557,97 @@ if not post_exists:
 json.dump(settings, open('${SETTINGS_FILE}', 'w'), indent=2)
 " 2>/dev/null || warn "Could not add cipher hooks to settings — add them manually"
 
-# ── 7. Skills + Commands + Agents ────────────────────────
-# Respect the same scope choice as hooks (global vs project)
-lane "Teaching the horse new tricks 🎓"
-if [ "$XGH_HOOKS_SCOPE" = "global" ]; then
-  INSTALL_DIR="${HOME}/.claude"
-  info "Skills, commands, agents → global (~/.claude)"
-else
-  INSTALL_DIR="${CLAUDE_DIR}"
-  info "Skills, commands, agents → project (.claude)"
-fi
+# ── Plugin Registration ────────────────────────────────────
+register_plugin() {
+  local plugin_name="xgh"
+  local registry="ipedro"
+  local registry_key="${plugin_name}@${registry}"
 
-mkdir -p "${INSTALL_DIR}/skills" "${INSTALL_DIR}/commands" "${INSTALL_DIR}/agents"
+  # Read version from gemini-extension.json
+  local version
+  version=$(python3 -c "
+import json, sys
+try:
+    d = json.load(open('${PACK_DIR}/plugin/gemini-extension.json'))
+    print(d['version'])
+except Exception as e:
+    print('1.0.0', file=sys.stderr)
+    print('1.0.0')
+" 2>/dev/null || echo "1.0.0")
 
-for skill_dir in "${PACK_DIR}/skills/"*/; do
-  [ -d "$skill_dir" ] || continue
-  skill_name=$(basename "$skill_dir")
-  [ "$skill_name" = ".gitkeep" ] && continue
-  cp -r "$skill_dir" "${INSTALL_DIR}/skills/xgh-${skill_name}"
-done
+  local cache_dir="${HOME}/.claude/plugins/cache/${registry}/${plugin_name}"
+  local install_path="${cache_dir}/${version}"
+  local plugins_json="${HOME}/.claude/plugins/installed_plugins.json"
 
-for cmd in "${PACK_DIR}/commands/"*.md; do
-  [ -f "$cmd" ] || continue
-  cp "$cmd" "${INSTALL_DIR}/commands/xgh-$(basename "$cmd")"
-done
+  local git_sha
+  git_sha=$(git -C "${PACK_DIR}" rev-parse HEAD 2>/dev/null || echo "unknown")
 
-for agent in "${PACK_DIR}/agents/"*.md; do
-  [ -f "$agent" ] || continue
-  cp "$agent" "${INSTALL_DIR}/agents/xgh-$(basename "$agent")"
-done
+  local now
+  now=$(python3 -c "
+from datetime import datetime, timezone
+print(datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'))
+")
+
+  lane "Registering xgh plugin 🔌"
+  info "Plugin version: ${version}"
+  info "Cache path: ${install_path}"
+
+  # Copy plugin/ contents to versioned cache directory (idempotent — overwrites on re-install)
+  mkdir -p "${install_path}"
+  cp -r "${PACK_DIR}/plugin/." "${install_path}/"
+
+  # Write registration entry — preserves installedAt from previous install
+  # Note: unquoted heredoc (<<PYEOF) intentionally uses shell variable expansion.
+  # All interpolated values (paths, timestamps, sha) are safe: no quotes or newlines.
+  python3 - <<PYEOF
+import json, os
+
+plugins_file = "${plugins_json}"
+registry_key = "${registry_key}"
+install_path = "${install_path}"
+version = "${version}"
+git_sha = "${git_sha}"
+now = "${now}"
+
+try:
+    with open(plugins_file) as f:
+        data = json.load(f)
+except Exception:
+    data = {"version": 2, "plugins": {}}
+
+existing = data.get("plugins", {}).get(registry_key, [])
+installed_at = existing[0].get("installedAt", now) if existing else now
+
+data.setdefault("plugins", {})[registry_key] = [{
+    "scope": "user",
+    "installPath": install_path,
+    "version": version,
+    "installedAt": installed_at,
+    "lastUpdated": now,
+    "gitCommitSha": git_sha
+}]
+
+os.makedirs(os.path.dirname(plugins_file), exist_ok=True)
+with open(plugins_file, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+print("Registered xgh@ipedro in installed_plugins.json")
+PYEOF
+
+  # Detect old-style per-project skill copies and warn
+  local old_found=false
+  for d in "${HOME}/.claude/skills/xgh-"* ".claude/skills/xgh-"*; do
+    [ -d "$d" ] && old_found=true && break
+  done
+  if $old_found; then
+    info "Legacy per-project skill copies detected — /xgh-init will clean them up on next run"
+  fi
+
+  info "Plugin registered ✓"
+}
+
+# ── 7. Plugin Registration ──────────────────────────────────
+register_plugin
 
 # -- store-memory skill (global, for direct Qdrant storage bypassing cipher extraction) --
 info "Setting up store-memory skill"
