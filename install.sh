@@ -537,7 +537,7 @@ fi
 VS_TYPE=$(grep 'type:' "$PRESET_FILE" | tail -1 | awk '{print $2}')
 VS_URL=$(grep 'url:' "$PRESET_FILE" | tail -1 | awk '{print $2}' || echo "")
 
-cat > "${CLAUDE_DIR}/.mcp.json" <<MCPEOF
+cat > "${CLAUDE_DIR}/mcp.json" <<MCPEOF
 {
   "mcpServers": {
     "cipher": {
@@ -1030,8 +1030,8 @@ install_plugin() {
   local marketplace="$1" plugin="$2" label="$3"
   if command -v claude &>/dev/null; then
     info "${label}"
-    claude plugin marketplace add "$marketplace" 2>/dev/null || true
-    claude plugin install "${plugin}" 2>/dev/null || {
+    claude plugin marketplace add "$marketplace" &>/dev/null || true
+    claude plugin install "${plugin}" &>/dev/null || {
       warn "Could not install ${label} — you can install it manually later"
       return 1
     }
