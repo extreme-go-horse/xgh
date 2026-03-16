@@ -36,7 +36,15 @@ rm -f "${CLAUDE_DIR}/agents/"xgh-*.md
 
 # Remove MCP config
 info "Removing Cipher MCP config"
-rm -f "${CLAUDE_DIR}/.mcp.json"
+GLOBAL_SETTINGS="${HOME}/.claude/settings.json"
+if [ -f "$GLOBAL_SETTINGS" ] && jq -e '.mcpServers.cipher' "$GLOBAL_SETTINGS" &>/dev/null; then
+  jq 'del(.mcpServers.cipher) | if .mcpServers == {} then del(.mcpServers) else . end' \
+    "$GLOBAL_SETTINGS" > "${GLOBAL_SETTINGS}.tmp" \
+    && mv "${GLOBAL_SETTINGS}.tmp" "$GLOBAL_SETTINGS"
+  info "Cipher removed from ~/.claude/settings.json"
+fi
+# Also clean legacy project .mcp.json
+rm -f "${PWD}/.mcp.json"
 
 # Remove xgh section from CLAUDE.local.md
 CLAUDE_MD="${PWD}/CLAUDE.local.md"
@@ -46,10 +54,10 @@ if [ -f "$CLAUDE_MD" ] && grep -q "mcs:begin xgh" "$CLAUDE_MD"; then
   mv "${CLAUDE_MD}.tmp" "$CLAUDE_MD"
 fi
 
-# Remove hook events from settings (leave other settings intact)
+# Remove hook events from project settings (leave other settings intact)
 SETTINGS_FILE="${CLAUDE_DIR}/settings.local.json"
 if [ -f "$SETTINGS_FILE" ] && grep -q "xgh-session-start" "$SETTINGS_FILE"; then
-  info "Cleaning hook registrations"
+  info "Cleaning project hook registrations"
   python3 -c "
 import json
 s = json.load(open('${SETTINGS_FILE}'))
@@ -61,8 +69,27 @@ if 'hooks' in s:
     if not s['hooks']:
         del s['hooks']
 json.dump(s, open('${SETTINGS_FILE}', 'w'), indent=2)
-" 2>/dev/null || warn "Could not clean settings — remove xgh hooks manually"
+" 2>/dev/null || warn "Could not clean project settings — remove xgh hooks manually"
 fi
+
+# Remove hook events from global settings
+if [ -f "$GLOBAL_SETTINGS" ] && grep -q "xgh-" "$GLOBAL_SETTINGS"; then
+  info "Cleaning global hook registrations"
+  python3 -c "
+import json
+s = json.load(open('${GLOBAL_SETTINGS}'))
+if 'hooks' in s:
+    for event in list(s['hooks'].keys()):
+        s['hooks'][event] = [h for h in s['hooks'][event] if 'xgh-' not in json.dumps(h)]
+        if not s['hooks'][event]:
+            del s['hooks'][event]
+    if not s['hooks']:
+        del s['hooks']
+json.dump(s, open('${GLOBAL_SETTINGS}', 'w'), indent=2)
+" 2>/dev/null || warn "Could not clean global settings — remove xgh hooks manually"
+fi
+# Remove global hook scripts
+rm -f "${HOME}/.claude/hooks/"xgh-*.sh
 
 # Optional: offer to uninstall plugins
 if command -v claude &>/dev/null; then

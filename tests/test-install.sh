@@ -35,6 +35,10 @@ trap "rm -rf $TMPDIR" EXIT
 cd "$TMPDIR"
 git init --quiet
 
+# Override HOME so global settings go into temp dir
+export HOME="$TMPDIR"
+mkdir -p "${HOME}/.claude"
+
 # Run install in dry-run mode (skips brew/vllm-mlx, uses local files)
 export XGH_DRY_RUN=1
 export XGH_TEAM="test-team"
@@ -51,10 +55,10 @@ assert_dir_exists ".claude/skills"
 assert_dir_exists ".claude/commands"
 assert_dir_exists ".claude/agents"
 
-# Verify MCP config (project-scoped: .mcp.json at project root)
-assert_file_exists ".mcp.json"
-assert_contains ".mcp.json" "cipher"
-assert_contains ".mcp.json" "cipher-mcp"
+# Verify MCP config (global: ~/.claude/settings.json)
+assert_file_exists "${HOME}/.claude/settings.json"
+assert_contains "${HOME}/.claude/settings.json" "cipher"
+assert_contains "${HOME}/.claude/settings.json" "cipher-mcp"
 
 # Verify hooks installed
 assert_file_exists ".claude/hooks/xgh-session-start.sh"
