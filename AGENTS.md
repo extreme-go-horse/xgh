@@ -166,8 +166,8 @@ No build step — this is a shell-based project with no compiled artifacts.
 | Plan 7 | Briefing | ✅ Complete |
 | Ingest | Context ingestion pipeline (25 files, 68 tests) | ✅ Complete |
 | Refresh | Command rename, output style, /xgh-help | ✅ Complete |
-| Plan 8 | Ollama / Linux Support — Ollama backend, backend-aware cipher.yml + MCP env vars | 🔄 In Progress |
-| Plan 9 | Remote Backend — `XGH_BACKEND=remote`, `XGH_REMOTE_URL`, `XGH_SERVE_NETWORK` | 🔄 In Progress |
+| Plan 8 | Ollama / Linux Support — Ollama backend, backend-aware cipher.yml + MCP env vars | ✅ Complete |
+| Plan 9 | Remote Backend — `XGH_BACKEND=remote`, `XGH_REMOTE_URL`, `XGH_SERVE_NETWORK` | ✅ Complete |
 
 See `docs/plans/` for detailed implementation plans with task checklists.
 
