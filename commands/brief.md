@@ -7,7 +7,7 @@ description: Run a session briefing — checks Slack, Jira, and GitHub and produ
 
 # /xgh-brief — Session Briefing
 
-Run the `xgh:brief` skill to generate a structured morning/session briefing.
+Run the `xgh:briefing` skill to generate a structured morning/session briefing.
 
 The briefing will:
 

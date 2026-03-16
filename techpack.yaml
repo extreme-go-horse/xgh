@@ -145,6 +145,16 @@ components:
     source: commands/help.md
     description: "Slash command /xgh-help — contextual guide and command reference"
 
+  - id: briefing-skill
+    type: skill
+    source: skills/briefing/briefing.md
+    description: "Intelligent session briefing — aggregates all sources into a prioritized summary"
+
+  - id: briefing-command
+    type: command
+    source: commands/briefing.md
+    description: "Slash command /xgh-briefing — full, compact, or focus briefing modes"
+
   - id: ingest-schedule
     type: script
     source: scripts/ingest-schedule.sh
