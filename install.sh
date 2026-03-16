@@ -643,42 +643,68 @@ fi
 VS_TYPE=$(grep 'type:' "$PRESET_FILE" | tail -1 | awk '{print $2}')
 VS_URL=$(grep 'url:' "$PRESET_FILE" | tail -1 | awk '{print $2}' || echo "")
 
-cat > "${PWD}/.mcp.json" <<MCPEOF
+# Build cipher MCP server config
+CIPHER_MCP_JSON=$(cat <<MCPEOF
 {
-  "mcpServers": {
-    "cipher": {
-      "type": "stdio",
-      "command": "${HOME}/.local/bin/cipher-mcp",
-      "args": [],
-      "env": {
-        "MCP_SERVER_MODE": "aggregator",
-        "VECTOR_STORE_TYPE": "${VS_TYPE}",
-        "VECTOR_STORE_URL": "${VS_URL}",
-        "EMBEDDING_PROVIDER": "openai",
-        "EMBEDDING_MODEL": "${XGH_EMBED_MODEL}",
-        "EMBEDDING_BASE_URL": "http://localhost:${XGH_MODEL_PORT}/v1",
-        "EMBEDDING_DIMENSIONS": "768",
-        "EMBEDDING_API_KEY": "placeholder",
-        "OPENAI_API_KEY": "placeholder",
-        "OPENAI_BASE_URL": "http://localhost:${XGH_MODEL_PORT}/v1",
-        "LLM_PROVIDER": "openai",
-        "LLM_MODEL": "${XGH_LLM_MODEL}",
-        "LLM_BASE_URL": "http://localhost:${XGH_MODEL_PORT}/v1",
-        "LLM_API_KEY": "placeholder",
-        "CIPHER_LOG_LEVEL": "info",
-        "SEARCH_MEMORY_TYPE": "both",
-        "USE_WORKSPACE_MEMORY": "true",
-        "XGH_TEAM": "${XGH_TEAM}"
-      }
-    }
+  "type": "stdio",
+  "command": "${HOME}/.local/bin/cipher-mcp",
+  "args": [],
+  "env": {
+    "MCP_SERVER_MODE": "aggregator",
+    "VECTOR_STORE_TYPE": "${VS_TYPE}",
+    "VECTOR_STORE_URL": "${VS_URL}",
+    "EMBEDDING_PROVIDER": "openai",
+    "EMBEDDING_MODEL": "${XGH_EMBED_MODEL}",
+    "EMBEDDING_BASE_URL": "http://localhost:${XGH_MODEL_PORT}/v1",
+    "EMBEDDING_DIMENSIONS": "768",
+    "EMBEDDING_API_KEY": "placeholder",
+    "OPENAI_API_KEY": "placeholder",
+    "OPENAI_BASE_URL": "http://localhost:${XGH_MODEL_PORT}/v1",
+    "LLM_PROVIDER": "openai",
+    "LLM_MODEL": "${XGH_LLM_MODEL}",
+    "LLM_BASE_URL": "http://localhost:${XGH_MODEL_PORT}/v1",
+    "LLM_API_KEY": "placeholder",
+    "CIPHER_LOG_LEVEL": "info",
+    "SEARCH_MEMORY_TYPE": "both",
+    "USE_WORKSPACE_MEMORY": "true",
+    "XGH_TEAM": "${XGH_TEAM}"
   }
 }
 MCPEOF
+)
+
+# Merge into global settings (~/.claude/settings.json)
+GLOBAL_SETTINGS="${HOME}/.claude/settings.json"
+mkdir -p "${HOME}/.claude"
+
+if [ -f "$GLOBAL_SETTINGS" ] && [ -s "$GLOBAL_SETTINGS" ]; then
+  jq --argjson cipher "$CIPHER_MCP_JSON" '.mcpServers.cipher = $cipher' \
+    "$GLOBAL_SETTINGS" > "${GLOBAL_SETTINGS}.tmp" \
+    && mv "${GLOBAL_SETTINGS}.tmp" "$GLOBAL_SETTINGS"
+else
+  echo '{}' | jq --argjson cipher "$CIPHER_MCP_JSON" \
+    '.mcpServers.cipher = $cipher' > "$GLOBAL_SETTINGS"
+fi
+
+info "Cipher MCP → global (~/.claude/settings.json)"
+
+# Clean up legacy project-level .mcp.json
+if [ -f "${PWD}/.mcp.json" ]; then
+  LEGACY_KEYS=$(jq -r '.mcpServers | keys[]' "${PWD}/.mcp.json" 2>/dev/null || echo "")
+  if [ "$LEGACY_KEYS" = "cipher" ]; then
+    rm -f "${PWD}/.mcp.json"
+    info "Removed legacy .mcp.json (cipher now global)"
+  elif echo "$LEGACY_KEYS" | grep -q "cipher"; then
+    jq 'del(.mcpServers.cipher)' "${PWD}/.mcp.json" > "${PWD}/.mcp.json.tmp" \
+      && mv "${PWD}/.mcp.json.tmp" "${PWD}/.mcp.json"
+    info "Removed cipher from .mcp.json (other servers kept)"
+  fi
+fi
 
 # Verify cipher is registered
 if command -v claude &>/dev/null && [ "$XGH_DRY_RUN" -eq 0 ]; then
   if claude mcp list 2>/dev/null | grep -q "cipher"; then
-    info "Cipher MCP ✓ registered"
+    info "Cipher MCP ✓ registered (global)"
   else
     warn "Cipher MCP not yet visible in 'claude mcp list' — you may need to restart Claude Code"
   fi
@@ -1111,7 +1137,7 @@ fi
 info "Updating .gitignore"
 GITIGNORE="${PWD}/.gitignore"
 touch "$GITIGNORE"
-for pattern in ".xgh/local/" "data/cipher-sessions.db*" ".claude/settings.local.json"; do
+for pattern in ".xgh/local/" "data/cipher-sessions.db*" ".claude/settings.local.json" ".mcp.json"; do
   grep -qxF "$pattern" "$GITIGNORE" 2>/dev/null || echo "$pattern" >> "$GITIGNORE"
 done
 
