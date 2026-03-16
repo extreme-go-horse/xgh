@@ -1,7 +1,7 @@
 # Remote Backend Support
 
 **Date:** 2026-03-16
-**Status:** Ready to implement (after Ollama Linux plan)
+**Status:** Implemented
 **Scope:** Add a `remote` backend that points xgh at an external inference server over the network
 
 ---
@@ -33,12 +33,12 @@ The `remote` backend is platform-agnostic — it can be selected on any OS.
 vllm-mlx currently binds to `127.0.0.1` (see `com.xgh.models.plist`). To accept remote
 connections, it must bind to `0.0.0.0` or a specific interface.
 
-- [ ] Add `--serve-network` flag to `install.sh` (or auto-detect if not on loopback):
+- [x] Add `--serve-network` flag to `install.sh` (or auto-detect if not on loopback):
   When `XGH_BACKEND=vllm-mlx` and `XGH_SERVE_NETWORK=1`, update the plist to use
   `--host 0.0.0.0` instead of `--host 127.0.0.1`.
-- [ ] Update `com.xgh.models.plist` template: replace hardcoded `127.0.0.1` with
+- [x] Update `com.xgh.models.plist` template: replace hardcoded `127.0.0.1` with
   `XGH_MODEL_HOST` placeholder (default `127.0.0.1`, overridable).
-- [ ] Post-install note when `XGH_SERVE_NETWORK=1`:
+- [x] Post-install note when `XGH_SERVE_NETWORK=1`:
   ```
   ✓ vllm-mlx bound to 0.0.0.0:11434 — accessible from other devices on your network.
   Firewall: ensure port 11434 is allowed inbound.
@@ -46,14 +46,14 @@ connections, it must bind to `0.0.0.0` or a specific interface.
 
 ### Client side (Raspberry Pi / the machine consuming the remote server)
 
-- [ ] `XGH_BACKEND=remote` skips ALL model server install steps (no vllm-mlx, no Ollama,
+- [x] `XGH_BACKEND=remote` skips ALL model server install steps (no vllm-mlx, no Ollama,
   no Qdrant via brew/binary — but Qdrant still runs locally for vector storage).
-- [ ] Prompt for remote server URL:
+- [x] Prompt for remote server URL:
   ```
   Remote inference server URL [http://192.168.1.x:11434]:
   ```
   Stored as `XGH_REMOTE_URL`. Validate: must start with `http://` or `https://`.
-- [ ] Auto-detect available models by querying `GET ${XGH_REMOTE_URL}/v1/models`:
+- [x] Auto-detect available models by querying `GET ${XGH_REMOTE_URL}/v1/models`:
   ```bash
   _fetch_remote_models() {
     curl -sf "${XGH_REMOTE_URL}/v1/models" 2>/dev/null \
@@ -62,7 +62,7 @@ connections, it must bind to `0.0.0.0` or a specific interface.
   ```
   If the server is reachable and returns models, present them as a picker (same UI as
   vllm-mlx/Ollama pickers). If unreachable, warn but allow manual entry.
-- [ ] `cipher.yml` for remote backend:
+- [x] `cipher.yml` for remote backend:
   ```yaml
   llm:
     provider: openai
@@ -79,12 +79,12 @@ connections, it must bind to `0.0.0.0` or a specific interface.
     dimensions: 768
   ```
   Uses `type: openai` (OpenAI-compat) — works for both vllm-mlx and Ollama remote servers.
-- [ ] MCP env vars for remote: `EMBEDDING_BASE_URL` and `LLM_BASE_URL` set to
+- [x] MCP env vars for remote: `EMBEDDING_BASE_URL` and `LLM_BASE_URL` set to
   `${XGH_REMOTE_URL}/v1` instead of localhost.
-- [ ] Qdrant still runs **locally** on the client machine (Pi). Install Qdrant binary same
+- [x] Qdrant still runs **locally** on the client machine (Pi). Install Qdrant binary same
   as Ollama Linux path (Steps 2/8 of the Ollama plan). The Pi has its own vector store.
-- [ ] `models.env` stores `XGH_BACKEND=remote` and `XGH_REMOTE_URL=http://...`.
-- [ ] `start-models.sh` for remote backend:
+- [x] `models.env` stores `XGH_BACKEND=remote` and `XGH_REMOTE_URL=http://...`.
+- [x] `start-models.sh` for remote backend:
   ```bash
   #!/usr/bin/env bash
   # xgh model server — remote backend
