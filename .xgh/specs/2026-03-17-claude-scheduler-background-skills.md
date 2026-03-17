@@ -16,12 +16,13 @@
 
 `plugin/hooks/session-start.sh` already supports `XGH_BRIEFING=1` to auto-trigger the briefing skill. Add parallel support for `XGH_SCHEDULER` (default: `1`):
 
-- If `XGH_SCHEDULER=1`, inject a `scheduler_trigger` key into the JSON payload output by the hook.
-- The session-start hook instructions (`plugin/skills/init/init.md` or the hook's own inline prompt) detect `scheduler_trigger` and call CronCreate twice:
-  - retrieve: `*/5 * * * *`, prompt `/xgh-retrieve`, recurring: true
-  - analyze: `*/30 * * * *`, prompt `/xgh-analyze`, recurring: true
-- Both jobs are stored with a known label prefix (`xgh:retrieve`, `xgh:analyze`) so `/xgh-schedule` can identify them via CronList.
-- Set `XGH_SCHEDULER=0` in the environment to disable for a session.
+- If `XGH_SCHEDULER` is `"on"` (default), inject a `scheduler_trigger` key into the JSON payload output by the hook. Uses `"on"`/`"off"` strings, consistent with the existing `XGH_BRIEFING` convention.
+- The session-start hook instructions detect `scheduler_trigger` and call CronCreate twice:
+  - retrieve: `cron: "*/5 * * * *"`, `prompt: "xgh:retrieve /xgh-retrieve"`, `recurring: true`
+  - analyze: `cron: "*/30 * * * *"`, `prompt: "xgh:analyze /xgh-analyze"`, `recurring: true`
+- Because CronCreate does not support a dedicated `label` field, jobs are identified by matching the `prompt` field via CronList (prompts prefixed with `xgh:retrieve` / `xgh:analyze`).
+- Set `XGH_SCHEDULER=off` in the environment to disable for a session.
+- **Lifecycle:** Cron jobs fire only within the session that created them. When the Claude window is closed, jobs stop. They are re-created automatically on the next session start. Users should expect retrieve/analyze to pause when Claude is not open — this is intentional (session-scoped by design).
 
 ### 1.2 `/xgh-schedule` — interactive control panel
 
@@ -41,6 +42,8 @@
 | `/xgh-schedule run retrieve` | Fire `/xgh-retrieve` immediately (one-off, not via cron) |
 | `/xgh-schedule run analyze` | Fire `/xgh-analyze` immediately |
 | `/xgh-schedule off` | CronDelete all xgh cron jobs for this session |
+| `/xgh-schedule prefs reset <skill>` | Delete `skill_mode.<skill>` from `~/.xgh/prefs.json` and re-prompt on next invocation |
+| `/xgh-schedule prefs` | Show all stored skill mode preferences |
 
 The skill is interactive (foreground), short, and always runs in the main session — it's the management interface, not a task itself.
 
@@ -81,19 +84,34 @@ No preference check, no prompt — always background.
 
 Skills: `xgh:investigate`, `xgh:implement`, `xgh:index`, `xgh:track`, `xgh:collab`
 
-Each skill's `.md` file gains a **Preamble** section (before any existing content) that runs the preference check:
+Each skill's `.md` file gains a **Preamble** section (before any existing content) that runs the preference check. The preamble instructs Claude to use concrete tool calls — `Bash` for reading/writing `~/.xgh/prefs.json` via `jq`.
 
 ```markdown
 ## Preamble — Execution mode
 
-1. Read `~/.xgh/prefs.json`. Check `skill_mode.<this_skill_name>`.
-2. If entry exists: proceed to "Dispatch" below using stored values.
-3. If not set:
-   a. Ask: "Run **investigate** in background or interactive? [b/i, default: i]"
-   b. If "b": ask "Check in with one question before starting, or fire-and-forget? [c/f, default: c]"
-   c. Write result to `~/.xgh/prefs.json` under `skill_mode.<this_skill_name>`.
-4. Flag overrides: `--bg` forces background, `--interactive`/`--fg` forces foreground,
-   `--checkin` forces check-in autonomy, `--auto` forces fire-and-forget.
+1. **Read preference** using Bash:
+   ```bash
+   jq -r '.skill_mode.<skill_name> // empty' ~/.xgh/prefs.json 2>/dev/null
+   ```
+   If output is non-empty, parse `mode` and `autonomy` and skip to "Dispatch".
+
+2. **If not set** — ask the user:
+   - "Run **<skill>** in background (returns summary) or interactive? [b/i, default: i]"
+   - If "b": "Check in before starting or fire-and-forget? [c/f, default: c]"
+
+3. **Write preference** using Bash:
+   ```bash
+   prefs=$(cat ~/.xgh/prefs.json 2>/dev/null || echo '{}')
+   echo "$prefs" | jq '.skill_mode.<skill_name> = {"mode":"<mode>","autonomy":"<autonomy>"}' \
+     > ~/.xgh/prefs.json
+   ```
+
+4. **Flag overrides** (per-invocation, do not update prefs.json):
+   - `--bg` → background mode
+   - `--interactive` / `--fg` → interactive mode
+   - `--checkin` → check-in autonomy (background only)
+   - `--auto` → fire-and-forget autonomy (background only)
+   - `--reset` → delete `skill_mode.<skill_name>` from prefs.json and re-prompt
 
 ## Dispatch
 
@@ -141,7 +159,7 @@ Each skill's `.md` file gains a **Preamble** section (before any existing conten
 | `plugin/skills/retrieve/retrieve.md` | Add background Agent dispatch pattern |
 | `plugin/skills/analyze/analyze.md` | Add background Agent dispatch pattern |
 | `plugin/skills/briefing/briefing.md` | Add background Agent dispatch pattern |
-| `plugin/skills/brief/brief.md` (if exists) | Add background Agent dispatch pattern |
+| `plugin/skills/brief/brief.md` | Does not exist — no change needed; brief is covered by the `brief-skill` component in techpack.yaml pointing to `plugin/skills/brief/brief.md`; verify at implementation time |
 | `plugin/skills/investigate/investigate.md` | Add preamble preference check |
 | `plugin/skills/implement/implement.md` | Add preamble preference check |
 | `plugin/skills/index/index.md` | Add preamble preference check |
@@ -151,7 +169,9 @@ Each skill's `.md` file gains a **Preamble** section (before any existing conten
 | `plugin/commands/analyze.md` | Update scheduler reference text |
 | `install.sh` | Remove scheduler install block, update output text |
 | `scripts/ingest-schedule.sh` | Delete |
-| `scripts/schedulers/` | Delete directory |
+| `scripts/schedulers/com.xgh.retriever.plist` | Delete (replaced by CronCreate) |
+| `scripts/schedulers/com.xgh.analyzer.plist` | Delete (replaced by CronCreate) |
+| `scripts/schedulers/com.xgh.models.plist` | Delete — this is the local model daemon plist (vllm-mlx/Ollama). The model server is now managed exclusively by `lossless-claude install` (its own daemon setup). Confirm at implementation time that no install.sh step still references this plist. |
 | `techpack.yaml` | Remove `ingest-schedule` component |
 
 ---
