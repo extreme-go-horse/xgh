@@ -657,6 +657,7 @@ fi
 # ── 4. Legacy MCP cleanup ──────────────────────────────
 CLAUDE_DIR="${PWD}/.claude"
 mkdir -p "${CLAUDE_DIR}"
+PROJECT_CLAUDE_MCP="${CLAUDE_DIR}/.mcp.json"
 
 # Clean up any legacy project-level cipher entries from .mcp.json
 if [ -f "${PWD}/.mcp.json" ]; then
@@ -668,6 +669,19 @@ if [ -f "${PWD}/.mcp.json" ]; then
     jq 'del(.mcpServers.cipher)' "${PWD}/.mcp.json" > "${PWD}/.mcp.json.tmp" \
       && mv "${PWD}/.mcp.json.tmp" "${PWD}/.mcp.json"
     info "Removed stale cipher entry from project .mcp.json"
+  fi
+fi
+
+# Clean up any legacy project-level cipher entries from .claude/.mcp.json
+if [ -f "$PROJECT_CLAUDE_MCP" ]; then
+  PROJECT_LEGACY_KEYS=$(jq -r '.mcpServers | keys[]' "$PROJECT_CLAUDE_MCP" 2>/dev/null || echo "")
+  if [ "$PROJECT_LEGACY_KEYS" = "cipher" ]; then
+    rm -f "$PROJECT_CLAUDE_MCP"
+    info "Removed legacy .claude/.mcp.json (cipher entry)"
+  elif echo "$PROJECT_LEGACY_KEYS" | grep -q "cipher"; then
+    jq 'del(.mcpServers.cipher)' "$PROJECT_CLAUDE_MCP" > "${PROJECT_CLAUDE_MCP}.tmp" \
+      && mv "${PROJECT_CLAUDE_MCP}.tmp" "$PROJECT_CLAUDE_MCP"
+    info "Removed stale cipher entry from project .claude/.mcp.json"
   fi
 fi
 
