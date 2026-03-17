@@ -89,14 +89,15 @@ xgh_has_cipher() {
 # ---------------------------------------------------------------------------
 # detect_mcps
 # Populates XGH_AVAILABLE_MCPS array with all detected MCP names.
-# Also checks .claude/.mcp.json for configured servers.
+# Also checks .claude/mcp.json for configured servers.
 # ---------------------------------------------------------------------------
 detect_mcps() {
   XGH_AVAILABLE_MCPS=()
 
-  # Check .claude/.mcp.json for configured servers
-  local mcp_json="${PWD}/.claude/.mcp.json"
+  # Check .claude/mcp.json for configured servers
+  local mcp_json="${PWD}/.claude/mcp.json"
   if [ -f "$mcp_json" ]; then
+    grep -qi '"lossless-claude"' "$mcp_json" 2>/dev/null && XGH_AVAILABLE_MCPS+=("lossless-claude")
     grep -qi '"cipher"' "$mcp_json" 2>/dev/null && XGH_AVAILABLE_MCPS+=("cipher")
     grep -qi '"slack"' "$mcp_json" 2>/dev/null && XGH_AVAILABLE_MCPS+=("slack")
     grep -qi '"figma"' "$mcp_json" 2>/dev/null && XGH_AVAILABLE_MCPS+=("figma")
