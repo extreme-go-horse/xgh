@@ -9,6 +9,13 @@ export XGH_HOOK_INPUT=$(cat 2>/dev/null || echo '{}')
 
 python3 << 'PYEOF'
 import json, os, hashlib, subprocess
+from pathlib import Path
+
+# If context-mode isn't installed and no override, emit no-op and exit
+override = os.environ.get("XGH_CTX_STATE_OVERRIDE", "")
+if not override and not Path.home().joinpath(".claude", "plugins", "cache", "context-mode").exists():
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": ""}}))
+    raise SystemExit(0)
 
 # Determine state file path
 override = os.environ.get("XGH_CTX_STATE_OVERRIDE", "")

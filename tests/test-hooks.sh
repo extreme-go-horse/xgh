@@ -423,8 +423,12 @@ assert_eq "post-ctx-call increments ctx_calls" "$CTX_AFTER" "1"
 
 # ── session-start ctx-mode integration tests ──────────────
 
+# Set up a fake HOME with context-mode cache to make tests deterministic
+FAKE_HOME=$(mktemp -d)
+mkdir -p "$FAKE_HOME/.claude/plugins/cache/context-mode"
+
 # Test: decision table includes ctx_execute_file guidance
-SS_CTX_OUT=$(XGH_CONTEXT_TREE="$TMPDIR_CT" bash plugin/hooks/session-start.sh)
+SS_CTX_OUT=$(HOME="$FAKE_HOME" XGH_CONTEXT_TREE="$TMPDIR_CT" bash plugin/hooks/session-start.sh)
 SS_CTX_DT=$(python3 -c "
 import json, sys
 d = json.loads(sys.argv[1])
@@ -441,6 +445,9 @@ d = json.loads(sys.argv[1])
 print('yes' if 'ctxModeAvailable' in d else 'no')
 " "$SS_CTX_OUT")
 assert_eq "session-start has ctxModeAvailable key" "$SS_CTX_KEY" "yes"
+
+# Clean up fake home
+rm -rf "$FAKE_HOME"
 
 # Test: schedulerInstructions mentions deep-retrieve
 SS_DEEP=$(XGH_CONTEXT_TREE="$TMPDIR_CT" XGH_SCHEDULER="on" bash plugin/hooks/session-start.sh)
