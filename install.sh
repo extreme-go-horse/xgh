@@ -184,7 +184,7 @@ fi
 mkdir -p "${HOOKS_DIR}"
 
 # Copy hook files (or create placeholders if not in pack yet)
-for hook in session-start prompt-submit; do
+for hook in session-start prompt-submit pre-read post-edit post-ctx-call; do
   src="${PACK_DIR}/plugin/hooks/${hook}.sh"
   dst="${HOOKS_DIR}/xgh-${hook}.sh"
   if [ -f "$src" ]; then
