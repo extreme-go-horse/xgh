@@ -9,7 +9,7 @@ PASS=0; FAIL=0
 
 assert_json_valid() {
   local file="$1"
-  if python3 -c "import json; json.load(open('$file'))" 2>/dev/null; then
+  if python3 -c "import sys, json; json.load(open(sys.argv[1]))" "$file" 2>/dev/null; then
     PASS=$((PASS + 1))
   else
     echo "FAIL: $file is not valid JSON"
