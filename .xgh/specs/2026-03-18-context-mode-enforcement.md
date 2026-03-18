@@ -1,7 +1,7 @@
 # Context-Mode Enforcement for xgh
 
 **Date:** 2026-03-18
-**Status:** Draft
+**Status:** Draft (rev 2 — post spec review)
 **Problem:** Context-mode goes unused despite advisory hooks, wasting tokens and money.
 
 ## Background
@@ -19,11 +19,20 @@ Root causes:
 2. **Zero context-mode awareness in skills** — superpowers and xgh skills never mention how to read files efficiently
 3. **No session-level feedback loop** — nothing notices "5 Reads, 0 ctx calls" and escalates
 
+## Prerequisites
+
+**Installer hook copy path bug:** The installer copies hooks from `${PACK_DIR}/hooks/` but
+the actual hook scripts live at `${PACK_DIR}/plugin/hooks/`. This causes the `if [ -f "$src" ]`
+check to fail, creating empty placeholder hooks instead. The implementation plan must fix this
+path before adding new hooks to the copy loop.
+
 ## Solution: Four-Layer Defense in Depth
 
 Each layer strengthens the previous. Implementation order matches layer number.
 
 ### Layer 1: Foundation — Shared Reference Doc + Session-Start Priming
+
+**New directory:** `plugin/references/`
 
 **New file:** `plugin/references/context-mode-routing.md`
 
@@ -47,10 +56,22 @@ Single source of truth for context-mode routing rules. Contains:
   - Implementation: `Read` for files about to be Edited. `ctx_execute` for builds/tests.
 - **Examples of correct and incorrect patterns** (drawn from real session mistakes).
 
-**Session-start change:** Add to the `decision_table` list in `plugin/hooks/session-start.sh`:
-```python
-"For file analysis: use ctx_execute_file, not Read. Read is only for files about to be Edited."
-```
+**Session-start changes:**
+
+1. Add to the `decision_table` list in `plugin/hooks/session-start.sh`:
+   ```python
+   "For file analysis: use ctx_execute_file, not Read. Read is only for files about to be Edited."
+   ```
+
+2. Add context-mode availability check:
+   ```python
+   # Check if context-mode MCP is available by looking for its plugin cache
+   ctx_mode_available = Path.home().joinpath(
+       ".claude/plugins/cache/context-mode"
+   ).exists()
+   ```
+   Emit `"ctxModeAvailable": true/false` in the output. When false, suppress context-mode
+   guidance in the decision table and do not initialize the state file.
 
 This primes every session before any skill loads or tool fires.
 
@@ -71,7 +92,7 @@ implement, deep-retrieve).
 **Heavy skills** (investigate, implement, deep-retrieve, retrieve, analyze) additionally
 reference the full doc for phase-specific guidance in their own context-mode section.
 
-**Skills to update:**
+**Skills to update (23 total):**
 - `plugin/skills/investigate/investigate.md`
 - `plugin/skills/implement/implement.md`
 - `plugin/skills/deep-retrieve/deep-retrieve.md`
@@ -90,7 +111,11 @@ reference the full doc for phase-specific guidance in their own context-mode sec
 - `plugin/skills/ask/ask.md`
 - `plugin/skills/curate/curate.md`
 - `plugin/skills/command-center/command-center.md`
-- `plugin/skills/deep-retrieve/deep-retrieve.md`
+- `plugin/skills/knowledge-handoff/knowledge-handoff.md`
+- `plugin/skills/mcp-setup/mcp-setup.md`
+- `plugin/skills/pr-context-bridge/pr-context-bridge.md`
+- `plugin/skills/todo-killer/todo-killer.md`
+- `plugin/skills/team/` (all sub-skills: cross-team-pollinator, onboarding-accelerator, subagent-pair-programming)
 
 ### Layer 3: Enforcement — PreToolUse Hook with Escalating Warnings
 
@@ -116,7 +141,7 @@ This is worktree-safe — each worktree gets its own state file. `/tmp/` is clea
 ```
 
 **Session-start initialization:** The session-start hook resets the state file at the start of
-every session. This prevents stale data from previous sessions.
+every session (only when context-mode is available).
 
 ```python
 import hashlib, subprocess, json
@@ -129,15 +154,36 @@ state_path = f"/tmp/xgh-ctx-health-{hash_val}.json"
 json.dump({"reads": 0, "edits": 0, "ctx_calls": 0, "files_read": []}, open(state_path, "w"))
 ```
 
-Emit the state path in the hook output so hooks can derive it consistently.
+**Missing state file resilience:** All hooks must handle the case where the state file is
+missing mid-session (e.g., OS cleans `/tmp/`). If the file is missing, initialize a fresh
+state rather than failing.
+
+**Race condition on parallel tool calls:** With Claude Code's parallel tool calls, two hooks
+could read/write the state file simultaneously, causing a lost increment. This is accepted
+for an advisory system — the counters may occasionally be off by 1, which does not affect
+the escalation tiers meaningfully.
+
+**Hook implementation language:** All hooks use embedded Python (via `python3 -c "..."` or
+heredoc) for consistency with the existing session-start and prompt-submit hooks.
+
+**Hash consistency:** All hooks that compute the state file path must use the same algorithm:
+`SHA-1 of the worktree root path, first 8 hex chars`. In Python: `hashlib.sha1(path.encode()).hexdigest()[:8]`.
+In bash: `echo "$path" | shasum | cut -c1-8`. Both produce identical output.
 
 **New hook: `plugin/hooks/pre-read.sh`** (PreToolUse on Read)
 
+Output format (required for PreToolUse hooks):
+```json
+{"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": "..."}}
+```
+
 On every Read call:
 1. Compute state file path from worktree root hash
-2. Read current state, increment `reads`, append file path to `files_read`
+2. Read current state (or initialize fresh if missing), increment `reads`, append file path
+   to `files_read`
 3. Compute `unedited_reads = reads - edits`
-4. Emit `additionalContext` based on escalation tier:
+4. If `ctx_calls >= 2`: suppress warnings (agent has demonstrated context-mode awareness)
+5. Otherwise, emit `additionalContext` via `hookSpecificOutput` based on escalation tier:
 
 | Unedited Reads | Level | Message |
 |---|---|---|
@@ -145,103 +191,164 @@ On every Read call:
 | 3-4 | Recommendation | "You've read N files and edited M. Use ctx_execute_file for analysis. Unedited files: [list]" |
 | 5+ | Strong warning | "N reads, M edits, 0 ctx calls. You are wasting context. Switch to ctx_execute_file NOW. See plugin/references/context-mode-routing.md" |
 
-5. Write updated state back to file
+6. Write updated state back to file
 
-**New hook: `plugin/hooks/post-edit.sh`** (PostToolUse on Edit)
+**Known limitation — premature warnings on batch reads:** If an agent reads 5 files then edits
+all 5, the 5th Read triggers a tier-3 warning even though all reads are edit-justified.
+The post-edit hook resolves each file from the list as edits happen, so the counter self-corrects.
+This brief false positive is accepted for an advisory system.
 
-On every Edit call:
-1. Increment `edits` in state file
-2. Remove the edited file from `files_read` list (validates the preceding Read)
+**New hook: `plugin/hooks/post-edit.sh`** (PostToolUse on Edit and Write)
 
-**New hook: `plugin/hooks/post-ctx-call.sh`** (PostToolUse on ctx_execute, ctx_execute_file,
-ctx_batch_execute)
+On every Edit or Write call:
+1. Read state file (or initialize fresh if missing)
+2. Increment `edits`
+3. Remove the edited/written file from `files_read` list (validates the preceding Read)
+4. Write updated state back
+
+Note: Write is tracked alongside Edit because a Read followed by Write (full rewrite) is
+a valid read-then-modify pattern that should resolve the file from the unedited list.
+
+**New hook: `plugin/hooks/post-ctx-call.sh`** (PostToolUse on context-mode tools)
 
 On every context-mode tool call:
-1. Increment `ctx_calls` in state file
+1. Read state file (or initialize fresh if missing)
+2. Increment `ctx_calls`
+3. Write updated state back
+
+**Tracked context-mode tools** (all require PostToolUse matchers):
+- `mcp__plugin_context-mode_context-mode__ctx_execute`
+- `mcp__plugin_context-mode_context-mode__ctx_execute_file`
+- `mcp__plugin_context-mode_context-mode__ctx_batch_execute`
+- `mcp__plugin_context-mode_context-mode__ctx_search`
+- `mcp__plugin_context-mode_context-mode__ctx_fetch_and_index`
 
 ### Layer 4: Feedback Loop — Session Health Nudge
 
 **Integration point:** Existing `plugin/hooks/prompt-submit.sh` (UserPromptSubmit hook).
 
+Output format (UserPromptSubmit):
+```json
+{"additionalContext": "..."}
+```
+
 On every user message, after existing intent detection logic:
-1. Read state file
-2. If `unedited_reads >= 3` AND `ctx_calls == 0`: append nudge to `additionalContext`
-3. Nudge text: "Session health: {reads} reads, {edits} edits, 0 context-mode calls. Switch to
+1. Read state file (skip if missing — context-mode may not be installed)
+2. If `ctx_calls >= 2`: skip nudge (agent is using context-mode)
+3. If `unedited_reads >= 3` AND `ctx_calls == 0`: append nudge to `additionalContext`
+4. Nudge text: "Session health: {reads} reads, {edits} edits, 0 context-mode calls. Switch to
    ctx_execute_file for analysis reads."
 
 **Design choices:**
 - Fires per user message (low frequency, not noisy)
 - Only triggers on a clear pattern (3+ unedited reads AND zero ctx calls)
+- Suppressed once agent demonstrates awareness (ctx_calls >= 2)
 - Appended to existing `additionalContext` output — no separate hook, single payload
 
 ## Hook Registration
 
-The installer (`install.sh`) must register these hooks in `.claude/settings.json`:
+The installer must register these hooks in the hooks settings. Use the existing
+`hooks-settings.json` template pattern with `__HOOKS_DIR__` placeholder.
 
+**PreToolUse hooks:**
 ```json
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Read",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/xgh-pre-read.sh"}]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/xgh-post-edit.sh"}]
-      },
-      {
-        "matcher": "mcp__plugin_context-mode_context-mode__ctx_execute",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/xgh-post-ctx-call.sh"}]
-      },
-      {
-        "matcher": "mcp__plugin_context-mode_context-mode__ctx_execute_file",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/xgh-post-ctx-call.sh"}]
-      },
-      {
-        "matcher": "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/xgh-post-ctx-call.sh"}]
-      }
-    ]
-  }
+  "matcher": "Read",
+  "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-pre-read.sh"}]
 }
 ```
 
-Hooks are symlinked from `plugin/hooks/` to `~/.claude/hooks/` during install (existing pattern).
+**PostToolUse hooks:**
+```json
+[
+  {
+    "matcher": "Edit",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-edit.sh"}]
+  },
+  {
+    "matcher": "Write",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-edit.sh"}]
+  },
+  {
+    "matcher": "mcp__plugin_context-mode_context-mode__ctx_execute",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-ctx-call.sh"}]
+  },
+  {
+    "matcher": "mcp__plugin_context-mode_context-mode__ctx_execute_file",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-ctx-call.sh"}]
+  },
+  {
+    "matcher": "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-ctx-call.sh"}]
+  },
+  {
+    "matcher": "mcp__plugin_context-mode_context-mode__ctx_search",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-ctx-call.sh"}]
+  },
+  {
+    "matcher": "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
+    "hooks": [{"type": "command", "command": "bash __HOOKS_DIR__/xgh-post-ctx-call.sh"}]
+  }
+]
+```
+
+## Installer Changes
+
+The hook copy loop in `install.sh` must be updated:
+
+1. **Fix the source path bug:** Change `${PACK_DIR}/hooks/${hook}.sh` to
+   `${PACK_DIR}/plugin/hooks/${hook}.sh` (the actual location of hook scripts).
+
+2. **Add new hooks to the copy loop:**
+   ```bash
+   for hook in session-start prompt-submit pre-read post-edit post-ctx-call; do
+   ```
+
+3. **Add new hook entries to `config/hooks-settings.json`** — add PreToolUse and PostToolUse
+   sections to the existing file (which currently only has SessionStart and UserPromptSubmit).
+   Use the `__HOOKS_DIR__` placeholder pattern already established in that file.
 
 ## File Inventory
 
 | File | Action | Layer |
 |------|--------|-------|
+| `plugin/references/` | Create directory | 1 |
 | `plugin/references/context-mode-routing.md` | Create | 1 |
-| `plugin/hooks/session-start.sh` | Edit (add decision table entry + state init) | 1, 3 |
-| All 19 skill files listed above | Edit (add 4-line preamble) | 2 |
-| `plugin/hooks/pre-read.sh` | Create | 3 |
-| `plugin/hooks/post-edit.sh` | Create | 3 |
-| `plugin/hooks/post-ctx-call.sh` | Create | 3 |
+| `plugin/hooks/session-start.sh` | Edit (decision table entry + ctx-mode check + state init) | 1, 3 |
+| All 23 skill files listed above | Edit (add 4-line preamble) | 2 |
+| `plugin/hooks/pre-read.sh` | Create (installed as `xgh-pre-read.sh`) | 3 |
+| `plugin/hooks/post-edit.sh` | Create (installed as `xgh-post-edit.sh`) | 3 |
+| `plugin/hooks/post-ctx-call.sh` | Create (installed as `xgh-post-ctx-call.sh`) | 3 |
+| `config/hooks-settings.json` | Edit (add PreToolUse + PostToolUse entries) | 3 |
+| `install.sh` | Edit (fix hook source path, add new hooks to copy loop) | 3 |
 | `plugin/hooks/prompt-submit.sh` | Edit (add nudge logic) | 4 |
-| `install.sh` | Edit (register new hooks, add symlinks) | 3 |
 
 ## Testing
 
-- **Layer 1:** Verify session-start output includes the new decision table entry
-- **Layer 2:** Spot-check 3-4 skills for preamble presence
-- **Layer 3:** Manual test: Read 3 files without editing, verify escalation messages appear.
-  Edit a file, verify counter decrements. Use ctx_execute_file, verify ctx_calls increments.
+- **Layer 1:** Verify session-start output includes the new decision table entry. Verify
+  `ctxModeAvailable` is correct based on context-mode plugin presence.
+- **Layer 2:** Spot-check 3-4 skills for preamble presence.
+- **Layer 3:** Manual test:
+  - Read 3 files without editing — verify escalation messages appear with correct format.
+  - Edit a file — verify counter decrements and file removed from unedited list.
+  - Use ctx_execute_file — verify ctx_calls increments.
+  - After 2+ ctx calls — verify warnings are suppressed.
+  - Delete state file mid-session — verify hooks re-initialize gracefully.
 - **Layer 4:** Manual test: accumulate 3+ unedited reads with 0 ctx calls, send a message,
   verify nudge appears in additionalContext.
 - **Worktree isolation:** Run two sessions in different worktrees, verify independent state files.
+- **Context-mode absent:** Uninstall context-mode, verify hooks degrade gracefully (no errors,
+  no misleading guidance).
 
 ## Risks
 
-- **Hook performance:** Each Read/Edit adds a state file read/write. `/tmp/` is fast, JSON is
-  small — negligible overhead.
-- **Context-mode not installed:** Hooks reference context-mode tools. If context-mode is not
-  installed, the PostToolUse matchers simply never fire (no ctx tools to match). The PreToolUse
-  and nudge still work — they guide toward tools that won't be available, but the preamble
-  mentions ctx_execute_file which would surface a helpful "tool not found" if context-mode is
-  missing. Consider adding a guard in session-start that checks for context-mode availability.
-- **Hook conflicts:** The installer already uses deep-merge for hooks arrays. New hooks merge
+- **Hook performance:** Each Read/Edit adds a state file read/write + Python subprocess.
+  `/tmp/` is fast, JSON is small, Python startup is ~30ms — acceptable for advisory hooks.
+- **Context-mode not installed:** Session-start checks for context-mode availability and
+  suppresses all context-mode guidance (decision table entry, state file init) when absent.
+  PostToolUse matchers for ctx_* tools simply never fire. PreToolUse and nudge are gated on
+  state file existence — if not initialized (ctx-mode absent), they silently skip.
+- **Hook conflicts:** The installer uses deep-merge for hooks arrays. New hooks merge
   alongside context-mode's existing hooks without overwriting.
+- **Race conditions:** Accepted for advisory system. Counters may be off by 1 on parallel
+  tool calls. Does not affect escalation tiers meaningfully.
