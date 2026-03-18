@@ -92,6 +92,42 @@ Non-code task → Just respond normally
 else:
     context = "Non-code task detected — memory search not required."
 
+# Session health nudge — context-mode enforcement (Layer 4)
+nudge = ""
+state_override = os.environ.get("XGH_CTX_STATE_OVERRIDE", "")
+if state_override:
+    ctx_state_path = state_override
+else:
+    import hashlib, subprocess as sp
+    try:
+        proj = sp.check_output(
+            ["git", "rev-parse", "--show-toplevel"],
+            stderr=sp.DEVNULL
+        ).decode().strip()
+    except Exception:
+        proj = os.getcwd()
+    h = hashlib.sha1(proj.encode()).hexdigest()[:8]
+    ctx_state_path = f"/tmp/xgh-ctx-health-{h}.json"
+
+try:
+    with open(ctx_state_path) as f:
+        ctx_state = json.load(f)
+    unedited = ctx_state.get("reads", 0) - ctx_state.get("edits", 0)
+    ctx_calls = ctx_state.get("ctx_calls", 0)
+    if ctx_calls < 2 and unedited >= 3:
+        nudge = (
+            f"\n\n---\n\n"
+            f"**Session health:** {ctx_state['reads']} reads, "
+            f"{ctx_state['edits']} edits, {ctx_calls} context-mode calls. "
+            f"Switch to ctx_execute_file for analysis reads."
+        )
+except (FileNotFoundError, json.JSONDecodeError, KeyError):
+    pass  # No state file = context-mode not active, skip silently
+
+# Append nudge to context if present
+if nudge:
+    context += nudge
+
 print(json.dumps({"additionalContext": context}))
 PYEOF
 exit 0
