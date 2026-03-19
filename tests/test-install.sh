@@ -135,6 +135,30 @@ assert_dir_not_exists "${HOME}/.xgh/schedulers"
 assert_contains "${XGH_LOCAL_PACK}/install.sh" 'rm -rf.*schedulers'
 assert_contains "${XGH_LOCAL_PACK}/install.sh" 'rm -f.*models.env'
 
+# ── RTK ──────────────────────────────────────────────────────────────────────
+echo ""
+echo "── RTK ──"
+
+# Lane code exists in install.sh
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'lane "Installing RTK'
+
+# Skip flag suppresses install
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'XGH_SKIP_RTK'
+
+# Arch detection uses both uname and sysctl cross-check
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'hw.optional.arm64'
+
+# GitHub API call with fallback
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'RTK_MIN_VERSION'
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'releases/latest'
+
+# SHA256 verification
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'sha256'
+
+# Skip flag: no hook added when XGH_SKIP_RTK=1
+XGH_SKIP_RTK=1 XGH_DRY_RUN=1 XGH_LOCAL_PACK="${XGH_LOCAL_PACK}" bash "${XGH_LOCAL_PACK}/install.sh" > /tmp/rtk-skip-out.txt 2>&1 || true
+assert_contains /tmp/rtk-skip-out.txt 'XGH_SKIP_RTK'
+
 echo ""
 echo "Install test: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] || exit 1

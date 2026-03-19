@@ -9,6 +9,25 @@ XGH_DRY_RUN="${XGH_DRY_RUN:-0}"
 XGH_LOCAL_PACK="${XGH_LOCAL_PACK:-}"
 XGH_REPO="https://github.com/ipedro/xgh"
 
+# ── RTK constants ─────────────────────────────────────────
+RTK_MIN_VERSION="0.31.0"
+RTK_REPO="rtk-ai/rtk"
+RTK_INSTALL_DIR="${HOME}/.local/bin"
+
+# Detect CPU arch, cross-checking for Rosetta on macOS
+_rtk_arch() {
+  local arch
+  arch="$(uname -m)"
+  if [ "$arch" = "x86_64" ] && [ "$(uname -s)" = "Darwin" ]; then
+    if sysctl hw.optional.arm64 2>/dev/null | grep -q ': 1'; then
+      arch="aarch64"
+    fi
+  elif [ "$arch" = "arm64" ]; then
+    arch="aarch64"
+  fi
+  echo "$arch"
+}
+
 # ── Colors ────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -258,6 +277,110 @@ perms_data = json.load(open('${PERMS_SETTINGS}'))
 merged = {**hooks_data, **perms_data}
 json.dump(merged, open('${SETTINGS_FILE}', 'w'), indent=2)
 " 2>/dev/null
+fi
+
+# ── 3a. RTK — output compression ─────────────────────────
+lane "Installing RTK 🗜️"
+
+if [ "$XGH_DRY_RUN" -eq 0 ] && [ "${XGH_SKIP_RTK:-0}" -eq 0 ]; then
+  _RTK_BIN=""
+
+  if command -v rtk &>/dev/null; then
+    _installed_ver="$(rtk --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo '0.0.0')"
+    if python3 -c "
+v=tuple(int(x) for x in '${_installed_ver}'.split('.'))
+m=tuple(int(x) for x in '${RTK_MIN_VERSION}'.split('.'))
+exit(0 if v >= m else 1)
+" 2>/dev/null; then
+      info "RTK already installed: $(command -v rtk) (${_installed_ver})"
+      _RTK_BIN="$(command -v rtk)"
+    fi
+  fi
+
+  if [ -z "$_RTK_BIN" ]; then
+    _arch="$(_rtk_arch)"
+    _os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+
+    case "${_arch}-${_os}" in
+      aarch64-darwin) _asset="rtk-aarch64-apple-darwin.tar.gz" ;;
+      x86_64-darwin)  _asset="rtk-x86_64-apple-darwin.tar.gz" ;;
+      aarch64-linux)  _asset="rtk-aarch64-unknown-linux-gnu.tar.gz" ;;
+      x86_64-linux)   _asset="rtk-x86_64-unknown-linux-musl.tar.gz" ;;
+      *)
+        warn "RTK: unsupported platform ${_arch}-${_os} — skipping"
+        _asset=""
+        ;;
+    esac
+
+    if [ -n "$_asset" ]; then
+      _tag="$(curl -sf "https://api.github.com/repos/${RTK_REPO}/releases/latest" \
+        | python3 -c "import json,sys; print(json.load(sys.stdin).get('tag_name','v${RTK_MIN_VERSION}'))" \
+        2>/dev/null || echo "v${RTK_MIN_VERSION}")"
+      _tag="${_tag:-v${RTK_MIN_VERSION}}"
+
+      _base_url="https://github.com/${RTK_REPO}/releases/download/${_tag}"
+      _tmpdir="$(mktemp -d)"
+
+      info "Downloading RTK ${_tag} (${_asset})..."
+      if curl -sfL "${_base_url}/${_asset}" -o "${_tmpdir}/${_asset}"; then
+
+        _checksum_asset="$(curl -sf "https://api.github.com/repos/${RTK_REPO}/releases/latest" \
+          | python3 -c "
+import json,sys
+assets=[a['name'] for a in json.load(sys.stdin).get('assets',[])
+        if 'checksum' in a['name'].lower() or a['name'].endswith('.sha256')]
+print(assets[0] if assets else 'checksums.txt')
+" 2>/dev/null || echo "checksums.txt")"
+
+        curl -sfL "${_base_url}/${_checksum_asset}" -o "${_tmpdir}/checksums.txt" 2>/dev/null || true
+
+        _verified=0
+        if [ -s "${_tmpdir}/checksums.txt" ]; then
+          _expected="$(grep "${_asset}" "${_tmpdir}/checksums.txt" | awk '{print $1}')"
+          if [ -n "$_expected" ]; then
+            _actual="$(sha256sum "${_tmpdir}/${_asset}" 2>/dev/null | awk '{print $1}' || shasum -a 256 "${_tmpdir}/${_asset}" 2>/dev/null | awk '{print $1}')"
+            if [ "$_actual" = "$_expected" ]; then
+              _verified=1
+            else
+              warn "RTK: SHA256 mismatch — aborting install (expected ${_expected}, got ${_actual})"
+              rm -rf "$_tmpdir"
+              _asset=""
+            fi
+          else
+            warn "RTK: no checksum entry found for ${_asset} — installing without verification"
+            _verified=1
+          fi
+        else
+          warn "RTK: could not fetch checksums — installing without verification"
+          _verified=1
+        fi
+
+        if [ "$_verified" -eq 1 ] && [ -n "$_asset" ]; then
+          mkdir -p "${RTK_INSTALL_DIR}"
+          tar -xzf "${_tmpdir}/${_asset}" -C "${_tmpdir}" 2>/dev/null || true
+          _extracted_bin="$(find "${_tmpdir}" -type f -name 'rtk' | head -1)"
+          if [ -n "$_extracted_bin" ]; then
+            mv "$_extracted_bin" "${RTK_INSTALL_DIR}/rtk"
+            chmod +x "${RTK_INSTALL_DIR}/rtk"
+            _RTK_BIN="${RTK_INSTALL_DIR}/rtk"
+            info "RTK installed: ${_RTK_BIN}"
+          else
+            warn "RTK: binary not found in archive — skipping"
+          fi
+        fi
+      else
+        warn "RTK: download failed — skipping (set XGH_SKIP_RTK=1 to suppress)"
+      fi
+      rm -rf "$_tmpdir"
+    fi
+  fi
+
+  if [ -n "$_RTK_BIN" ]; then
+    "$_RTK_BIN" --version &>/dev/null || warn "RTK binary installed but --version failed"
+  fi
+
+else
+  [ "${XGH_SKIP_RTK:-0}" -eq 1 ] && info "Skipping RTK (XGH_SKIP_RTK=1)"
 fi
 
 # ── Plugin Registration ────────────────────────────────────
