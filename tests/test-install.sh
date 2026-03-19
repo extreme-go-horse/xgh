@@ -33,6 +33,14 @@ assert_not_contains() {
   if ! grep -q "$2" "$1" 2>/dev/null; then PASS=$((PASS + 1)); else echo "FAIL: $1 should not contain '$2'"; FAIL=$((FAIL + 1)); fi
 }
 
+assert_file_not_exists() {
+  if [ ! -f "$1" ]; then PASS=$((PASS + 1)); else echo "FAIL: $1 should not exist"; FAIL=$((FAIL + 1)); fi
+}
+
+assert_dir_not_exists() {
+  if [ ! -d "$1" ]; then PASS=$((PASS + 1)); else echo "FAIL: dir $1 should not exist"; FAIL=$((FAIL + 1)); fi
+}
+
 # Setup temp project dir
 TMPDIR=$(mktemp -d)
 trap "rm -rf $TMPDIR" EXIT
@@ -113,6 +121,19 @@ assert_dir_exists  "${HOME}/.claude/plugins/cache/ipedro/xgh"
 assert_file_exists "${HOME}/.claude/plugins/cache/ipedro/xgh/1.0.0/gemini-extension.json"
 assert_dir_exists  "${HOME}/.claude/plugins/cache/ipedro/xgh/1.0.0/skills"
 assert_dir_exists  "${HOME}/.claude/plugins/cache/ipedro/xgh/1.0.0/commands"
+
+# Verify .lossless-claude/ in .gitignore
+assert_contains ".gitignore" ".lossless-claude/"
+
+# Verify no models.env created (eliminated — cipher.yml is source of truth)
+assert_file_not_exists "${HOME}/.xgh/models.env"
+
+# Verify no schedulers/ directory created (replaced by lossless-claude daemon)
+assert_dir_not_exists "${HOME}/.xgh/schedulers"
+
+# Verify migration cleanup code exists in install.sh (runs only in non-dry-run mode)
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'rm -rf.*schedulers'
+assert_contains "${XGH_LOCAL_PACK}/install.sh" 'rm -f.*models.env'
 
 echo ""
 echo "Install test: $PASS passed, $FAIL failed"
