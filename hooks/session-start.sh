@@ -71,10 +71,10 @@ scheduler_paused = Path.home().joinpath(".xgh", "scheduler-paused").exists()
 scheduler_trigger = "paused" if scheduler_paused else "on"
 
 # Provider detection for scheduler lanes
-has_bash_providers = bool(_glob.glob(str(Path.home() / ".xgh/providers/*/fetch.sh")))
+has_bash_providers = bool(_glob.glob(str(Path.home() / ".xgh/user_providers/*/fetch.sh")))
 has_mcp_providers = any(
     "mode: mcp" in open(f).read()
-    for f in _glob.glob(str(Path.home() / ".xgh/providers/*/provider.yaml"))
+    for f in _glob.glob(str(Path.home() / ".xgh/user_providers/*/provider.yaml"))
 )
 
 if scheduler_trigger == "on":
@@ -92,7 +92,7 @@ if scheduler_trigger == "on":
         scheduler_instructions += (
             f"({job_num}) cron='*/5 * * * *', prompt='"
             + (f"Only process sources for projects: {xgh_scope}. " if xgh_scope else "")
-            + "Read all provider.yaml files in ~/.xgh/providers/. "
+            + "Read all provider.yaml files in ~/.xgh/user_providers/. "
             "For each with mode: mcp, call the MCP tools listed in mcp.tools with params filled "
             "from sources and cursor, write results as inbox .md files to ~/.xgh/inbox/, update "
             "cursor files. No analysis — fetch only.', recurring=true  "
