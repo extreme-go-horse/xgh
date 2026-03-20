@@ -127,6 +127,18 @@ if [ -n "$RETRIEVE_SCRIPT" ]; then
 fi
 ```
 
+### 0g. Install project detector
+
+```bash
+DETECT_SCRIPT=$(find ~/.claude/plugins/cache -path "*/xgh/*/scripts/detect-project.sh" -print -quit 2>/dev/null)
+if [ -n "$DETECT_SCRIPT" ]; then
+    mkdir -p ~/.xgh/scripts
+    cp "$DETECT_SCRIPT" ~/.xgh/scripts/detect-project.sh
+    chmod +x ~/.xgh/scripts/detect-project.sh
+    echo "Installed detect-project.sh"
+fi
+```
+
 ### 0e. Verify lossless-claude MCP registration
 
 ```bash
