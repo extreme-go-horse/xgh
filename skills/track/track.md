@@ -269,6 +269,24 @@ After generating the provider(s), suggest relevant triggers based on provider ty
 5. Confirm: "✅ Created N triggers in ~/.xgh/triggers/"
    Show the paths of created files.
 
+## Step 5 — Confirm
+
+Display a final summary of the completed track onboarding:
+
+```
+✅ Project tracked successfully!
+
+Provider: <service>-<mode>  (~/.xgh/user_providers/<name>/)
+Triggers: N created  (~/.xgh/triggers/)
+
+Next steps:
+  • Run /xgh-retrieve to do an initial backfill
+  • Run /xgh-doctor to verify the full pipeline is healthy
+  • Edit ~/.xgh/triggers/*.yaml to customize your triggers
+```
+
+If no triggers were enabled, omit the triggers line.
+
 ## Step 6 — Scheduler Setup
 
 Check if background scheduling is active:
