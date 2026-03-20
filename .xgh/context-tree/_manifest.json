@@ -9,15 +9,23 @@
       "type": "architecture",
       "status": "validated",
       "importance": 95,
-      "tags": ["architecture", "overview", "core"]
+      "tags": [
+        "architecture",
+        "overview",
+        "core"
+      ]
     },
     {
       "file": "ingest-pipeline.md",
-      "title": "Ingest Pipeline — Retrieve → Analyze → Store",
+      "title": "Ingest Pipeline \u2014 Retrieve \u2192 Analyze \u2192 Store",
       "type": "architecture",
       "status": "validated",
       "importance": 90,
-      "tags": ["architecture", "pipeline", "ingest"]
+      "tags": [
+        "architecture",
+        "pipeline",
+        "ingest"
+      ]
     },
     {
       "file": "file-organization.md",
@@ -25,7 +33,11 @@
       "type": "architecture",
       "status": "validated",
       "importance": 85,
-      "tags": ["architecture", "conventions", "file-structure"]
+      "tags": [
+        "architecture",
+        "conventions",
+        "file-structure"
+      ]
     },
     {
       "file": "skills-catalog.md",
@@ -33,7 +45,11 @@
       "type": "reference",
       "status": "validated",
       "importance": 80,
-      "tags": ["reference", "skills", "commands"]
+      "tags": [
+        "reference",
+        "skills",
+        "commands"
+      ]
     },
     {
       "file": "tech-stack.md",
@@ -41,7 +57,10 @@
       "type": "architecture",
       "status": "validated",
       "importance": 75,
-      "tags": ["architecture", "tech-stack"]
+      "tags": [
+        "architecture",
+        "tech-stack"
+      ]
     }
   ],
   "decisions": [
@@ -51,7 +70,42 @@
       "type": "decision",
       "status": "validated",
       "importance": 90,
-      "tags": ["architecture", "decision", "design", "byop", "dual-engine", "bash-first"]
+      "tags": [
+        "architecture",
+        "decision",
+        "design",
+        "dual-engine",
+        "bash-first"
+      ]
+    },
+    {
+      "file": "decisions/cipher-to-lossless-claude-migration.md",
+      "title": "Memory Backend: Cipher \u2192 lossless-claude Migration",
+      "type": "decision",
+      "status": "validated",
+      "importance": 92,
+      "tags": [
+        "decision",
+        "memory",
+        "lossless-claude",
+        "migration",
+        "architecture"
+      ]
+    },
+    {
+      "file": "decisions/pure-plugin-architecture.md",
+      "title": "Pure Plugin Architecture \u2014 Source Repo IS the Plugin",
+      "type": "decision",
+      "status": "validated",
+      "importance": 90,
+      "tags": [
+        "decision",
+        "architecture",
+        "plugin",
+        "install",
+        "claude-code",
+        "refactor"
+      ]
     }
   ],
   "gotchas": [
@@ -61,25 +115,49 @@
       "type": "constraint",
       "status": "validated",
       "importance": 85,
-      "tags": ["gotcha", "bug", "constraint", "mcp-config", "plugin", "deduplication"]
+      "tags": [
+        "gotcha",
+        "bug",
+        "constraint",
+        "mcp-config",
+        "plugin",
+        "deduplication"
+      ]
     }
   ],
   "ecosystem": [
     {
       "file": "ecosystem/claude-code-community-insights-2026-03-16.md",
-      "title": "Claude Code Community Insights — 16 Mar 2026",
+      "title": "Claude Code Community Insights \u2014 16 Mar 2026",
       "type": "discovery",
       "status": "draft",
       "importance": 72,
-      "tags": ["memory-plugin", "context-compaction", "twitter-noise", "memory-drift", "plugin-system", "before_prompt_build", "lossless-claw", "claude-code"]
+      "tags": [
+        "memory-plugin",
+        "context-compaction",
+        "twitter-noise",
+        "memory-drift",
+        "plugin-system",
+        "before_prompt_build",
+        "lossless-claw",
+        "claude-code"
+      ]
     },
     {
       "file": "ecosystem/lcm-architecture.md",
-      "title": "LCM — Lossless Context Management Architecture",
+      "title": "LCM \u2014 Lossless Context Management Architecture",
       "type": "discovery",
       "status": "validated",
       "importance": 85,
-      "tags": ["DAG", "hierarchical-memory", "SQLite", "context-compaction", "summarization", "LCM", "lossless-claw"]
+      "tags": [
+        "DAG",
+        "hierarchical-memory",
+        "SQLite",
+        "context-compaction",
+        "summarization",
+        "LCM",
+        "lossless-claw"
+      ]
     },
     {
       "file": "ecosystem/xgh-lcm-integration.md",
@@ -87,7 +165,14 @@
       "type": "decision",
       "status": "draft",
       "importance": 88,
-      "tags": ["xgh", "LCM", "Cipher", "memory-hierarchy", "DAG", "integration", "post-session-compaction"]
+      "tags": [
+        "xgh",
+        "LCM",
+        "memory-hierarchy",
+        "DAG",
+        "integration",
+        "post-session-compaction"
+      ]
     }
   ]
 }
