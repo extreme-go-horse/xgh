@@ -212,6 +212,42 @@ Run `bash ~/.xgh/scripts/detect-project.sh` and report:
 - If no match: `ℹ No project detected — all-projects mode`
 - If script missing: `⚠ detect-project.sh not installed — run /xgh-init`
 
+## Check 7 — Trigger engine
+
+Validate the trigger engine configuration and runtime state.
+
+1. **Global config** — check `~/.xgh/triggers.yaml`:
+   - ✅ exists and `enabled: true` and valid `action_level:`
+   - ⚠️ exists but `enabled: false` — triggers are globally disabled
+   - ❌ missing — run `/xgh-init` to create it
+
+2. **Trigger directory** — check `~/.xgh/triggers/`:
+   - Count `.yaml` files (exclude `.state.json`)
+   - Count enabled triggers (`enabled: true`) vs disabled
+   - ✅ `N triggers (M enabled)`
+   - ⚠️ `0 triggers defined` — no triggers yet (see `triggers/examples/` for inspiration)
+
+3. **Trigger state** — check `~/.xgh/triggers/.state.json`:
+   - List any triggers currently silenced (silenced_until in the future)
+   - Report triggers that fired in the last 24h
+   - ⚠️ if any trigger has `fire_count > 10` with backoff — may be stuck in backoff loop
+
+4. **Hook registration** — check if PostToolUse hook is active:
+   - Run `claude config list` and check for post-tool-use hook
+   - ✅ PostToolUse hook registered (local command triggers will work)
+   - ⚠️ PostToolUse hook not found — `source: local` triggers won't fire automatically.
+     Run `/xgh-setup` to configure.
+
+5. **Example output:**
+   ```
+   Check 7: Trigger engine
+   ✅ Global config: enabled=true | action_level=create | fast_path=true
+   ✅ 4 triggers (3 enabled, 1 disabled)
+   ⚠️ pr-stale-reminder: silenced until 2026-03-22T09:00:00Z
+   ✅ Fired last 24h: p0-alert (2 times)
+   ⚠️ PostToolUse hook not registered — source:local triggers inactive
+   ```
+
 ## Output format
 
 ```
