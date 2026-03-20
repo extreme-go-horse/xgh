@@ -9,9 +9,10 @@
 
 xgh is a **Model Context Server (MCS) tech pack** for Claude Code that gives AI agents persistent, team-shared memory across sessions. It combines:
 
-- **Cipher MCP** — semantic vector memory (Qdrant-backed) for storing and querying past decisions, reasoning chains, and patterns
+- **lossless-claude** — persistent memory via SQLite (episodic) and optional Qdrant (semantic) for storing and querying past decisions, reasoning chains, and patterns
 - **Context Tree** — a git-committed markdown knowledge base (`.xgh/context-tree/`) that is human-readable, PR-reviewable, and shareable without shared infrastructure
-- **Dual-engine search** — Cipher vector similarity + BM25 keyword search merged with a scored ranking formula
+- **Dual-engine search** — lossless-claude vector similarity + BM25 keyword search merged with a scored ranking formula
+- **Provider framework** — modular bash providers in `providers/` (Slack, Jira, GitHub, Figma, Confluence) for context retrieval from external services
 - **Inference backends** — `vllm-mlx` (macOS Apple Silicon), `ollama` (Linux/Intel Mac), or `remote` (external server URL); auto-detected at install time, overridable via `XGH_BACKEND`
 - **BYOP (Bring Your Own Provider)** — presets for OpenAI, Anthropic, OpenRouter, or cloud Qdrant (separate from the inference backend)
 
@@ -32,7 +33,8 @@ claude plugin install xgh@ipedro
 | Config | YAML (presets), JSON (settings) |
 | Skills / commands / agents | Markdown (Claude Code format) |
 | Context tree search | Python 3 (BM25/TF-IDF, Plan 2) |
-| Vector memory | Cipher MCP + Qdrant |
+| Vector memory | lossless-claude (SQLite + optional Qdrant) |
+| Provider framework | Bash modules in `providers/` (Slack, Jira, GitHub, Figma, Confluence) |
 | Model server | vllm-mlx (macOS arm64), Ollama (Linux/Intel), or remote URL |
 | LLM / embeddings | vllm-mlx, Ollama, OpenAI, Anthropic, or OpenRouter (BYOP) |
 | Tests | Bash with `assert_*` helpers (same pattern throughout) |
@@ -92,6 +94,13 @@ claude plugin install xgh@ipedro
 │   ├── init.md
 │   └── help.md
 ├── agents/                          # Sub-agent definitions (Plan 5)
+├── providers/                       # Context retrieval providers (Slack, Jira, GitHub, Figma, Confluence)
+│   ├── _template/                   # Template for new providers
+│   ├── slack/
+│   ├── jira/
+│   ├── github/
+│   ├── figma/
+│   └── confluence/
 ├── scripts/
 ├── tests/
 │   └── test-config.sh
@@ -183,9 +192,9 @@ xgh uses the **Superpowers** disciplined decision protocol. When working on this
 
 ## Key Design Decisions
 
-1. **Dual-engine search** — Cipher vectors (semantic) + BM25 (keyword) in parallel; results merged with weighted scoring
+1. **Dual-engine search** — lossless-claude vectors (semantic) + BM25 (keyword) in parallel; results merged with weighted scoring
 2. **Git-committed context tree** — knowledge stored as markdown so it's PR-reviewable and shareable without shared infra
-3. **BYOP architecture** — presets abstract provider details; the installer and Cipher MCP are provider-agnostic
+3. **BYOP architecture** — presets abstract provider details; the installer and lossless-claude are provider-agnostic
 4. **MCS tech pack format** — compatible with `mcs sync` (managed install) and `curl | bash` (standalone install)
 5. **Bash-first implementation** — no custom runtime language needed for Plans 1–3; Python only for BM25 (available on macOS/Linux without install)
 
