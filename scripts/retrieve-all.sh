@@ -64,7 +64,6 @@ for provider_dir in "$PROVIDERS_DIR"/*/; do
     script="$provider_dir/fetch.sh"
 
     # Only run mode: cli and mode: api providers (mcp handled by CronCreate prompt)
-    local mode
     mode=$(grep "^mode:" "$provider_dir/provider.yaml" 2>/dev/null | awk '{print $2}')
     if [ "$mode" != "cli" ] && [ "$mode" != "api" ]; then
         continue
