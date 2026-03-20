@@ -180,11 +180,11 @@ print(d.get('schedulerTrigger', ''))
 assert_eq "schedulerTrigger default=on" "$SS_ST_DEFAULT" "on"
 
 # Validate schedulerInstructions present by default (with a fake bash provider)
-FAKE_PROVIDER="$HOME/.xgh/providers/_test_hook/fetch.sh"
+FAKE_PROVIDER="$HOME/.xgh/user_providers/_test_hook/fetch.sh"
 mkdir -p "$(dirname "$FAKE_PROVIDER")"
 echo "#!/usr/bin/env bash" > "$FAKE_PROVIDER"
 SS_SI_OUT=$(XGH_CONTEXT_TREE="$TMPDIR_CT" bash hooks/session-start.sh)
-rm -rf "$HOME/.xgh/providers/_test_hook"
+rm -rf "$HOME/.xgh/user_providers/_test_hook"
 SS_SI=$(python3 -c "
 import json, sys
 d = json.loads(sys.argv[1])
@@ -250,11 +250,11 @@ bash hooks/prompt-submit.sh > /dev/null 2>&1 && PASS=$((PASS + 1)) || { echo "FA
 # xgh no longer duplicates this — no pre-read, post-edit, or post-ctx-call hooks.
 
 # Test: schedulerInstructions mentions retrieve-all.sh (with a fake bash provider)
-FAKE_PROVIDER2="$HOME/.xgh/providers/_test_hook2/fetch.sh"
+FAKE_PROVIDER2="$HOME/.xgh/user_providers/_test_hook2/fetch.sh"
 mkdir -p "$(dirname "$FAKE_PROVIDER2")"
 echo "#!/usr/bin/env bash" > "$FAKE_PROVIDER2"
 SS_RETRIEVE=$(XGH_CONTEXT_TREE="$TMPDIR_CT" bash hooks/session-start.sh)
-rm -rf "$HOME/.xgh/providers/_test_hook2"
+rm -rf "$HOME/.xgh/user_providers/_test_hook2"
 SS_RETRIEVE_OK=$(python3 -c "
 import json, sys
 d = json.loads(sys.argv[1])
