@@ -18,8 +18,9 @@ if [ -z "$CONTEXT_TREE" ]; then
   done
 fi
 
-# ── Retention cleanup ──
+# ── Retention cleanup and directory setup ──
 _xgh_home="${HOME}/.xgh"
+mkdir -p "${_xgh_home}/triggers" 2>/dev/null || true
 if [ -d "${_xgh_home}/inbox/processed" ]; then
   find "${_xgh_home}/inbox/processed/" -type f -mtime +7 -delete 2>/dev/null || true
 fi

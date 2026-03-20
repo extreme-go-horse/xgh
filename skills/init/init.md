@@ -51,7 +51,7 @@ Scheduler activates automatically after setup. Let's go.
 ### 0a. Create data directory structure
 
 ```bash
-mkdir -p ~/.xgh/inbox/processed ~/.xgh/logs ~/.xgh/digests ~/.xgh/calibration ~/.xgh/user_providers
+mkdir -p ~/.xgh/inbox/processed ~/.xgh/logs ~/.xgh/digests ~/.xgh/calibration ~/.xgh/user_providers ~/.xgh/triggers
 ```
 
 > **Persistence guarantee:** `~/.xgh/user_providers/` is user-owned. `/xgh-init` creates
@@ -73,7 +73,35 @@ if [ ! -f ~/.xgh/ingest.yaml ]; then
 fi
 ```
 
-### 0c. Install static instructions (@reference)
+### 0c. Initialize trigger global config
+
+If `~/.xgh/triggers.yaml` does not exist, create it with defaults:
+
+```bash
+if [ ! -f ~/.xgh/triggers.yaml ]; then
+  cat > ~/.xgh/triggers.yaml << 'EOF'
+# ~/.xgh/triggers.yaml — Global trigger engine config
+# Edit this to change what the trigger engine is allowed to do.
+
+enabled: true
+action_level: notify       # max allowed: notify | create | mutate | autonomous
+fast_path: true            # evaluate critical triggers during retrieve (5min path)
+cooldown: 5m               # default cooldown for all triggers
+EOF
+  echo "Created ~/.xgh/triggers.yaml from defaults"
+fi
+```
+
+> This file is NEVER touched by plugin updates. It is yours.
+> To disable all triggers: set `enabled: false`.
+> To allow issue/PR creation: set `action_level: create`.
+> To allow agent dispatch: set `action_level: autonomous`.
+
+Also note: To capture local bash command events (for `source: local` triggers),
+the PostToolUse hook in `hooks/post-tool-use.sh` must be registered. Run `/xgh-setup`
+or add it to your Claude Code settings manually.
+
+### 0d. Install static instructions (@reference)
 
 ```bash
 # Find xgh-instructions.md in plugin cache
@@ -86,7 +114,7 @@ if [ -n "$XGH_TMPL" ]; then
 fi
 ```
 
-### 0d. Check dependencies
+### 0e. Check dependencies
 
 **lossless-claude:**
 
@@ -119,7 +147,7 @@ command -v rtk
   ```
   If user says yes, run both commands. If no, skip — everything works without RTK.
 
-### 0f. Install retrieve orchestrator
+### 0g. Install retrieve orchestrator
 
 ```bash
 RETRIEVE_SCRIPT=$(find ~/.claude/plugins/cache -path "*/xgh/*/scripts/retrieve-all.sh" -print -quit 2>/dev/null)
@@ -131,7 +159,7 @@ if [ -n "$RETRIEVE_SCRIPT" ]; then
 fi
 ```
 
-### 0g. Install project detector
+### 0h. Install project detector
 
 ```bash
 DETECT_SCRIPT=$(find ~/.claude/plugins/cache -path "*/xgh/*/scripts/detect-project.sh" -print -quit 2>/dev/null)
@@ -143,7 +171,7 @@ if [ -n "$DETECT_SCRIPT" ]; then
 fi
 ```
 
-### 0e. Verify lossless-claude MCP registration
+### 0i. Verify lossless-claude MCP registration
 
 ```bash
 claude mcp list 2>/dev/null | grep -i lossless-claude
