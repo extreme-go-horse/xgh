@@ -195,7 +195,7 @@ Plugin files (skills, hooks, commands, agents) are managed by Claude Code at `~/
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    xgh — developer's cockpit                 │
-│               25 commands · 5 hooks · context tree           │
+│               23 commands · 5 hooks · context tree           │
 ├──────────┬──────────────┬───────────────┬───────────────────┤
 │          │              │               │                   │
 │  lossless-claude   context-mode      RTK          superpowers
@@ -228,7 +228,8 @@ Plugin files (skills, hooks, commands, agents) are managed by Claude Code at `~/
 | Config | YAML (presets), JSON (settings) |
 | Skills / commands / agents | Markdown (Claude Code format) |
 | Context tree search | Python 3 (BM25/TF-IDF) |
-| Vector memory | Cipher MCP + Qdrant |
+| Vector memory | lossless-claude (SQLite + optional Qdrant) |
+| Provider framework | Bash modules in `providers/` (Slack, Jira, GitHub, Figma, Confluence) |
 | Model server | vllm-mlx, Ollama, or remote URL |
 | LLM / embeddings | vllm-mlx, Ollama, OpenAI, Anthropic, OpenRouter (BYOP) |
 | Tests | Bash with `assert_*` helpers (33 test suites) |
@@ -262,7 +263,7 @@ xgh's workspace acts as a message bus between agents. Any MCP-compatible agent c
 <details>
 <summary><b>Implementation Status</b></summary>
 
-22 skills, 25 commands, 4 workflow templates, 33 test suites.
+23 skills, 23 commands, 4 workflow templates, 31 test suites.
 
 | Plan | Scope | Status |
 |------|-------|--------|
@@ -273,8 +274,8 @@ xgh's workspace acts as a message bus between agents. Any MCP-compatible agent c
 | 5 — Multi-Agent Bus | Agent registry, 4 workflow templates, message protocol | Done |
 | 6 — Workflow Skills | investigate, design, implement workflows | Done |
 | 7 — Best-of-Both Merge | Sourceable library architecture, flat manifest, structured JSON hooks | Done |
-| 8 — Ollama / Linux | Ollama backend, backend-aware cipher.yml + MCP env vars | In progress |
-| 9 — Remote Backend | `XGH_BACKEND=remote` — point at another machine's server | In progress |
+| 8 — Ollama / Linux | Ollama backend, backend-aware cipher.yml + MCP env vars | Done |
+| 9 — Remote Backend | `XGH_BACKEND=remote` — point at another machine's server | Done |
 
 Plan documents are in `docs/plans/`.
 
