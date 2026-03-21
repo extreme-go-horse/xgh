@@ -98,9 +98,8 @@ Parse the user's request to determine dispatch parameters. Only extract what the
 | Flag | Purpose |
 |------|---------|
 | `--full-auto` | Non-interactive execution (auto-approve + workspace-write sandbox) — exec only |
-| `-s read-only` | Read-only sandbox — review only |
-| `-C <dir>` | Working directory (worktree path or current dir) |
-| `-o <file>` | Capture final output to file for results collection |
+| `-C <dir>` | Working directory (worktree path or current dir) — exec only |
+| `-o <file>` | Capture final output to file for results collection — exec only |
 
 **User-controlled parameters** (only injected if the user explicitly provides them):
 
@@ -163,7 +162,7 @@ If `git worktree add` fails (branch exists, dirty state), report the error and s
 
 ### Same-dir mode
 
-Set `WORK_DIR` to the current working directory. No worktree setup needed. Pass `--add-dir "$WORK_DIR"` to Codex so it has write access.
+If the user passes `--add-dir <path>`, set `WORK_DIR` to that path. Otherwise set `WORK_DIR` to the current working directory. No worktree setup needed — Codex runs directly in `WORK_DIR` via `cd "$WORK_DIR"` before the command.
 
 **Warning:** Do not use same-dir mode while Claude Code is also writing files. File conflicts will occur.
 
@@ -195,14 +194,10 @@ CMD=(
 
 ```bash
 OUTPUT_FILE="/tmp/codex-review-${TIMESTAMP}.md"
-CMD=(
-    codex review
+(cd "$WORK_DIR" && codex review \
     # Review target flag (e.g., --base main, --uncommitted, --commit <sha>)
-    -s read-only
-    -C "$WORK_DIR"
     # User passthrough flags appended here
-)
-"${CMD[@]}" > "$OUTPUT_FILE" 2>&1
+) > "$OUTPUT_FILE" 2>&1
 ```
 
 Custom review instructions via prompt argument:
@@ -292,7 +287,7 @@ lcm_store("Codex dispatch: <type> | model: <model> | isolation: <mode> | <outcom
 |------|---------|-----------|
 | Worktree exec | `--full-auto` | Isolated directory, safe for auto-approve |
 | Same-dir exec | `--full-auto --add-dir <dir>` | User explicitly chose same-dir |
-| Review | `-s read-only` | Enforced read-only sandbox — no file modifications |
+| Review | `-c 'sandbox_permissions=["disk-full-read-access"]'` | Read-only access via config (no file modifications) |
 
 ## Session Mode
 

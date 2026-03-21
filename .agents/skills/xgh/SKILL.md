@@ -1,7 +1,9 @@
 ---
-name: xgh-context
+name: xgh
 description: xgh project context — conventions, active branch, key decisions, and dispatch commands
 ---
+
+<!-- Managed by xgh — do not edit. Run /xgh-seed to refresh. -->
 
 # xgh Context
 

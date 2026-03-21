@@ -150,7 +150,7 @@ CONTEXT_FILE="$(git rev-parse --show-toplevel 2>/dev/null)/.agents/skills/xgh/co
 
 {
   # Layer 1: live project context (if available and < 1 day old)
-  if [ -f "$CONTEXT_FILE" ] && [ $(( $(date +%s) - $(stat -f %m "$CONTEXT_FILE" 2>/dev/null || echo 0) )) -lt 86400 ]; then
+  if [ -f "$CONTEXT_FILE" ] && [ $(( $(date +%s) - $(python3 -c "import os; print(int(os.path.getmtime('$CONTEXT_FILE')))" 2>/dev/null || echo 0) )) -lt 86400 ]; then
     cat "$CONTEXT_FILE"
     echo ""
     echo "---"
@@ -215,12 +215,10 @@ Return `SESSION_ID` in the result so the orchestrator can pass it back for follo
 ### Review:
 ```bash
 OUTPUT_FILE="/tmp/codex-review-${TIMESTAMP}.md"
-codex review \
+(cd "$WORK_DIR" && codex review \
   [--base main | --uncommitted | --commit <sha>] \
-  -s read-only \
-  --ephemeral \
-  -C "$WORK_DIR" \
-  [-c 'model_reasoning_effort="..."' if effort specified] \
+  [-c 'sandbox_permissions=["disk-full-read-access"]'] \
+  [-c 'model_reasoning_effort="..."' if effort specified]) \
   2>&1 | tee "$OUTPUT_FILE"
 ```
 
