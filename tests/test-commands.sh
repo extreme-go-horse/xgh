@@ -25,12 +25,14 @@ assert_contains() {
 assert_file_exists "commands/ask.md"
 assert_file_exists "commands/curate.md"
 assert_file_exists "commands/status.md"
+assert_file_exists "commands/opencode.md"
+assert_file_exists "commands/seed.md"
 
 assert_contains "commands/ask.md" "/xgh-ask"
-
 assert_contains "commands/curate.md" "/xgh-curate"
-
 assert_contains "commands/status.md" "/xgh-status"
+assert_contains "commands/opencode.md" "xgh:opencode"
+assert_contains "commands/seed.md" "xgh:seed"
 
 echo ""
 echo "Commands test: $PASS passed, $FAIL failed"
