@@ -34,7 +34,10 @@ def frontmatter(path):
     m = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
     if not m:
         return {}
-    return yaml.safe_load(m.group(1)) or {}
+    try:
+        return yaml.safe_load(m.group(1)) or {}
+    except yaml.YAMLError:
+        return {}
 
 def render_condition(when):
     parts = []
@@ -187,6 +190,20 @@ out.append("## Common Pitfalls")
 out.append("")
 for p in team.get('pitfalls', []):
     out.append(f"- **{p['title']}**: {p['body']}")
+out.append("")
+out.append("---")
+out.append("")
+
+# Implementation Status
+out.append("## Implementation Status")
+out.append("")
+out.append("| Plan | Title | Status |")
+out.append("|------|-------|--------|")
+for s in proj.get('implementation_status', []):
+    status_emoji = "✅" if s['status'] == 'complete' else "🔄"
+    out.append(f"| {s['plan']} | {s['title']} | {status_emoji} Complete |")
+out.append("")
+out.append("---")
 out.append("")
 
 with open(os.path.join(ROOT, "AGENTS.md"), "w") as f:

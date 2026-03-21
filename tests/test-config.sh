@@ -71,5 +71,11 @@ assert_contains "scripts/gen-agents-md.sh" "pyyaml"
 assert_contains "scripts/gen-agents-md.sh" "local_agents"
 assert_contains "scripts/gen-agents-md.sh" "AUTO-GENERATED"
 
+assert_contains "AGENTS.md" "<!-- AUTO-GENERATED"
+assert_contains "AGENTS.md" "## Agent Roster"
+assert_contains "AGENTS.md" "| Agent | Model | Capabilities |"
+assert_contains "AGENTS.md" "## Automation Map"
+assert_contains "AGENTS.md" "| Trigger | Condition | Skill | Workflow | Lead Agent |"
+
 echo ""; echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] || exit 1
