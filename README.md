@@ -45,7 +45,7 @@ The hard problem — as always — is **drift**. Platform skill files go stale, 
 
 | What you need | What does it |
 |---------------|-------------|
-| Persistent memory across sessions | [lossless-claude](https://github.com/ipedro/lossless-claude) — SQLite + FTS5 |
+| Persistent memory across sessions | [lossless-claude](https://github.com/extreme-go-horse/lossless-claude) — SQLite + FTS5 |
 | Context tree search | BM25/TF-IDF over `.xgh/context-tree/` |
 | Multi-platform dispatch | Codex CLI, Gemini CLI, OpenCode — all driven from one config |
 | Session-start injection | Top knowledge files injected automatically at session start |
@@ -92,7 +92,7 @@ The hard problem — as always — is **drift**. Platform skill files go stale, 
 ## Install
 
 ```bash
-claude plugin install xgh@ipedro
+claude plugin install xgh@extreme-go-horse
 /xgh-init
 ```
 
