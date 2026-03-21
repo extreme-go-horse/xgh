@@ -25,11 +25,12 @@ agents:
       - fast-implementation
       - code-review
       - test-generation
-    integration: MCP + bash-invocation
+    integration: bash-invocation
     invocation:
       method: bash
-      command: "codex --quiet --approval-mode full-auto"
-      notes: "Requires OpenAI Codex CLI installed (npm i -g @openai/codex)"
+      exec: "codex exec \"<prompt>\" --full-auto -C <dir> -o <output> [passthrough flags]"
+      review: "codex review [target] -C <dir> [passthrough flags]"
+      notes: "Only spawning flags (--full-auto, -C, -o) are injected. All other flags forwarded from user. Requires: npm i -g @openai/codex"
 
   cursor:
     type: secondary
