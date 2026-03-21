@@ -29,7 +29,7 @@ that gives AI agents persistent, team-shared memory across sessions. It combines
 Install via Claude Code plugin:
 
 ```bash
-claude plugin install xgh@ipedro
+claude plugin install xgh@extreme-go-horse
 /xgh-init
 ```
 
