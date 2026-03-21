@@ -87,6 +87,11 @@ assert_contains ".xgh/xgh.md" 'Source: loaded by `CLAUDE.local.md` via `@` refer
 assert_contains "tests/skill-triggering/prompts/track.txt" "add this repo to xgh monitoring"
 assert_contains "tests/skill-triggering/prompts/briefing.txt" "/xgh-briefing"
 
+HAVE_PYYAML=true
+python3 -c "import yaml" 2>/dev/null || HAVE_PYYAML=false
+
+if [ "$HAVE_PYYAML" = "true" ]; then
+
 TMP_REPO="$(mktemp -d)"
 trap 'rm -rf "$TMP_REPO"' EXIT
 mkdir -p "$TMP_REPO/scripts" "$TMP_REPO/config" "$TMP_REPO/agents"
@@ -97,11 +102,7 @@ cp agents/*.md "$TMP_REPO/agents/"
 python3 - "$TMP_REPO/config/agents.yaml" <<'PY'
 from pathlib import Path
 import sys
-try:
-    import yaml
-except ImportError:
-    print("SKIP: pyyaml not installed — skipping generator fixture test")
-    sys.exit(0)
+import yaml
 path = Path(sys.argv[1])
 data = yaml.safe_load(path.read_text())
 data["local_agents"] = {}
@@ -141,6 +142,10 @@ fi
 assert_contains "$TMP_REPO/gen.stderr" "WARNING:"
 assert_contains "$TMP_REPO/gen.stderr" "bad-frontmatter.md:"
 assert_contains "$TMP_REPO/AGENTS.md" '| code-reviewer | haiku | `frontmatter-source` |'
+
+else
+  echo "SKIP: pyyaml not installed — skipping generator fixture tests"
+fi
 
 echo ""; echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] || exit 1

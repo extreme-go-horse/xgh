@@ -19,7 +19,7 @@ conventions:
   skills:
     - "Commands are thin wrappers — all logic lives in `skills/`"
     - "No context-mode references in xgh skill files (context-mode handles its own enforcement)"
-    - "Skill frontmatter must include `name`, `description`, and `triggers`"
+    - "Skill frontmatter must include `name`, `description`, and `triggers` — use `trigger:` (singular string) or `triggers:` (list), both forms are valid"
 
   dogfooding:
     - "**Use xgh to build xgh**: run `/xgh-brief` at session start, `/xgh-retrieve` before researching, `/xgh-analyze` after significant findings — xgh improves by exercising its own tools"

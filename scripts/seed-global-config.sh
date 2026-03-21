@@ -12,6 +12,7 @@
 set -euo pipefail
 
 TARGET="$1"
+TARGET="${TARGET/#\~/$HOME}"
 MARKER_NAME="$2"
 CONTENT_FILE="$3"
 
@@ -25,10 +26,15 @@ fi
 
 CONTENT=$(cat "$CONTENT_FILE")
 
+mkdir -p "$(dirname "$TARGET")"
+
 if [ ! -f "$TARGET" ]; then
   # File doesn't exist — create fresh
   printf '%s\n%s\n%s\n' "$START" "$CONTENT" "$END" > "$TARGET"
   echo "Created $TARGET with [$MARKER_NAME] section"
+elif grep -qF "$START" "$TARGET" && ! grep -qF "$END" "$TARGET"; then
+  echo "ERROR: corrupted markers in $TARGET — $START found but $END missing" >&2
+  exit 2
 elif grep -qF "$START" "$TARGET"; then
   # Markers exist — replace only our section
   python3 - "$TARGET" "$START" "$END" "$CONTENT_FILE" << 'PY'

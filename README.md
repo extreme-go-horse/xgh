@@ -103,14 +103,14 @@ Takes about 5 minutes. Sets up memory, hooks, profile, and seeds your first proj
 
 xgh installs via Claude Code and then seeds instructions into every other platform automatically:
 
-| Platform | File written by `/xgh-seed` |
-|----------|-----------------------------|
-| All agents (canonical) | `AGENTS.md` |
-| Claude Code | `CLAUDE.md` |
-| Codex CLI | `.agents/skills/xgh/` |
-| Gemini CLI | `.gemini/skills/xgh/` |
-| OpenCode | `.opencode/skills/xgh/` |
-| GitHub Copilot | `.github/copilot-instructions.md` |
+| Platform | File | Written by |
+|----------|------|------------|
+| All agents (canonical) | `AGENTS.md` | `/xgh-init` |
+| Claude Code | `CLAUDE.md` | `/xgh-init` |
+| Codex CLI | `.agents/skills/xgh/context.md` + `SKILL.md` | `/xgh-seed` |
+| Gemini CLI | `.gemini/skills/xgh/context.md` + `SKILL.md` | `/xgh-seed` |
+| OpenCode | `.opencode/skills/xgh/context.md` + `SKILL.md` | `/xgh-seed` |
+| GitHub Copilot | `.github/copilot-instructions.md` | `/xgh-init` |
 
 </details>
 
