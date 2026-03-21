@@ -111,6 +111,12 @@ assert_contains "$PLUGIN_DIR/agents/onboarding-guide.md"  "architecture"   "onbo
 assert_contains "$PLUGIN_DIR/agents/onboarding-guide.md"  "convention"     "onboarding-guide: covers conventions"
 assert_contains "$PLUGIN_DIR/agents/onboarding-guide.md"  "context-tree"   "onboarding-guide: references context tree"
 
+# codex-driver
+assert_file_exists "$PLUGIN_DIR/agents/codex-driver.md"              "codex-driver exists"
+assert_contains "$PLUGIN_DIR/agents/codex-driver.md"  "^name: codex-driver"  "codex-driver: name field"
+assert_contains "$PLUGIN_DIR/agents/codex-driver.md"  "^model: sonnet"       "codex-driver: model is sonnet"
+assert_contains "$PLUGIN_DIR/agents/codex-driver.md"  "^color: cyan"         "codex-driver: color is cyan"
+
 # ── Result ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
