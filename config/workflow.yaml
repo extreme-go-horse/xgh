@@ -35,6 +35,7 @@ phases:
       - "Propose 2-3 approaches, recommend one"
       - "Write design spec to .xgh/specs/"
       - "Write implementation plan to .xgh/plans/"
+      - "Push plan + spec to remote before any implementation begins"
 
   - name: "Implementation"
     model: sonnet
