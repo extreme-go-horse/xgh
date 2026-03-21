@@ -53,6 +53,7 @@ Output using this exact format:
 | `/xgh-investigate` | Debug from a Slack thread or bug report |
 | `/xgh-implement` | Implement a ticket with full context |
 | `/xgh-design` | Implement a UI from a Figma design |
+| `/xgh-codex` | Dispatch tasks to Codex CLI (exec or review) |
 | `/xgh-collab` | Coordinate with other AI agents |
 | `/xgh-curate` | Store knowledge in memory + context tree |
 | `/xgh-profile` | Analyze an engineer's Jira throughput |
