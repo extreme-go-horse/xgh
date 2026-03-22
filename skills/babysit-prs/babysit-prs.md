@@ -55,7 +55,7 @@ gh pr view $PR --repo $REPO --json state,mergeable --jq '{state, mergeable}'
 
 # Last Copilot review
 gh api repos/$REPO/pulls/$PR/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | last | {state: .state, submitted_at: .submitted_at}'
+  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | if length == 0 then null else last | {state: .state, submitted_at: .submitted_at} end'
 
 # Comment count
 gh api repos/$REPO/pulls/$PR/comments \
@@ -119,7 +119,7 @@ If `MERGED`: set `status = merged`, `last_action = merge-succeeded`. Skip remain
 ```bash
 # Last review
 REVIEW=$(gh api repos/$REPO/pulls/$PR/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | last | {state: .state, submitted_at: .submitted_at}')
+  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | if length == 0 then null else last | {state: .state, submitted_at: .submitted_at} end')
 
 # Comment count
 COMMENTS=$(gh api repos/$REPO/pulls/$PR/comments \
