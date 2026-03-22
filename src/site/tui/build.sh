@@ -114,16 +114,15 @@ if not os.path.exists(template_file):
 with open(template_file) as f:
     page = f.read()
 
-# Render feature cards HTML
-features_html = ''
+# Inject per-feature content into named markers
 for feat in features_data:
-    features_html += (
-        f'<div class="feature-card">\n'
-        f'  <div class="feature-icon">{feat.get("icon", "")}</div>\n'
-        f'  <div class="feature-headline">{feat.get("headline", "")}</div>\n'
-        f'  <div class="feature-desc">{feat.get("description", "")}</div>\n'
-        f'</div>\n'
-    )
+    name = feat.get('name', '').upper()
+    if not name:
+        continue
+    page = page.replace(f'<!-- %%FEAT_{name}_ICON%% -->', feat.get('icon', ''))
+    page = page.replace(f'<!-- %%FEAT_{name}_HEADLINE%% -->', feat.get('headline', ''))
+    page = page.replace(f'<!-- %%FEAT_{name}_DESC%% -->', feat.get('description', ''))
+    page = page.replace(f'<!-- %%FEAT_{name}_DETAIL%% -->', feat.get('detail', ''))
 
 # Render install section HTML from commands/install.yaml
 install_cmd = next((c for c in cmds_data if c.get('name') == 'install'), None)
@@ -174,7 +173,6 @@ tui_embed = f'<style>\n{tui_style}\n</style>\n<div class="tui-embed">\n{tui_stru
 # Inject into page template
 page = page.replace('/* %%CSS_VARS%% */', css_vars)
 page = page.replace('<!-- %%TUI_EMBED%% -->', tui_embed)
-page = page.replace('<!-- %%FEATURES%% -->', features_html)
 page = page.replace('<!-- %%INSTALL%% -->', install_html)
 
 page_out = os.path.join(script_dir, 'out', 'index.html')
