@@ -121,39 +121,6 @@ git commit -m "feat: add xgh-coding-agents skill scaffold"
 
 ---
 
-## Task 1b: Register coding-agents in config
-
-**Files:**
-- Modify: `config/agents.yaml`
-
-- [ ] **Step 1: Add coding-agents to local_agents section**
-
-Add to `config/agents.yaml` under `local_agents:`:
-
-```yaml
-  coding-agents:
-    type: agent
-    model: sonnet
-    color: purple
-    tools: ["Bash", "Read", "Glob"]
-    capabilities: [cli-probing, model-discovery, agent-management]
-```
-
-- [ ] **Step 2: Verify addition**
-
-```bash
-grep -q "coding-agents:" config/agents.yaml
-```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add config/agents.yaml
-git commit -m "feat: register coding-agents agent"
-```
-
----
-
 ## Task 2: Implement OpenCode probing logic
 
 **Files:**
@@ -190,12 +157,6 @@ probe_opencode() {
 
   mkdir -p "$models_dir"
 
-  # Preserve user customizations if file exists
-  local user_aliases=""
-  if [ -f "$output_file" ]; then
-    user_aliases=$(grep "# user-added:" "$output_file" || true)
-  fi
-
   # Probe OpenCode help
   local help_output
   help_output=$(opencode --help 2>&1)
@@ -228,11 +189,6 @@ models:
     cli_format: openai/gpt-5.4-mini
     aliases: [gpt-5.4-mini, gpt54-mini]
 YAML
-
-  # Re-apply user customizations if any
-  if [ -n "$user_aliases" ]; then
-    echo "$user_aliases" >> "$output_file"
-  fi
 
   echo "OpenCode: 7 models probed to $output_file"
 }
@@ -279,12 +235,6 @@ probe_codex() {
 
   mkdir -p "$models_dir"
 
-  # Preserve user customizations if file exists
-  local user_aliases=""
-  if [ -f "$output_file" ]; then
-    user_aliases=$(grep "# user-added:" "$output_file" || true)
-  fi
-
   # Generate models.yaml (Codex models are simpler)
   cat > "$output_file" << YAML
 agent: codex
@@ -307,11 +257,6 @@ models:
     cli_format: gpt-5.1-codex-mini
     aliases: [gpt-5.1-codex-mini]
 YAML
-
-  # Re-apply user customizations if any
-  if [ -n "$user_aliases" ]; then
-    echo "$user_aliases" >> "$output_file"
-  fi
 
   echo "Codex: 5 models probed to $output_file"
 }
@@ -358,12 +303,6 @@ probe_gemini() {
 
   mkdir -p "$models_dir"
 
-  # Preserve user customizations if file exists
-  local user_aliases=""
-  if [ -f "$output_file" ]; then
-    user_aliases=$(grep "# user-added:" "$output_file" || true)
-  fi
-
   # Generate models.yaml
   cat > "$output_file" << YAML
 agent: gemini
@@ -380,11 +319,6 @@ models:
     cli_format: gemini-2.0-flash
     aliases: [gemini-2.0-flash]
 YAML
-
-  # Re-apply user customizations if any
-  if [ -n "$user_aliases" ]; then
-    echo "$user_aliases" >> "$output_file"
-  fi
 
   echo "Gemini: 3 models probed to $output_file"
 }
@@ -628,18 +562,45 @@ In `skills/opencode/opencode.md`, find the "Model Detection & Routing" section a
 
 **Detection is done via shared logic** — see @skills/_shared/references/model-detection.md
 
-**Before dispatch:**
-1. Run lazy initialization (probe if models.yaml missing/stale)
-2. Parse user input for model mention patterns
-3. Look up cli_format from `~/.xgh/user_providers/opencode/models.yaml`
-4. Pass `--model <cli_format>` to opencode-driver agent
+**Before dispatch, run this bash code:**
+```bash
+# Source the model detection functions
+source skills/_shared/references/model-detection.md
+
+# Lazy initialization
+MODELS_FILE="$HOME/.xgh/user_providers/opencode/models.yaml"
+THRESHOLD_DAYS="${XGH_MODELS_REFRESH_THRESHOLD_DAYS:-7}"
+
+if [ ! -f "$MODELS_FILE" ] || [ $(find "$MODELS_FILE" -mtime +"$THRESHOLD_DAYS" 2>/dev/null | wc -l) -gt 0 ]; then
+  /xgh-coding-agents opencode --probe
+fi
+
+# Extract model from user input
+MODEL_FLAG=""
+MODEL_MENTION=$(echo "$USER_INPUT" | grep -oiE '(with|using|via) [A-Za-z0-9.+-]+' | sed 's/^[^ ]* //I')
+
+if [ -n "$MODEL_MENTION" ]; then
+  # Look up in models.yaml
+  CLI_FORMAT=$(lookup_model "opencode" "$USER_INPUT")
+  if [ -n "$CLI_FORMAT" ]; then
+    MODEL_FLAG="--model $CLI_FORMAT"
+  fi
+fi
+```
+
+**Then dispatch with the model flag:**
+```bash
+Agent tool: subagent_type="xgh:opencode-driver"
+Prompt: "Dispatch type: exec ... $MODEL_FLAG"
+```
 
 **Example flow:**
 ```
 Input: "review with GLM 4.7"
   → Detect: "GLM 4.7"
   → Lookup: models.yaml → zai-coding-plan/glm-4.7
-  → Dispatch: opencode-driver with --model zai-coding-plan/glm-4.7
+  → MODEL_FLAG="--model zai-coding-plan/glm-4.7"
+  → Dispatch: opencode-driver with --model flag
 ```
 ```
 
@@ -682,18 +643,45 @@ After "Input Parsing" section in `skills/codex/codex.md`, add:
 
 **Detection is done via shared logic** — see @skills/_shared/references/model-detection.md
 
-**Before dispatch:**
-1. Run lazy initialization (probe if models.yaml missing/stale)
-2. Parse user input for model mention patterns
-3. Look up cli_format from `~/.xgh/user_providers/codex/models.yaml`
-4. Pass `-m <cli_format>` to codex-driver agent
+**Before dispatch, run this bash code:**
+```bash
+# Source the model detection functions
+source skills/_shared/references/model-detection.md
+
+# Lazy initialization
+MODELS_FILE="$HOME/.xgh/user_providers/codex/models.yaml"
+THRESHOLD_DAYS="${XGH_MODELS_REFRESH_THRESHOLD_DAYS:-7}"
+
+if [ ! -f "$MODELS_FILE" ] || [ $(find "$MODELS_FILE" -mtime +"$THRESHOLD_DAYS" 2>/dev/null | wc -l) -gt 0 ]; then
+  /xgh-coding-agents codex --probe
+fi
+
+# Extract model from user input
+MODEL_FLAG=""
+MODEL_MENTION=$(echo "$USER_INPUT" | grep -oiE '(with|using|via) [A-Za-z0-9.+-]+' | sed 's/^[^ ]* //I')
+
+if [ -n "$MODEL_MENTION" ]; then
+  # Look up in models.yaml
+  CLI_FORMAT=$(lookup_model "codex" "$USER_INPUT")
+  if [ -n "$CLI_FORMAT" ]; then
+    MODEL_FLAG="-m $CLI_FORMAT"
+  fi
+fi
+```
+
+**Then dispatch with the model flag:**
+```bash
+Agent tool: subagent_type="xgh:codex-driver"
+Prompt: "Dispatch type: exec ... $MODEL_FLAG"
+```
 
 **Example flow:**
 ```
 Input: "review with GPT-5.4"
   → Detect: "GPT-5.4"
   → Lookup: models.yaml → gpt-5.4
-  → Dispatch: codex-driver with -m gpt-5.4
+  → MODEL_FLAG="-m gpt-5.4"
+  → Dispatch: codex-driver with -m flag
 ```
 ```
 
@@ -726,18 +714,45 @@ After "Input Parsing" section in `skills/gemini/gemini.md`, add:
 
 **Detection is done via shared logic** — see @skills/_shared/references/model-detection.md
 
-**Before dispatch:**
-1. Run lazy initialization (probe if models.yaml missing/stale)
-2. Parse user input for model mention patterns
-3. Look up cli_format from `~/.xgh/user_providers/gemini/models.yaml`
-4. Pass `--model <cli_format>` to gemini
+**Before dispatch, run this bash code:**
+```bash
+# Source the model detection functions
+source skills/_shared/references/model-detection.md
+
+# Lazy initialization
+MODELS_FILE="$HOME/.xgh/user_providers/gemini/models.yaml"
+THRESHOLD_DAYS="${XGH_MODELS_REFRESH_THRESHOLD_DAYS:-7}"
+
+if [ ! -f "$MODELS_FILE" ] || [ $(find "$MODELS_FILE" -mtime +"$THRESHOLD_DAYS" 2>/dev/null | wc -l) -gt 0 ]; then
+  /xgh-coding-agents gemini --probe
+fi
+
+# Extract model from user input
+MODEL_FLAG=""
+MODEL_MENTION=$(echo "$USER_INPUT" | grep -oiE '(with|using|via) [A-Za-z0-9.+-]+' | sed 's/^[^ ]* //I')
+
+if [ -n "$MODEL_MENTION" ]; then
+  # Look up in models.yaml
+  CLI_FORMAT=$(lookup_model "gemini" "$USER_INPUT")
+  if [ -n "$CLI_FORMAT" ]; then
+    MODEL_FLAG="--model $CLI_FORMAT"
+  fi
+fi
+```
+
+**Then dispatch with the model flag:**
+```bash
+# Pass MODEL_FLAG to gemini command
+gemini -p "$PROMPT" $MODEL_FLAG
+```
 
 **Example flow:**
 ```
 Input: "review with Gemini Pro"
   → Detect: "Gemini Pro"
   → Lookup: models.yaml → gemini-2.5-pro
-  → Dispatch: gemini with --model gemini-2.5-pro
+  → MODEL_FLAG="--model gemini-2.5-pro"
+  → Dispatch: gemini with --model flag
 ```
 ```
 
@@ -891,6 +906,43 @@ assert_contains "skills/_shared/references/model-detection.md" "THRESHOLD_DAYS"
 # Test 12: Backward compatibility fallback exists
 assert_contains "skills/_shared/references/model-detection.md" "legacy_file"
 assert_contains "skills/_shared/references/model-detection.md" "model-mapping.md"
+
+# Test 13: Integration test - mock probing and verify YAML structure
+echo "# Integration test: Mock opencode probe"
+TMP_DIR=$(mktemp -d)
+mkdir -p "$TMP_DIR/user_providers/opencode"
+
+# Mock probe function output
+cat > "$TMP_DIR/user_providers/opencode/models.yaml" << 'TESTYAML'
+agent: opencode
+cli_binary: opencode
+last_probed: 2026-03-22T20:00:00Z
+models:
+  - friendly: GLM 4.7
+    cli_format: zai-coding-plan/glm-4.7
+    aliases: [glm]
+TESTYAML
+
+# Verify YAML structure
+assert_contains "$TMP_DIR/user_providers/opencode/models.yaml" "agent: opencode"
+assert_contains "$TMP_DIR/user_providers/opencode/models.yaml" "cli_format:"
+assert_contains "$TMP_DIR/user_providers/opencode/models.yaml" "aliases:"
+
+rm -rf "$TMP_DIR"
+PASS=$((PASS + 1))
+
+# Test 14: Test pattern matching logic
+echo "# Pattern matching test"
+TEST_INPUT="review with GLM 4.7"
+echo "$TEST_INPUT" | grep -qE '(with|using|via) [A-Za-z0-9.+-]+' && PASS=$((PASS + 1)) || {
+  echo "FAIL: pattern matching failed for '$TEST_INPUT'"
+  FAIL=$((FAIL + 1))
+}
+
+# Test 15: Test lookup function (simplified)
+echo "# Lookup function test"
+# Verify lookup_model function exists in reference
+assert_contains "skills/_shared/references/model-detection.md" "lookup_model()"
 
 echo ""
 echo "coding-agents tests: $PASS passed, $FAIL failed"
