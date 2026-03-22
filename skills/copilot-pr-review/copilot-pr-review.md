@@ -62,15 +62,15 @@ gh api repos/$REPO/pulls/$PR/requested_reviewers \
   --jq '.users[] | select(.login == "copilot-pull-request-reviewer[bot]") | .login'
 ```
 
-If Copilot is already in the list, print: `ℹ️ Copilot already requested for review on PR #$PR`
+If Copilot is already in the list, print: `ℹ️ Copilot already requested for review on PR #$PR` Stop. Do not continue to Step 3.
 
 **Step 2 — Check if already reviewed:**
 ```bash
-gh api 'repos/$REPO/pulls/$PR/reviews?per_page=100' \
+gh api repos/$REPO/pulls/$PR/reviews --paginate \
   --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | length'
 ```
 
-If already reviewed, print: `ℹ️ Copilot has already reviewed PR #$PR. Use re-review to request another pass.`
+If already reviewed, print: `ℹ️ Copilot has already reviewed PR #$PR. Use re-review to request another pass.` Stop. Do not continue to Step 3.
 
 **Step 3 — Request review:**
 ```bash
@@ -128,13 +128,15 @@ gh api repos/$REPO/pulls/$PR/requested_reviewers \
 
 **Step 1 — Get last review:**
 ```bash
-gh api 'repos/$REPO/pulls/$PR/reviews?per_page=100' \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | last | {state: .state, submitted_at: .submitted_at}'
+gh api repos/$REPO/pulls/$PR/reviews --paginate \
+  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | if length == 0 then {state: "—", submitted_at: "—"} else last | {state: .state, submitted_at: .submitted_at} end'
 ```
+
+If the filtered array is empty, set state and submitted_at to `—`.
 
 **Step 2 — Count comments:**
 ```bash
-gh api 'repos/$REPO/pulls/$PR/comments?per_page=100' \
+gh api repos/$REPO/pulls/$PR/comments --paginate \
   --jq '[.[] | select(.user.login == "Copilot")] | length'
 ```
 
@@ -164,9 +166,18 @@ gh api repos/$REPO/pulls/$PR/requested_reviewers \
 
 **Step 1 — Fetch comments:**
 ```bash
-gh api 'repos/$REPO/pulls/$PR/comments?per_page=100' \
+gh api repos/$REPO/pulls/$PR/comments --paginate \
   --jq '[.[] | select(.user.login == "Copilot")] | .[] | {id: .id, path: .path, line: .line, body: .body[0:200]}'
 ```
+
+**Step 2 — Render into table:**
+
+When building the markdown table row, sanitize `body` to prevent breaking table formatting:
+```bash
+body_safe=$(echo "$BODY" | tr '\n' ' ' | sed 's/|/\\|/g')
+```
+
+Use `body_safe` in place of `$BODY` when rendering the table.
 
 **Output:**
 ```
@@ -269,7 +280,7 @@ These are encoded into the skill's logic, but listed here for reference:
 | Path-specific instructions | `.github/instructions/**/*.instructions.md` |
 | Quota | Each review costs 1 premium request per review cycle. |
 | Review latency | Reviews typically take <30 seconds, but re-review requests may take several minutes. Don't re-request too aggressively. |
-| **API pagination hides new data** | GitHub REST API defaults to `per_page=30`. On PRs with many reviews/comments (e.g. from human replies), newer Copilot reviews land on page 2+ and are invisible to `--jq '... \| last'`. **Always use `?per_page=100`** on reviews, comments, and requested_reviewers endpoints. This caused 4+ hours of "no new review" false negatives in production. |
+| **API pagination hides new data** | GitHub REST API defaults to `per_page=30`. On PRs with many reviews/comments (e.g. from human replies), newer Copilot reviews land on page 2+ and are invisible to `--jq '... \| last'`. **Always use `--paginate`** on reviews, comments, and requested_reviewers endpoints. This caused 4+ hours of "no new review" false negatives in production. |
 
 ## Error Handling
 
