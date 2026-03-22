@@ -93,7 +93,7 @@ git branch -d "$BRANCH"
 Store the dispatch outcome for future reference (replace `<CLI_LABEL>` with the skill's label):
 
 ```
-lcm_store("<CLI_LABEL> dispatch: <type> | model: <model> | isolation: <mode> | <outcome summary>", ["session", "<cli>"])
+lcm_store("<CLI_LABEL> dispatch: <type> | model: <model> | isolation: <mode> | <outcome summary>", ["session", "<cli>", "<tag>"])
 ```
 
 ---
