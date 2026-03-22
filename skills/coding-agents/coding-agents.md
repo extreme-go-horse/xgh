@@ -19,3 +19,62 @@ List and manage AI coding CLI agents (Codex, OpenCode, Gemini) and their model c
 ## Implementation
 
 See [implementation plan](/Users/pedro/Developer/xgh/docs/superpowers/plans/2026-03-22-dynamic-model-detection.md).
+
+## OpenCode Probing
+
+**Discovery command:**
+```bash
+opencode --help
+```
+
+**Implementation note:** Phase 1 uses hardcoded model mappings with correct YAML structure. Future phases will parse `opencode --help` output for dynamic discovery.
+
+**Models to detect:**
+- GLM series: `zai-coding-plan/glm-5`, `glm-5-turbo`, `glm-4.7`
+- Claude series: `anthropic/claude-opus-4-6`, `claude-sonnet-4-6`
+- OpenAI series: `openai/gpt-5.4`, `gpt-5.4-mini`
+
+**Probe function:**
+```bash
+probe_opencode() {
+  local models_dir="$HOME/.xgh/user_providers/opencode"
+  local output_file="$models_dir/models.yaml"
+
+  mkdir -p "$models_dir"
+
+  # Probe OpenCode help
+  local help_output
+  help_output=$(opencode --help 2>&1)
+
+  # Generate models.yaml
+  cat > "$output_file" << YAML
+agent: opencode
+cli_binary: opencode
+last_probed: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+models:
+  - friendly: GLM 5
+    cli_format: zai-coding-plan/glm-5
+    aliases: [glm-5, glm5]
+  - friendly: GLM 5 Turbo
+    cli_format: zai-coding-plan/glm-5-turbo
+    aliases: [glm-5-turbo]
+  - friendly: GLM 4.7
+    cli_format: zai-coding-plan/glm-4.7
+    aliases: [glm, glm-4.7, glm4.7]
+  - friendly: Claude Opus 4.6
+    cli_format: anthropic/claude-opus-4-6
+    aliases: [opus, claude-opus, claude-opus-4-6]
+  - friendly: Claude Sonnet 4.6
+    cli_format: anthropic/claude-sonnet-4-6
+    aliases: [sonnet, claude-sonnet, claude-sonnet-4-6]
+  - friendly: GPT 5.4
+    cli_format: openai/gpt-5.4
+    aliases: [gpt-5.4, gpt54]
+  - friendly: GPT 5.4 Mini
+    cli_format: openai/gpt-5.4-mini
+    aliases: [gpt-5.4-mini, gpt54-mini]
+YAML
+
+  echo "OpenCode: 7 models probed to $output_file"
+}
+```
