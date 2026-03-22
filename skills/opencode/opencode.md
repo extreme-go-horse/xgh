@@ -255,17 +255,17 @@ After the dispatch completes, append one observation to `.xgh/model-profiles.yam
 
 Note: OpenCode has no effort flag. Always record `effort: default`.
 
-Write using the same python one-liner pattern, with `'agent': 'opencode'` and `'effort': 'default'`:
+Write using the same python one-liner pattern (stdlib only), with `'agent': 'opencode'` and `'effort': 'default'`:
 
 ```bash
 python3 -c "
-import yaml, os, datetime
+import json, os, datetime
 path = '.xgh/model-profiles.yaml'
 os.makedirs(os.path.dirname(path), exist_ok=True)
 try:
-    data = yaml.safe_load(open(path)) or {}
-except FileNotFoundError:
-    data = {}
+    data = json.load(open(path))
+except (FileNotFoundError, json.JSONDecodeError):
+    data = {'observations': []}
 data.setdefault('observations', [])
 data['observations'].append({
     'agent': 'opencode',
@@ -275,7 +275,7 @@ data['observations'].append({
     'accepted': True,  # or False based on outcome
     'ts': datetime.datetime.now(datetime.timezone.utc).isoformat()
 })
-yaml.dump(data, open(path, 'w'), default_flow_style=False, sort_keys=False)
+json.dump(data, open(path, 'w'), indent=2)
 "
 ```
 
@@ -287,7 +287,7 @@ Replace `<MODEL>`, `<ARCHETYPE>` with the actual values from the dispatch. Deter
 
 ---
 
-## Model Selection Selection
+## Model Selection
 
 | Model | When to use |
 |-------|-------------|

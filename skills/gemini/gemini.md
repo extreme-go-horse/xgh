@@ -289,17 +289,17 @@ After the dispatch completes, append one observation to `.xgh/model-profiles.yam
   ts: <ISO 8601 timestamp>
 ```
 
-Write using the same python one-liner pattern, with `'agent': 'gemini'`:
+Write using the same python one-liner pattern (stdlib only), with `'agent': 'gemini'`:
 
 ```bash
 python3 -c "
-import yaml, os, datetime
+import json, os, datetime
 path = '.xgh/model-profiles.yaml'
 os.makedirs(os.path.dirname(path), exist_ok=True)
 try:
-    data = yaml.safe_load(open(path)) or {}
-except FileNotFoundError:
-    data = {}
+    data = json.load(open(path))
+except (FileNotFoundError, json.JSONDecodeError):
+    data = {'observations': []}
 data.setdefault('observations', [])
 data['observations'].append({
     'agent': 'gemini',
@@ -309,7 +309,7 @@ data['observations'].append({
     'accepted': True,  # or False based on outcome
     'ts': datetime.datetime.now(datetime.timezone.utc).isoformat()
 })
-yaml.dump(data, open(path, 'w'), default_flow_style=False, sort_keys=False)
+json.dump(data, open(path, 'w'), indent=2)
 "
 ```
 
