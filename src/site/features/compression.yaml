@@ -1,0 +1,5 @@
+name: compression
+headline: "60-90% fewer tokens"
+description: "RTK transparently compresses CLI output so your context window goes further."
+icon: "⚡"
+order: 4

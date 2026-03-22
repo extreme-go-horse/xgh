@@ -1,0 +1,5 @@
+name: briefing
+headline: "Start every session briefed"
+description: "One command pulls Slack, Jira, GitHub, and past sessions into an actionable summary."
+icon: "📋"
+order: 2

@@ -1,0 +1,5 @@
+name: debugging
+headline: "Investigate, don't guess"
+description: "Systematic debugging from a Slack thread or bug report — evidence first, fix second."
+icon: "🔍"
+order: 6
