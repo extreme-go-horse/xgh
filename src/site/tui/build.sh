@@ -68,6 +68,8 @@ with open(engine_file) as f:
     engine = f.read()
 
 # Inject data
+page_title = f'{shell_data.get("title", shell_name)} — TUI Demo'
+engine = engine.replace('/* %%PAGE_TITLE%% */', page_title)
 engine = engine.replace('/* %%CSS_VARS%% */', css_vars)
 engine = engine.replace('// %%SHELL_DATA%%', f'window.__TUI_SHELL = {shell_json};')
 engine = engine.replace('// %%DEMOS_DATA%%', f'window.__TUI_DEMOS = {demos_json};')

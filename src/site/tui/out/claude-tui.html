@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TUI Demo</title>
+  <title>Claude Code — TUI Demo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
   <style>
@@ -11,26 +11,6 @@
 
     :root {
       --bg: #0d0e17; --window: #1a1b26; --titlebar: #16171f; --text: #a9b1d6; --text-bright: #c0caf5; --text-dim: #565f89; --text-muted: #3b3f5c; --accent: #7aa2f7; --scrollbar: #2e3154; --green: #9ece6a; --orange: #ff9e64; --red: #f7768e; --yellow: #e0af68; --blue: #7aa2f7; --purple: #bb9af7; --cyan: #7dcfff; --pink: #ff6ec7; --tl-red: #ff5f57; --tl-yellow: #febc2e; --tl-green: #28c840;
-      --bg:         #0d0e17;
-      --window:     #1a1b26;
-      --titlebar:   #16171f;
-      --text:       #a9b1d6;
-      --text-bright:#c0caf5;
-      --text-dim:   #565f89;
-      --text-muted: #3b3f5c;
-      --accent:     #7aa2f7;
-      --scrollbar:  #2e3154;
-      --green:      #9ece6a;
-      --orange:     #ff9e64;
-      --red:        #f7768e;
-      --yellow:     #e0af68;
-      --blue:       #7aa2f7;
-      --purple:     #bb9af7;
-      --cyan:       #7dcfff;
-      --pink:       #ff6ec7;
-      --tl-red:     #ff5f57;
-      --tl-yellow:  #febc2e;
-      --tl-green:   #28c840;
     }
 
     body {
@@ -76,7 +56,7 @@
       font-size: 12px; color: var(--text-dim); letter-spacing: 0.01em; white-space: nowrap;
     }
     .title-text .dim    { color: var(--text-muted); }
-    .title-text .bright { color: #7a82b0; }
+    .title-text .bright { color: var(--text-dim); }
     .title-text .star   { color: var(--accent); }
 
     /* ── Header ── */
@@ -187,7 +167,7 @@
     .tool-name   { color: var(--blue); }
     .tool-args   { color: var(--text-dim); }
     .tool-output { padding-left: 16px; font-size: 12px; }
-    .tool-output-line { display: block; color: #4a5080; }
+    .tool-output-line { display: block; color: var(--text-muted); }
 
     .spinner { display: inline-block; color: var(--blue); font-size: 12px; }
     .resp-text   { color: var(--text); font-size: 13px; line-height: 1.65; }
@@ -205,14 +185,14 @@
 
     .skill-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(122,162,247,0.08);
-      border: 1px solid rgba(122,162,247,0.2);
+      background: color-mix(in srgb, var(--blue) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--blue) 20%, transparent);
       border-radius: 3px; padding: 3px 8px;
       font-size: 11px; color: var(--blue); margin: 4px 0;
     }
     .agent-block {
-      background: rgba(158,206,106,0.05);
-      border: 1px solid rgba(158,206,106,0.15);
+      background: color-mix(in srgb, var(--green) 5%, transparent);
+      border: 1px solid color-mix(in srgb, var(--green) 15%, transparent);
       border-left: 2px solid var(--green);
       padding: 6px 10px; margin: 6px 0; font-size: 12px;
     }
@@ -1084,6 +1064,7 @@ async function playScene(demo) {
     } else if (step.input !== undefined) {
       // Inline input step (new command mid-scene)
       await sleep(800);
+      if (demoAbort) return;
       await typeInput(step.input);
       if (demoAbort) return;
       commitInput(step.input);
