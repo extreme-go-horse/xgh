@@ -253,14 +253,19 @@ These are encoded into the skill's logic, but listed here for reference:
 
 | Pitfall | Detail |
 |---------|--------|
-| `[bot]` suffix required | `reviewers[]=copilot-pull-request-reviewer` (no `[bot]`) returns 422 |
-| `@copilot` = delegation | Tagging in comments opens new PRs, not re-reviews |
-| Comment author ≠ reviewer login | Comments come from `Copilot`, reviewer is `copilot-pull-request-reviewer[bot]` |
-| Can't dismiss COMMENTED reviews | Copilot always leaves COMMENTED state; dismiss API returns 422 |
-| Re-review requires DELETE + POST | Just POST alone doesn't re-trigger |
-| Custom instructions | `.github/copilot-instructions.md` (4000 char limit, reads from base branch) |
+| `[bot]` suffix required | `reviewers[]=copilot-pull-request-reviewer` (no `[bot]`) returns 422. `reviewers[]=Copilot` silently fails (0 reviewers). |
+| `@copilot` = delegation | Tagging in comments opens new PRs, not re-reviews. NEVER tag for questions — Copilot doesn't read replies. |
+| Comment author ≠ reviewer login | Comments come from `Copilot`, reviewer is `copilot-pull-request-reviewer[bot]` — filter accordingly. |
+| Can't dismiss COMMENTED reviews | Copilot always leaves COMMENTED state; dismiss API returns 422 for non-APPROVE/CHANGES_REQUESTED. |
+| Re-review requires DELETE + POST | Just POST alone doesn't re-trigger if Copilot already reviewed. |
+| DELETE may 422 on bot node ID | `gh api ... -X DELETE -f 'reviewers[]=copilot-pull-request-reviewer[bot]'` can return 422 with "Could not resolve to User node". Use `gh pr edit --remove-reviewer` instead, which works reliably. |
+| `gh pr edit` works without `[bot]` | `gh pr edit --add-reviewer copilot-pull-request-reviewer` (no `[bot]`) works via GraphQL. The `[bot]` suffix is only required for the REST API. |
+| `gh pr edit --add-reviewer Copilot` fails | GraphQL error "Could not resolve user". Must use `copilot-pull-request-reviewer` (the full bot login sans `[bot]`). |
+| Reviews on unrelated files | Copilot reviews ALL files in the diff, including pre-existing artifacts not introduced by the PR. It may comment on files you didn't change. Reply explaining they're out of scope. |
+| Custom instructions | `.github/copilot-instructions.md` (4000 char limit, reads from **base branch**, not PR branch). |
 | Path-specific instructions | `.github/instructions/**/*.instructions.md` |
-| Quota | Each review costs 1 premium request |
+| Quota | Each review costs 1 premium request per review cycle. |
+| Review latency | Reviews typically take <30 seconds, but re-review requests may take several minutes. Don't re-request too aggressively. |
 
 ## Error Handling
 
