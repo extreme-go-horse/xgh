@@ -1,0 +1,5 @@
+name: methodology
+headline: "Built-in dev methodology"
+description: "Superpowers skills enforce TDD, plans, reviews, and branch hygiene automatically."
+icon: "🏗️"
+order: 5

@@ -1,0 +1,5 @@
+name: dispatch
+headline: "Dispatch to any agent"
+description: "Route tasks to Codex, Gemini, or OpenCode with one slash command. Review comes back inline."
+icon: "🚀"
+order: 3

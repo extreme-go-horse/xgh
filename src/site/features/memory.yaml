@@ -1,0 +1,5 @@
+name: memory
+headline: "Memory that persists"
+description: "Your agent remembers decisions, patterns, and context across sessions. No more re-explaining."
+icon: "🧠"
+order: 1
