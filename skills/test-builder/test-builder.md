@@ -1,0 +1,384 @@
+---
+name: xgh:test-builder
+description: >
+  Generate and execute tailored test suites from architectural analysis. Reads module
+  boundaries, public surfaces, and integration points from memory to produce a
+  structured manifest of test flows — then executes them.
+type: flexible
+triggers:
+  - when the user runs /xgh-test-builder
+  - when the user says "generate tests", "build test suite", "run tests"
+  - when the user says "test-builder", "create test manifest"
+  - when the user says "what should I test", "test my app"
+  - when invoked after /xgh:architecture completes
+---
+
+# xgh:test-builder — Test Suite Generator
+
+## Project Resolution
+
+Get the git remote of the current directory:
+
+```bash
+git -C . remote get-url origin 2>/dev/null || git -C . remote get-url upstream 2>/dev/null
+```
+
+Match the remote URL against `projects.<name>.github` in `~/.xgh/ingest.yaml`:
+
+```bash
+python3 -c "
+import sys, os
+try:
+    import yaml
+except ImportError:
+    import subprocess
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pyyaml', '-q'])
+    import yaml
+
+remote = sys.argv[1].strip()
+path = os.path.expanduser('~/.xgh/ingest.yaml')
+try:
+    data = yaml.safe_load(open(path))
+except FileNotFoundError:
+    print('NO_INGEST_YAML')
+    sys.exit(0)
+
+projects = data.get('projects', {})
+for name, cfg in projects.items():
+    github = cfg.get('github', '')
+    if github and (github in remote or remote in github):
+        print(name)
+        sys.exit(0)
+
+print('NO_MATCH')
+" "<remote-url>"
+```
+
+- If output is `NO_INGEST_YAML` → stop: "No ingest config found. Run `/xgh-init` first."
+- If output is `NO_MATCH` → stop: "No project config found for this repo. Run `/xgh:config add-project` to register it."
+
+Save the matched project name as `<repo-name>`.
+
+## Argument Parsing
+
+Read `$ARGUMENTS`:
+
+- `init` → run the init phase (Steps 1–6 below)
+- `run` or `run <flow-name>` → run the run phase (Phase 2 placeholder)
+- No argument or unrecognized → show usage:
+
+```
+Usage:
+  /xgh-test-builder init              — analyze architecture, generate manifest
+  /xgh-test-builder run               — execute all test flows
+  /xgh-test-builder run <flow-name>   — execute a specific flow by name
+```
+
+---
+
+## Phase 1: Init
+
+### Step 1 — Hard prerequisite: architecture freshness
+
+#### 1a — Search lossless-claude for architecture entries
+
+Call `mcp__lossless-claude__lcm_search` with query `xgh:architecture` and tag filter `["xgh:architecture", "<repo-name>"]`.
+
+- If no results returned → stop:
+  > "No architecture analysis found for `<repo-name>`. Run `/xgh:architecture` first."
+
+#### 1b — Check architecture age from ingest.yaml
+
+```bash
+python3 -c "
+import sys, os
+from datetime import datetime, timezone
+try:
+    import yaml
+except ImportError:
+    import subprocess
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pyyaml', '-q'])
+    import yaml
+
+name = sys.argv[1]
+path = os.path.expanduser('~/.xgh/ingest.yaml')
+data = yaml.safe_load(open(path))
+cfg = data.get('projects', {}).get(name, {})
+arch = cfg.get('architecture', {})
+last_run = arch.get('last_run')
+mode = arch.get('mode', 'quick')
+if not last_run:
+    print('NEVER|quick')
+    sys.exit(0)
+
+dt = datetime.fromisoformat(last_run)
+now = datetime.now(timezone.utc)
+days = (now - dt).days
+print(f'{days}|{mode}')
+" "<repo-name>"
+```
+
+Parse the output as `<days>|<arch-mode>`:
+
+- If `NEVER|*` → stop: "Architecture timestamp missing for `<repo-name>`. Run `/xgh:architecture` first."
+- If days > 30 → stop: "Architecture is N days old (>30 day limit). Run `/xgh:architecture` first."
+- If days > 7 → warn: "Architecture analysis is N days old. Consider re-running `/xgh:architecture`." (continue)
+
+#### 1c — Check mode adequacy
+
+If `<arch-mode>` is `quick`:
+- Read public-surfaces artifact from lossless-claude (tags `["xgh:architecture", "public-surfaces", "<repo-name>"]`).
+- If multiple surface types detected (e.g. cli + api, or api + web) → recommend: "Consider running `/xgh:architecture full` for deeper analysis — critical-paths and test-landscape will improve test generation."
+
+---
+
+### Step 2 — Read architectural definitions
+
+Pull from lossless-claude memory using `mcp__lossless-claude__lcm_search`:
+
+| Artifact | Tags | Required |
+|----------|------|----------|
+| module-boundaries | `["xgh:architecture", "module-boundaries", "<repo-name>"]` | yes |
+| public-surfaces | `["xgh:architecture", "public-surfaces", "<repo-name>"]` | yes |
+| integration-points | `["xgh:architecture", "integration-points", "<repo-name>"]` | yes |
+| critical-paths | `["xgh:architecture", "critical-paths", "<repo-name>"]` | no (full only) |
+| test-landscape | `["xgh:architecture", "test-landscape", "<repo-name>"]` | no (full only) |
+
+Save all retrieved content for use in subsequent steps.
+
+---
+
+### Step 3 — Determine project surface type
+
+Read `surfaces` from ingest.yaml:
+
+```bash
+python3 -c "
+import sys, os, json
+try:
+    import yaml
+except ImportError:
+    import subprocess
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pyyaml', '-q'])
+    import yaml
+
+name = sys.argv[1]
+path = os.path.expanduser('~/.xgh/ingest.yaml')
+data = yaml.safe_load(open(path))
+cfg = data.get('projects', {}).get(name, {})
+print(json.dumps(cfg.get('surfaces', [])))
+" "<repo-name>"
+```
+
+Cross-reference with the `public-surfaces` artifact from memory. Map detected surfaces to strategies:
+
+| Surface | Strategy |
+|---------|----------|
+| CLI commands | Acceptance — run commands, assert stdout/exit codes |
+| API endpoints | Contract + integration — HTTP calls, response validation |
+| Web UI routes | E2E — browser-based (Playwright/Cypress) |
+| Mobile app screens | E2E — device/simulator flows |
+| Library/SDK exports | Contract — public API assertions |
+| Mixed surfaces | Layered — multiple strategy types |
+
+Save `<detected-surfaces>` (list) and `<strategies>` (list).
+
+---
+
+### Step 4 — Complexity gate
+
+Check these 5 explicit triggers:
+
+1. Multiple surfaces detected (`len(<detected-surfaces>) > 1`)
+2. No clear entry point found in public-surfaces artifact
+3. Auth/stateful setup required (detected from integration-points: auth providers, session stores)
+4. External dependencies needing mocking (from integration-points: external APIs, message queues)
+5. Test landscape shows <30% coverage in critical paths (if test-landscape available from full mode)
+
+**If ANY trigger fires → interview developer using AskUserQuestion:**
+
+Ask each question in sequence:
+- "What are your critical user journeys? (e.g. 'user signs up', 'checkout completes')"
+- "What breaks frequently vs what's stable?"
+- "Which external dependencies should be mocked vs hit live?"
+- "What's your deployment target? (local dev, CI, staging, prod)"
+
+Save answers as `<interview-answers>`.
+
+**If NO triggers fire → autonomous generation.** Proceed directly to Step 5.
+
+---
+
+### Step 5 — Generate manifest atomically
+
+Create the output directory:
+
+```bash
+mkdir -p .xgh/test-builder
+```
+
+Write the manifest to a temp file first:
+
+```bash
+# Write to .xgh/test-builder/manifest.yaml.tmp
+# Validate all required fields present, no unresolved placeholders
+# Move to .xgh/test-builder/manifest.yaml
+# If any step fails → delete temp file, report error, exit
+```
+
+Use Write tool to create `.xgh/test-builder/manifest.yaml.tmp` with the following schema:
+
+```yaml
+version: 1
+project: <repo-name>
+generated: <ISO timestamp>
+architecture_ref: <architecture.last_run timestamp>
+
+surfaces:
+  - type: <api|cli|web|mobile|library>
+    entry: <path or endpoint>
+
+strategies:
+  - name: <strategy-name>
+    executor: <shell|http|browser|mobile|library|custom>
+
+flows:
+  - name: <flow-name>
+    surface: <surface-type>
+    strategy: <strategy-name>
+    goal: "<what this flow validates>"
+    prerequisites:
+      - run: <command>
+        wait_for: <condition>
+    steps:
+      - run: <command or action>
+        assert:
+          <assertion-type>: <expected>
+    cleanup:
+      - run: <command>
+```
+
+Populate the manifest from architectural artifacts and interview answers (if applicable). Generate one flow per critical path (if available) or per public surface entry point.
+
+**Validation before move:** Check:
+- `version` is present and equals `1`
+- `project` matches `<repo-name>`
+- `flows` list is non-empty
+- No step contains literal placeholder text (`<`, `>` brackets in `run` or `assert` values)
+- Each flow has at least one step
+
+If validation passes → use Bash `mv` to move temp file to final path:
+
+```bash
+mv .xgh/test-builder/manifest.yaml.tmp .xgh/test-builder/manifest.yaml
+```
+
+If validation fails → delete temp file and stop:
+
+```bash
+rm -f .xgh/test-builder/manifest.yaml.tmp
+```
+
+Report: "Manifest generation failed: <reason>. No partial manifest written."
+
+---
+
+#### Executor Kinds Reference
+
+| Executor | What it does | Prerequisites |
+|----------|-------------|---------------|
+| shell | Runs command, captures stdout/stderr/exit code | None (default) |
+| http | HTTP requests via curl, asserts status/headers/body | Service running |
+| browser | Delegates to Playwright/Cypress | npx playwright available |
+| mobile | Delegates to XCTest/Espresso/AXe | Simulator running |
+| library | Imports and calls exported functions | Native test runner |
+| custom | Runs user script, exit code 0 = pass | Script exists |
+
+#### Assertion Types Reference
+
+| Assertion | Applies to | Example |
+|-----------|-----------|---------|
+| exit_code | shell, custom | `exit_code: 0` |
+| stdout_contains | shell, custom | `stdout_contains: "OK"` |
+| stdout_matches | shell, custom | `stdout_matches: "v\\d+\\.\\d+"` |
+| status | http | `status: 200` |
+| body_contains | http | `body_contains: '"ok"'` |
+| body_json_path | http | `body_json_path: { path: "$.id", exists: true }` |
+| header_contains | http | `header_contains: { key: "content-type", value: "json" }` |
+| file_exists | any | `file_exists: "./output.html"` |
+| returns | library | `returns: { type: "object", has_key: "id" }` |
+
+---
+
+### Step 6 — Optional native scaffold
+
+For known ecosystems, generate test files that implement the manifest flows. The manifest remains the source of truth — native files are a convenience layer.
+
+| Ecosystem detected | Test file generated |
+|--------------------|---------------------|
+| Node.js / TypeScript | `tests/xgh-generated.test.ts` (Vitest/Jest) |
+| Go | `tests/xgh_generated_test.go` |
+| Rust | `tests/xgh_generated.rs` |
+| Python | `tests/test_xgh_generated.py` |
+| Swift / iOS | `Tests/XghGeneratedTests.swift` |
+| Shell (no framework) | `tests/xgh-generated.sh` |
+
+If ecosystem is not recognized or scaffold generation is not feasible → skip silently.
+
+---
+
+### Step 7 — Generate strategy.md
+
+Write `.xgh/test-builder/strategy.md` using the Write tool. This is a human-readable companion to the manifest documenting what is being tested and why.
+
+Format:
+
+```markdown
+# Test Strategy — <repo-name>
+
+Generated: <ISO timestamp>
+Architecture ref: <architecture.last_run>
+
+## Surfaces
+
+<list of detected surfaces and their strategies>
+
+## Flows
+
+For each flow in the manifest:
+- **<flow-name>**: <goal>
+  - Surface: <surface>
+  - Executor: <executor>
+  - Steps: <count>
+
+## Why These Tests
+
+<2-3 sentence rationale derived from architecture + complexity gate outcome>
+
+## Coverage Gaps
+
+<list any known gaps — surfaces with no flows, untested critical paths>
+```
+
+---
+
+### Init Completion
+
+Print a summary:
+
+```
+Test suite manifest generated for <repo-name>
+  Surfaces: <count> (<list>)
+  Flows: <count>
+  Strategies: <list>
+  Manifest: .xgh/test-builder/manifest.yaml
+  Strategy: .xgh/test-builder/strategy.md
+```
+
+*Run `/xgh:test-builder run` to execute all flows, or `/xgh:test-builder run <flow-name>` to run a specific flow.*
+
+---
+
+## Phase 2: Run
+
+See Task 5 — run phase will be appended here.
