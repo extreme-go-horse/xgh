@@ -22,6 +22,8 @@ The briefing is always available on demand. Run `/xgh-briefing` at any time; it 
 
 The briefing respects `XGH_TEAM` from the environment for workspace memory queries.
 
+**Optional Automation:** Set `XGH_BRIEFING=1` in your environment to enable automatic briefing at SessionStart. This is useful for command center mode where you want immediate context on every session.
+
 ## Iron Law
 
 > **NEVER show everything — show what matters.** A briefing that lists 40 items is noise. Surface the top 3-5 actionable items per section. If a section is empty or irrelevant, omit it entirely. The user's time is the constraint.
