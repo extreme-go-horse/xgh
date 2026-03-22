@@ -1,0 +1,59 @@
+name: claude
+title: "Claude Code"
+version: "v2.1.81"
+
+path:
+  text: "x.com/ipedro"
+  url: "https://x.com/ipedro"
+
+prompt: "›"
+
+titlebar:
+  text: "extreme-go-horse"
+  detail: "— bun • claude --dangerously-skip-permissions — 102×31"
+
+models:
+  - "Sonnet 4.6 with medium effort · Claude Max"
+  - "Sonnet 4.6 with high effort · Claude Max"
+  - "Opus 4.6 with medium effort · Claude Max"
+  - "Opus 4.6 · Claude Max"
+  - "Haiku 4.5 · Claude Max"
+  - "Sonnet 4.6 · Claude Pro"
+
+theme:
+  bg: "#0d0e17"
+  window: "#1a1b26"
+  titlebar: "#16171f"
+  text: "#a9b1d6"
+  text-bright: "#c0caf5"
+  text-dim: "#565f89"
+  text-muted: "#3b3f5c"
+  accent: "#7aa2f7"
+  scrollbar: "#2e3154"
+  green: "#9ece6a"
+  orange: "#ff9e64"
+  red: "#f7768e"
+  yellow: "#e0af68"
+  blue: "#7aa2f7"
+  purple: "#bb9af7"
+  cyan: "#7dcfff"
+  pink: "#ff6ec7"
+  tl-red: "#ff5f57"
+  tl-yellow: "#febc2e"
+  tl-green: "#28c840"
+
+status:
+  left: "? for shortcuts · hold Space to speak"
+  right: null
+
+icon: "claude"
+
+colors:
+  pink: "#ff6ec7"
+  yellow: "#e0af68"
+  orange: "#ff9e64"
+  green: "#9ece6a"
+  blue: "#7aa2f7"
+  purple: "#bb9af7"
+  red: "#f7768e"
+  cyan: "#7dcfff"
