@@ -70,34 +70,15 @@ List and manage AI coding CLI agents (Codex, OpenCode, Gemini) and their model c
 
 - [ ] **Step 3: Create command entry point**
 
-Create `commands/coding-agents`:
+Create `commands/coding-agents.md` (markdown descriptor — repo convention, no executable needed):
 
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-# xgh:coding-agents — Manage AI coding CLI agents
-# Usage: /xgh-coding-agents [agent] [--refresh]
-
-ARGUMENT="${1:-}"
-
-if [ -z "$ARGUMENT" ] || [ "$ARGUMENT" = "--refresh" ]; then
-  # List all agents or refresh all
-  echo "xgh:coding-agents: See skill documentation"
-  echo "Available agents: codex, opencode, gemini"
-elif [ "$ARGUMENT" = "--help" ] || [ "$ARGUMENT" = "-h" ]; then
-  echo "Usage: /xgh-coding-agents [agent] [--refresh]"
-  echo "Agents: codex, opencode, gemini"
-else
-  # Pass to skill for handling
-  echo "Loading xgh:coding-agents skill for: $ARGUMENT ${2:-}"
-fi
-```
-
-- [ ] **Step 4: Make command executable**
-
-```bash
-# commands/coding-agents.md is a markdown descriptor, no chmod needed
+```markdown
+---
+name: coding-agents
+description: "List and manage AI coding CLI agents (Codex, OpenCode, Gemini) and their model capabilities"
+usage: "/xgh-coding-agents [agent] [--refresh]"
+aliases: ["ca"]
+---
 ```
 
 - [ ] **Step 5: Verify skill file exists**
