@@ -194,7 +194,7 @@ If no changes: `✅ No changes since last tick.`
 
 #### D — Update state (no GitHub writes)
 
-Update `last_seen_*` fields in `.xgh/watch-prs-state.json` with values from the DELTA. No calls to GitHub mutation endpoints.
+Update `last_seen_*` fields in `.xgh/watch-prs-state.json` with values from the DELTA. No calls to GitHub mutation endpoints. If a DELTA entry has `"done": true`, also set `prs["<PR>"].status = "merged"` in `.xgh/watch-prs-state.json`.
 
 ---
 

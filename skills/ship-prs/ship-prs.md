@@ -92,12 +92,7 @@ Before creating the cron, check branch protection:
 ```bash
 # Check branch protection required approvals
 base_ref_name="$(gh pr view "$PR" --repo "$REPO" --json baseRefName -q .baseRefName)"
-base_ref_name_uri="$(python3 - <<'PY' <<<"$base_ref_name"
-import sys
-from urllib.parse import quote
-print(quote(sys.stdin.read().strip(), safe=""))
-PY
-)"
+base_ref_name_uri="$(python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=''))" "$base_ref_name")"
 gh api "repos/$REPO/branches/$base_ref_name_uri/protection" \
   --jq '.required_pull_request_reviews.required_approving_review_count // 0' 2>/dev/null
 ```
@@ -415,7 +410,7 @@ Would: re-request Copilot review on #42 (cooldown elapsed)
 Would: dispatch haiku agent to fix 3 comments on #43
 Would: merge #44 with squash (all criteria met)
 ```
-Do NOT write any state changes. Do NOT call gh API mutation endpoints.
+Do NOT write any state changes. Do NOT call gh API mutation endpoints. This includes pr-poller observe mode — pass `no_state_write: true` so `last_seen_*` fields in `.xgh/watch-prs-state.json` are NOT updated.
 
 ---
 

@@ -5,7 +5,7 @@ description: |
 
   <example>
   Context: watch-prs cron tick fires for a watched PR
-  user: "WATCH:owner/repo:71 — Dispatch the xgh:pr-poller agent with mode: observe, repo: owner/repo, prs: [71], reviewer_comment_author: Copilot"
+  user: "WATCH:owner/repo:71 — Dispatch the xgh:pr-poller agent with mode: observe, repo: owner/repo, prs: [71], reviewer: copilot-pull-request-reviewer[bot], reviewer_comment_author: Copilot"
   assistant: "I'll run the observe-mode poll cycle for PR #71 — check merge criteria and new review comments, return DELTA without taking any action."
   <commentary>
   Dispatched by xgh:watch-prs in observe mode. Reads state file, runs read-only poll steps, returns DELTA/ALL_DONE.
@@ -64,7 +64,9 @@ For each PR, fetch the following in read-only fashion:
 
 Compute `merge_ready` as: `mergeable == "MERGEABLE"` AND all `statusCheckRollup` conclusions are `SUCCESS` or `SKIPPED` AND (`reviewDecision == "APPROVED"` OR at least one review from `<reviewer>` with `state == "APPROVED"`).
 
-Then run step 3 (check for new review comments) to populate `comment_count` and `changes`.
+Then run step 3 (check for new review comments) — compare against `last_seen_comment_count` and `last_seen_review_at` from `.xgh/watch-prs-state.json` — to populate `comment_count` and `changes`.
+
+If `prs["<PR>"].held == true` in `.xgh/watch-prs-state.json`: skip fetching and return only `{"pr": <PR>, "skipped": "held"}` for that PR.
 
 Return `DELTA: [...]` with the structured delta object per PR:
 ```
@@ -108,7 +110,7 @@ gh pr view <PR> --repo <REPO> --json state,mergeable,reviews,statusCheckRollup,r
 
 **Paused/held guard (ship mode only):** Before any active step, read `.xgh/ship-prs-state.json`.
 If top-level `paused == true`: skip ALL active steps for ALL PRs this tick, return `SKIPPED: session paused`.
-If `prs["<PR>"].held == true`: skip all active steps for that PR. In ship mode, reflect the held status in that PR's `WATCHING` status line (no delta structure in ship mode). In observe mode, include `"skipped": "held"` in that PR's DELTA entry.
+If `prs["<PR>"].held == true`: skip all active steps for that PR and reflect the held status in that PR's `WATCHING` status line.
 
 **Criteria:**
 1. `mergeable == "MERGEABLE"` — if CONFLICTING: dispatch conflict-resolution agent, skip merge
@@ -126,7 +128,9 @@ Mark done.
 
 ### 3. Check for new review comments
 
-Read `.xgh/watch-prs-state.json` (observe mode) or `.xgh/ship-prs-state.json` (ship mode) to get baselines for this PR.
+Read the state file to get the baseline for this PR:
+- **Observe mode:** Read `last_seen_comment_count` and `last_seen_review_at` from `.xgh/watch-prs-state.json`
+- **Ship mode:** Read `baseline_comment_count` and `baseline_review_at` from `.xgh/ship-prs-state.json`
 
 ```bash
 gh api repos/<REPO>/pulls/<PR>/comments --paginate \
