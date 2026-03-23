@@ -11,7 +11,7 @@ The Project Resolution protocol reads the git remote URL of the current director
 Get the git remote of the current directory:
 
 ```bash
-git -C . remote get-url origin 2>/dev/null || git -C . remote get-url upstream 2>/dev/null
+git -C . remote get-url origin 2>/dev/null || git -C . remote get-url upstream 2>/dev/null || true
 ```
 
 Match the remote URL against `projects.<name>.github` in `~/.xgh/ingest.yaml`:
@@ -90,7 +90,7 @@ If output is `NO_MATCH`:
 
 ```bash
 # Step 1: Get remote URL
-REMOTE=$(git -C . remote get-url origin 2>/dev/null || git -C . remote get-url upstream 2>/dev/null)
+REMOTE=$(git -C . remote get-url origin 2>/dev/null || git -C . remote get-url upstream 2>/dev/null || true)
 
 # Step 2: Resolve project
 PROJECT=$(python3 -c "..." "$REMOTE")
