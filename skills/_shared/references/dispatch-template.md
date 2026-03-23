@@ -89,7 +89,7 @@ git branch -d "$BRANCH"
 
 ## Step 5: Curate (if lossless-claude available)
 
-Store the dispatch outcome for future reference. Replace all placeholders: `<CLI_LABEL>` (display name, e.g. "Codex"), `<cli>` (tag slug, e.g. `"codex"`):
+Store the dispatch outcome for future reference. Replace all placeholders: `<CLI_LABEL>` (display name, e.g. "OpenCode"), `<cli>` (tag slug, e.g. `"opencode"`):
 
 ```
 lcm_store("<CLI_LABEL> dispatch: <type> | model: <model> | isolation: <mode> | <outcome summary>", ["session", "<cli>"])
