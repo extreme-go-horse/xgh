@@ -60,7 +60,11 @@ print('NO_MATCH')
 ## Error Handling
 
 If output is `NO_INGEST_YAML`:
-- Stop execution and tell the user: "No ingest config found. Run `/xgh-init` first."
+- Stop execution and tell the user one of the following based on context:
+  - File missing: "No ingest config found. Run `/xgh-init` first."
+  - File unreadable: "Cannot read `~/.xgh/ingest.yaml`. Check file permissions."
+  - Parse error: "`~/.xgh/ingest.yaml` is not valid YAML. Fix the syntax and retry."
+  - When the cause is unknown: "Could not load `~/.xgh/ingest.yaml`. Check it exists, is readable, and is valid YAML. Run `/xgh-init` to recreate it."
 
 If output is `NO_MATCH`:
 - Stop execution and tell the user: "No project config found for this repo. Run `/xgh:config add-project` to register it."
