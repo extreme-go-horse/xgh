@@ -1,5 +1,5 @@
 ---
-name: xgh:pr-poller
+name: pr-poller
 description: |
   Polls PRs for review status, handles reviewer comments, and merges when all criteria pass. Provider-aware: adapts review requests and comment handling to the detected host. Dispatched by xgh:babysit-prs on each cron tick — do not invoke directly.
 
@@ -117,6 +117,8 @@ Update `last_review_request_at` in state file.
 ## Comment decision tree
 
 For each new inline comment (since baseline):
+
+**GitHub:** Before classifying comments, run the GraphQL `reviewThreads` query (see "Resolve outdated threads" section below) to fetch thread metadata including `isOutdated` and thread node IDs. Match each REST comment's `pull_request_review_id` to its thread node to detect outdated status.
 
 ```
 Comment thread isOutdated == true (GitHub)?
