@@ -116,6 +116,23 @@ Update `last_review_request_at` in state file.
 
 ## Comment decision tree
 
+**Before classifying comments:** fetch thread metadata via GraphQL so `isOutdated` and thread node IDs are available for the decision tree below:
+
+```bash
+gh api graphql -f query='
+  query($owner:String!,$repo:String!,$pr:Int!) {
+    repository(owner:$owner,name:$repo) {
+      pullRequest(number:$pr) {
+        reviewThreads(first:100) {
+          nodes { id isResolved isOutdated comments(first:50) { nodes { databaseId } } }
+        }
+      }
+    }
+  }' -F owner="<OWNER>" -F repo="<REPO_NAME>" -F pr=<PR>
+```
+
+Match each REST comment (`id` → `databaseId`) to its thread node to get `isOutdated`. For non-GitHub providers skip this step and treat all threads as not outdated. The limits (`first:100` threads, `first:50` comments per thread) cover the vast majority of PRs; if a PR exceeds these limits add `after:` cursor pagination.
+
 For each new inline comment (since baseline):
 
 ```
