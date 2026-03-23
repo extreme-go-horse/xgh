@@ -1,24 +1,35 @@
 ---
 name: xgh:babysit-prs
-description: "Use when one or more GitHub PRs are open and need to reach merge — waiting on CI, a reviewer hasn't responded, comments need fixes, or you want merge to happen automatically without manually polling GitHub."
+description: "Use when one or more PRs are open and need to reach merge — waiting on CI, a reviewer hasn't responded, comments need fixes, or you want auto-merge without manually polling. Detects the host (GitHub, GitLab, Bitbucket, etc.) and adapts reviewer automation accordingly."
 ---
 
 > **Output format:** Start with `## 🐴🤖 xgh babysit-prs`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. Keep per-poll output terse.
 
-# /xgh-babysit-prs — PR Review Orchestrator
+# /xgh-babysit-prs — PR Merge Orchestrator
 
-Watch a batch of PRs through GitHub Copilot review cycles until all are merged. Each poll cycle checks every tracked PR and takes the next correct action: dispatch a fix agent, merge, re-request review, or resolve conflicts.
+Watch a batch of PRs through review cycles until all are merged. Detects the host platform and adapts: on GitHub it auto-triggers Copilot reviews; on other platforms it works with any specified reviewer. Each poll cycle takes the next correct action: accept suggestion commits, dispatch fix agents, reply to comments, resolve outdated threads, re-request review, or merge.
 
 ## Usage
 
 ```
-/xgh-babysit-prs start <PR> [<PR>...] [--repo owner/repo] [--interval 5m] [--merge-method squash] [--post-merge-hook '<command>']
+/xgh-babysit-prs start <PR> [<PR>...] [--repo owner/repo] [--interval 5m] [--merge-method merge|squash|rebase] [--reviewer <login>] [--accept-suggestion-commits] [--require-resolved-threads] [--post-merge-hook '<command>']
 /xgh-babysit-prs poll-once <PR> [<PR>...]
 /xgh-babysit-prs status
 /xgh-babysit-prs stop
 ```
 
-## Step 0 — Detect repo
+**Defaults:**
+- `--interval 5m`
+- `--merge-method merge`
+- `--reviewer` — auto-detected from provider profile (e.g., `copilot-pull-request-reviewer[bot]` on GitHub)
+- `--accept-suggestion-commits` — off (opt-in to auto-accept inline suggestion commits)
+- `--require-resolved-threads` — off (unresolved threads don't block merge by default)
+
+---
+
+## Step 0 — Bootstrap
+
+### Step 0a — Detect repo
 
 If `--repo` is provided, use it. Otherwise auto-detect:
 ```bash
@@ -26,6 +37,37 @@ REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
 ```
 
 If auto-detect fails: `❌ Could not determine repo. Use --repo owner/repo`
+
+### Step 0b — Detect provider
+
+Parse the origin remote URL:
+```bash
+ORIGIN=$(git remote get-url origin 2>/dev/null)
+```
+
+| Pattern in URL | Provider |
+|----------------|----------|
+| `github.com` | `github` |
+| `gitlab.com` or `gitlab.` | `gitlab` |
+| `bitbucket.org` | `bitbucket` |
+| `dev.azure.com` or `visualstudio.com` | `azure-devops` |
+| anything else | `generic` |
+
+### Step 0c — Load provider profile and probe reviewer
+
+See **Provider Profiles** section for embedded profiles.
+
+**GitHub:** Probe Copilot availability:
+```bash
+gh api repos/$REPO/copilot/policies 2>/dev/null | jq -r '.code_review_enabled // false'
+```
+- If enabled and `--reviewer` not set: default reviewer = `copilot-pull-request-reviewer[bot]`
+- If disabled or endpoint 404s: print `⚠️ Copilot code review is not enabled for $REPO. Reviews need manual assignment. Pass --reviewer <login> to specify one.`
+
+**Other providers:** If `--reviewer` not set and profile has no `reviewer_bot`:
+`⚠️ No AI reviewer configured for $PROVIDER. Pass --reviewer <login> or reviews will be skipped.`
+
+---
 
 ## Commands
 
@@ -39,18 +81,18 @@ Read `.xgh/babysit-prs-state.json`. If it exists and a watcher is alive with mat
 
 **Step 2 — Initialize baselines:**
 
-For each PR, gather initial state:
+For each PR, gather initial state using the reviewer login from the provider profile:
 ```bash
 # PR state
 gh pr view $PR --repo $REPO --json state,mergeable --jq '{state, mergeable}'
 
-# Last Copilot review
-gh api repos/$REPO/pulls/$PR/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | if length == 0 then null else last | {state: .state, submitted_at: .submitted_at} end'
+# Last reviewer's review
+gh api repos/$REPO/pulls/$PR/reviews --paginate \
+  --jq '[.[] | select(.user.login == "<REVIEWER>")] | if length == 0 then null else last | {state: .state, submitted_at: .submitted_at} end'
 
-# Comment count
-gh api repos/$REPO/pulls/$PR/comments \
-  --jq '[.[] | select(.user.login == "Copilot")] | length'
+# Comment count from reviewer bot (use reviewer_comment_author from provider profile)
+gh api repos/$REPO/pulls/$PR/comments --paginate \
+  --jq '[.[] | select(.user.login == "<REVIEWER_COMMENT_AUTHOR>")] | length'
 ```
 
 **Step 3 — Write state file:**
@@ -59,7 +101,12 @@ Save to `.xgh/babysit-prs-state.json`:
 ```json
 {
   "repo": "owner/repo",
-  "merge_method": "squash",
+  "provider": "github",
+  "reviewer": "copilot-pull-request-reviewer[bot]",
+  "reviewer_comment_author": "Copilot",
+  "merge_method": "merge",
+  "accept_suggestion_commits": false,
+  "require_resolved_threads": false,
   "post_merge_hook": null,
   "created_at": "ISO8601",
   "cron_job_id": null,
@@ -79,7 +126,7 @@ Save to `.xgh/babysit-prs-state.json`:
 
 **Step 4 — Start poll loop:**
 
-Use `CronCreate` to schedule recurring polls. Convert `--interval` to a cron expression, avoiding :00/:30 marks (nudge by 1 min to spread load: `5m → "*/5 * * * *"`, `10m → "*/11 * * * *"`).
+Use `CronCreate` to schedule recurring polls. Convert `--interval` to a cron expression, avoiding :00/:30 marks (nudge by 1 min: `5m → "*/5 * * * *"`, `10m → "*/11 * * * *"`).
 
 The sentinel string `BABYSIT:<REPO>:<PR_NUMBERS>` in the prompt makes it findable via `CronList` for stop/status.
 
@@ -88,11 +135,15 @@ CronCreate({
   cron: "<interval-expression>",
   recurring: true,
   prompt: `BABYSIT:<REPO>:<PR_NUMBERS>
-Dispatch the xgh:github-pr-poller agent with:
+Dispatch the xgh:pr-poller agent with:
 - repo: <REPO>
+- provider: <PROVIDER>
 - prs: [<PR_NUMBERS>]
-- reviewer: copilot-pull-request-reviewer[bot]
+- reviewer: <REVIEWER>
+- reviewer_comment_author: <REVIEWER_COMMENT_AUTHOR>
 - merge_method: <MERGE_METHOD>
+- accept_suggestion_commits: <BOOL>
+- require_resolved_threads: <BOOL>
 If the agent returns status ALL_DONE, call CronList, find the job whose prompt contains "BABYSIT:<REPO>:<PR_NUMBERS>", and CronDelete it.`
 })
 ```
@@ -102,6 +153,7 @@ Save the returned job ID to state: `"cron_job_id": "<id>"`.
 Report:
 ```
 ✅ Watching PRs [<numbers>] in <repo> every <interval>.
+   Provider: <provider> | Reviewer: <reviewer>
    Cron job: <id> (auto-stops when all PRs merge).
 ```
 
@@ -119,29 +171,44 @@ gh pr view $PR --repo $REPO --json state --jq '.state'
 
 If `MERGED`: set `status = merged`, `last_action = merge-succeeded`. Skip remaining steps.
 
-#### B — Gather current Copilot state
+#### B — Gather current review state
 
 ```bash
-# Last review
-REVIEW=$(gh api repos/$REPO/pulls/$PR/reviews \
-  --jq '[.[] | select(.user.login == "copilot-pull-request-reviewer[bot]")] | if length == 0 then null else last | {state: .state, submitted_at: .submitted_at} end')
+# Last review from reviewer
+REVIEW=$(gh api repos/$REPO/pulls/$PR/reviews --paginate \
+  --jq '[.[] | select(.user.login == "<REVIEWER>")] | if length == 0 then null else last | {state: .state, submitted_at: .submitted_at} end')
 
-# Comment count
-COMMENTS=$(gh api repos/$REPO/pulls/$PR/comments \
-  --jq '[.[] | select(.user.login == "Copilot")] | length')
+# Comment count from reviewer
+COMMENTS=$(gh api repos/$REPO/pulls/$PR/comments --paginate \
+  --jq '[.[] | select(.user.login == "<REVIEWER_COMMENT_AUTHOR>")] | length')
 
-# Mergeability
-MERGEABLE=$(gh pr view $PR --repo $REPO --json mergeable --jq '.mergeable')
+# Mergeability and CI
+PR_DATA=$(gh pr view $PR --repo $REPO --json mergeable,statusCheckRollup,reviewDecision)
+
+# Unresolved review threads — GitHub only (skip for other providers)
+if [ "$PROVIDER" = "github" ]; then
+  UNRESOLVED=$(gh api graphql -f query='
+    query($owner:String!,$repo:String!,$pr:Int!) {
+      repository(owner:$owner,name:$repo) {
+        pullRequest(number:$pr) {
+          reviewThreads(first:100) {
+            nodes { isResolved isOutdated id }
+          }
+        }
+      }
+    }' -F owner="${REPO%%/*}" -F repo="${REPO##*/}" -F pr=$PR \
+    --jq '.data.repository.pullRequest.reviewThreads.nodes | map(select(.isResolved == false and .isOutdated == false)) | length')
+fi
 ```
 
 Compare against baselines stored in state file.
 
-#### B1 — Null REVIEW guard (no Copilot review yet)
+#### B1 — Null REVIEW guard (no review yet)
 
-If `REVIEW` is null (Copilot has not yet submitted any review for this PR):
-- Skip checks C and D (new-comments and stale-review checks — they require a prior review)
-- Proceed directly to the merge-conflict check: if `MERGEABLE == CONFLICTING`, dispatch conflict-resolution agent
-- Otherwise: re-request Copilot review per section E (with cooldown)
+If `REVIEW` is null (no review submitted yet):
+- Skip checks C and D
+- If `MERGEABLE == CONFLICTING`: dispatch conflict-resolution agent
+- Otherwise: re-request review per section E (with cooldown)
 
 This is the "pending first review" state.
 
@@ -152,20 +219,38 @@ This is the "pending first review" state.
 **Guard:** If `active_agent != null`, skip (agent still working).
 
 **Action:**
-1. Fetch new comments (comments added since baseline):
+1. Fetch new comments since baseline:
    ```bash
    BASELINE_COUNT=$(jq -r ".prs[\"$PR\"].baseline_comment_count" .xgh/babysit-prs-state.json)
-   gh api repos/$REPO/pulls/$PR/comments \
-     --jq "[.[] | select(.user.login == \"Copilot\")] | sort_by(.created_at) | .[$BASELINE_COUNT:] | .[] | {id, path, line, body: .body[0:250]}"
+   gh api repos/$REPO/pulls/$PR/comments --paginate \
+     --jq "[.[] | select(.user.login == \"<REVIEWER_COMMENT_AUTHOR>\")] | sort_by(.created_at) | .[$BASELINE_COUNT:] | .[] | {id, path, line, body, diff_hunk, pull_request_review_id}"
    ```
-   `$BASELINE_COUNT` is the comment count stored at last baseline update; slicing from that index returns only the newly added comments.
-2. Dispatch a **haiku** Agent (worktree isolation) to fix the comments. Include:
-   - Branch name, base branch, repo
-   - The new Copilot comments (id, path, line, body)
-   - Instructions to fix code issues, reply to out-of-scope comments, push, and re-request review
-   - **CRITICAL:** Never tag `@copilot` — it opens new PRs
-3. Update state: `last_action = dispatched-fix-agent`, `active_agent = { type: "fix", agent_id: "<id>", started_at: ISO8601 }`
-4. Update baseline: `baseline_review_at = review.submitted_at`, `baseline_comment_count = comment_count`
+
+2. For each comment, classify and act:
+   - **Outdated thread** (`position == null` — GitHub): resolve thread via GraphQL, no code change
+   - **Suggestion commit** (body contains ` ```suggestion `) AND `accept_suggestion_commits == true`: dispatch haiku Agent to accept via API
+   - **Simple fix** (rename, string, style nit): dispatch haiku Agent to fix and push
+   - **Logic/architecture concern**: dispatch sonnet Agent to fix and push
+   - **Informational only**: leave reply with reasoning, no code change
+
+3. **Reply format:**
+   - After fixing: `"Fixed in <commit_url>"`
+   - When not fixing (out-of-scope, pre-existing artifact, etc.): `"Not addressing: <one-line reasoning>"`
+   - **Tag human reviewers** in replies (`@username`)
+   - **NEVER tag bot reviewers** — no `@copilot`, no `@<anything>[bot]`
+
+4. **Resolve outdated threads** (GitHub): after fixes are pushed, resolve any threads where `isOutdated == true`:
+   ```bash
+   gh api graphql -f query='
+     mutation($threadId:ID!) {
+       resolveReviewThread(input:{threadId:$threadId}) {
+         thread { isResolved }
+       }
+     }' -f threadId="<THREAD_NODE_ID>"
+   ```
+
+5. Update state: `last_action = dispatched-fix-agent`, `active_agent = { type: "fix", agent_id: "<id>", started_at: ISO8601 }`
+6. Update baseline: `baseline_review_at = review.submitted_at`, `baseline_comment_count = comment_count`
 
 **Escalation:** If the haiku agent fails or produces broken code (build fails after push), re-dispatch with **sonnet** model.
 
@@ -173,35 +258,49 @@ This is the "pending first review" state.
 
 **Condition:** `review.submitted_at > baseline_review_at` AND `comment_count == baseline_comment_count`
 
-This means Copilot re-reviewed and found nothing new. **Merge.**
+Reviewer re-reviewed and found nothing new. Evaluate merge criteria in order:
 
-**Action:**
-1. Check mergeability first:
-   ```bash
-   gh pr view $PR --repo $REPO --json mergeable --jq '.mergeable'
-   ```
-2. If `CONFLICTING`: dispatch conflict-resolution agent (see section below), set `last_action = dispatched-conflict-agent`
-3. If `MERGEABLE`:
-   ```bash
-   gh pr merge $PR --repo $REPO --squash  # or --merge per config
-   ```
-4. If merge succeeds: `status = merged`, `last_action = merge-succeeded`
-5. If merge fails for non-conflict reason: `last_action = merge-attempted`, log error, retry next cycle
+1. `mergeable == MERGEABLE` — if CONFLICTING: dispatch conflict-resolution agent, wait
+2. All `statusCheckRollup` entries: `conclusion SUCCESS` or `SKIPPED` — if any FAILURE/CANCELLED: report, wait
+3. No review with `state == CHANGES_REQUESTED` from any author — if any: treat as new feedback (back to C)
+4. At least one review from `<reviewer>` with `state == APPROVED`
+5. If `require_resolved_threads == true`: `UNRESOLVED == 0` — if any: resolve outdated threads, then wait
+
+If ALL criteria met:
+```bash
+gh pr merge $PR --repo $REPO --<merge_method>
+```
+
+If merge succeeds: `status = merged`, `last_action = merge-succeeded`
+If merge fails for non-conflict reason: `last_action = merge-attempted`, log error, retry next cycle
 
 #### E — No new review since baseline
 
 **Condition:** `review.submitted_at == baseline_review_at` (or no review at all)
 
-**Action:** Re-request Copilot review, respecting cooldown.
+**Action:** Re-request review, respecting cooldown. Only if `last_review_request_at` is null OR at least one poll interval has elapsed.
 
-**Cooldown:** Only re-request if `last_review_request_at` is null OR at least one full poll interval has elapsed since the last request.
-
+**GitHub + Copilot reviewer (primary path):**
+```bash
+# Trigger via comment — works even when reviewer list is stale
+gh api repos/$REPO/issues/$PR/comments \
+  -X POST --raw-field "body=@copilot review"
+```
+If the comment trigger fails, fall back to reviewer list cycle:
 ```bash
 gh pr edit $PR --repo $REPO --remove-reviewer copilot-pull-request-reviewer 2>/dev/null
 gh pr edit $PR --repo $REPO --add-reviewer copilot-pull-request-reviewer
 ```
 
-> **Note on `[bot]` suffix:** The jq filters and REST API responses use the full login `copilot-pull-request-reviewer[bot]`. The `gh pr edit` command uses the GraphQL mutation `requestReviews`, which resolves reviewer slugs without the `[bot]` suffix — so `copilot-pull-request-reviewer` (no suffix) is correct here. This is documented behavior, not an inconsistency.
+> **`@copilot review` ONLY.** Any other `@copilot <text>` triggers the SWE delegation agent which opens a NEW PR.
+
+**Non-GitHub or custom reviewer:**
+```bash
+gh api repos/$REPO/pulls/$PR/requested_reviewers \
+  -X DELETE -f "reviewers[]=$REVIEWER" 2>/dev/null
+gh api repos/$REPO/pulls/$PR/requested_reviewers \
+  -X POST -f "reviewers[]=$REVIEWER"
+```
 
 Update: `last_action = re-requested-review`, `last_review_request_at = now`
 
@@ -219,7 +318,7 @@ If ALL PRs have `status = merged`:
 
 Execute exactly one poll cycle (Step 5 above) without starting a background loop. Create or update state file. Print what changed. Exit.
 
-Useful for cron-driven orchestration or manual one-shot checks.
+Useful for manual one-shot checks or debugging the decision tree.
 
 ---
 
@@ -230,14 +329,14 @@ Load `.xgh/babysit-prs-state.json` and display:
 ```
 ## 🐴🤖 xgh babysit-prs — status
 
-Repo: ipedro/lossless-claude
-Merge: squash | Loop: /loop 5m /xgh-babysit-prs poll-once 101 59
+Repo: ipedro/lossless-claude | Provider: github | Reviewer: copilot-pull-request-reviewer[bot]
+Merge: squash | Cron: <job-id> every 5m
 Active since: 2026-03-22T03:00:00Z
 
-| PR   | Status   | Last Action         | Review    | Comments | Agent |
-|------|----------|---------------------|-----------|----------|-------|
-| #101 | ✅ merged | merge-succeeded     | 03:42:40Z | 20       | —     |
-| #59  | 👀 watching | re-requested-review | 00:08:20Z | 28       | —     |
+| PR   | Status      | Last Action          | Review    | Comments | Agent |
+|------|-------------|----------------------|-----------|----------|-------|
+| #101 | ✅ merged   | merge-succeeded      | 03:42:40Z | 20       | —     |
+| #59  | 👀 watching | re-requested-review  | 00:08:20Z | 28       | —     |
 ```
 
 If no state file: `ℹ️ No active babysit-prs session.`
@@ -262,18 +361,16 @@ If no state file: `ℹ️ No active babysit-prs session.`
 When a PR is MERGEABLE=CONFLICTING, dispatch a conflict-resolution agent:
 
 **Agent inputs:**
-- Repo, branch name, base branch
-- PR number
-- Instructions: fetch, checkout branch, merge base, resolve conflicts, verify no conflict markers across all tracked files:
+- Repo, branch name, base branch, PR number
+- Instructions: fetch, checkout branch, merge base, resolve conflicts, verify no markers remain:
   ```bash
   git diff --name-only --diff-filter=U
-  # or equivalently:
   grep -rn "^<<<<<<<" -- . | grep -v node_modules | grep -v .git
   ```
   commit, push
-- **CRITICAL:** Do NOT force push. Do NOT tag `@copilot`.
+- **CRITICAL:** Do NOT force push. Do NOT tag `@copilot` (except `@copilot review` to trigger a review after resolution).
 
-**After resolution:** Set `last_action = dispatched-conflict-agent`. Next cycle will detect the PR is now mergeable and re-request Copilot review.
+**After resolution:** Set `last_action = dispatched-conflict-agent`. Next cycle detects MERGEABLE and re-requests review.
 
 ---
 
@@ -281,34 +378,118 @@ When a PR is MERGEABLE=CONFLICTING, dispatch a conflict-resolution agent:
 
 | Scenario | Model | Isolation |
 |----------|-------|-----------|
-| Fix Copilot comments (style, docs, renames) | haiku | worktree |
-| Fix Copilot comments (logic, architecture) | sonnet | worktree |
-| Resolve merge conflicts | haiku | direct (same repo) |
+| Accept suggestion commits | haiku | direct |
+| Fix comments (style, docs, renames) | haiku | worktree |
+| Fix comments (logic, architecture) | sonnet | worktree |
+| Resolve merge conflicts | haiku | direct |
 | Haiku agent failed | sonnet | worktree |
 
-All agents run in background. The `active_agent` field in state prevents dispatching a second agent for the same PR.
+All fix agents run in background. The `active_agent` field prevents double-dispatching.
 
 ### `active_agent` lifecycle
 
-**Set:** When dispatching any agent (fix or conflict), record the agent ID and timestamp:
+**Set:** When dispatching any agent, record ID and timestamp:
 ```json
 "active_agent": { "type": "fix", "agent_id": "<id>", "started_at": "ISO8601" }
 ```
 
 **Check (at START of each poll cycle, before decision tree):**
-1. If `active_agent != null`, check whether the agent has completed:
-   - Use `TaskGet(agent_id)` to query agent status, OR
-   - Run `git log --oneline origin/<branch> --since="<started_at>"` to detect new commits pushed after dispatch
-2. If the agent has **completed** (success or failure): clear `active_agent = null` and proceed with the normal decision tree for this PR
-3. If the agent is **still running**: skip this PR in the current cycle (do not re-dispatch)
+1. If `active_agent != null`: use `TaskGet(agent_id)` to query status, OR check `git log --oneline origin/<branch> --since="<started_at>"` for new commits
+2. If completed (success or failure): clear `active_agent = null`, proceed with decision tree
+3. If still running: skip PR this cycle
 
-**Clear:** Set `active_agent = null` after confirming completion (step 2 above). Never leave `active_agent` set indefinitely — if `TaskGet` is unavailable and no commits appeared within 2× poll interval, treat as failed and clear.
+**Clear:** After confirming completion. If `TaskGet` unavailable and no commits appear within 2× poll interval, treat as failed and clear.
+
+---
+
+## Provider Profiles
+
+Embedded profiles — the skill references these directly, no external lookup needed.
+
+### GitHub
+
+```yaml
+provider: github
+reviewer_bot: copilot-pull-request-reviewer[bot]
+reviewer_comment_author: Copilot
+review_request_strategy: copilot-comment  # "@copilot review" comment, fallback to reviewer list
+threads_api: graphql   # resolveReviewThread mutation available
+suggestion_commits: true
+```
+
+#### GitHub: Two Copilot Systems — Critical Distinction
+
+| System | Trigger | Effect |
+|--------|---------|--------|
+| **Code Review** | Add `copilot-pull-request-reviewer[bot]` to reviewer list OR `@copilot review` comment | Leaves inline review comments |
+| **SWE Delegation Agent** | `@copilot <anything other than "review">` in a comment | Opens a **NEW PR** with code changes |
+
+**Only `@copilot review` is safe.** Any other `@copilot <text>` opens new PRs — for questions, replies, instructions, anything.
+
+Copilot does NOT read replies on its review comments. It is a one-way reviewer. Re-requesting is the only way to get another pass.
+
+#### GitHub: Triggering Copilot Review
+
+Two methods — comment trigger is primary:
+
+| Method | Command | Notes |
+|--------|---------|-------|
+| Comment (primary) | `gh api repos/$REPO/issues/$PR/comments -X POST --raw-field "body=@copilot review"` | Works even after reviewer list cleared; safe to repeat |
+| Reviewer list cycle (fallback) | `gh pr edit --remove-reviewer copilot-pull-request-reviewer && --add-reviewer copilot-pull-request-reviewer` | Uses GraphQL, no `[bot]` suffix needed |
+
+`review_on_push: true` (repo setting) makes Copilot auto-review on every push — when enabled, manual re-requests after pushing fixes are redundant. Check with `status` before re-requesting.
+
+### GitLab
+
+```yaml
+provider: gitlab
+reviewer_bot: null
+reviewer_comment_author: null
+review_request_strategy: reviewer-list  # GitLab MR reviewer assignment
+threads_api: rest   # PUT /discussions/:id/notes/:id with resolved:true
+suggestion_commits: true
+```
+
+Pass `--reviewer <login>` for human or bot reviewer on GitLab.
+
+### Bitbucket
+
+```yaml
+provider: bitbucket
+reviewer_bot: null
+reviewer_comment_author: null
+review_request_strategy: reviewer-list
+threads_api: none
+suggestion_commits: false
+```
+
+### Azure DevOps
+
+```yaml
+provider: azure-devops
+reviewer_bot: null
+reviewer_comment_author: null
+review_request_strategy: reviewer-list
+threads_api: rest
+suggestion_commits: false
+```
+
+### Generic
+
+```yaml
+provider: generic
+reviewer_bot: null
+reviewer_comment_author: null
+review_request_strategy: reviewer-list
+threads_api: none
+suggestion_commits: false
+```
 
 ---
 
 ## Integration with xgh:copilot-pr-review
 
-This skill builds on `xgh:copilot-pr-review` for the underlying API calls (requires `xgh:copilot-pr-review` (PR #28 — merge that first)). Key mappings:
+This skill builds on `xgh:copilot-pr-review` for GitHub-specific API calls. Key mappings:
 
 | babysit-prs action | copilot-pr-review equivalent |
 |--------------------|------------------------------|
@@ -319,16 +500,18 @@ This skill builds on `xgh:copilot-pr-review` for the underlying API calls (requi
 
 ---
 
-## Known Pitfalls (inherited from copilot-pr-review)
+## Known Pitfalls
 
 | Pitfall | How babysit-prs handles it |
 |---------|--------------------------|
-| `@copilot` = delegation | All agent prompts include "NEVER tag @copilot" |
-| `[bot]` suffix required | Uses `gh pr edit` which works without suffix |
-| Copilot ignores conflicting PRs | Detects CONFLICTING state, resolves before re-requesting |
-| COMMENTED can't be dismissed | Never attempts dismiss — uses DELETE+POST re-request cycle |
+| `@copilot` triggers delegation (except `@copilot review`) | Agent prompts include "NEVER tag @copilot except `@copilot review`" |
+| `[bot]` suffix required in REST API | Encodes suffix in REST calls; uses `gh pr edit` (GraphQL, no suffix) for reviewer list |
+| Copilot ignores conflicting PRs | Detects CONFLICTING, resolves before re-requesting |
+| COMMENTED reviews can't be dismissed | Never attempts dismiss — uses re-request cycle |
 | Review latency varies | Cooldown prevents re-request spam |
-| Reviews on unrelated files | Agent prompts include "reply out-of-scope for pre-existing artifacts" |
+| Outdated threads (with --require-resolved-threads) | Detects outdated threads, resolves via GraphQL before merge |
+| Reviews on unrelated files | Agent prompts: "reply out-of-scope for pre-existing artifacts" |
+| API pagination hides new reviews | All review/comment endpoints use `--paginate` |
 
 ---
 
@@ -336,7 +519,7 @@ This skill builds on `xgh:copilot-pr-review` for the underlying API calls (requi
 
 **Path:** `.xgh/babysit-prs-state.json`
 
-This is runtime state, not source. Add to `.gitignore`.
+Runtime state only — add to `.gitignore`.
 
 **Persistence rules:**
 - `start` creates the file
@@ -353,6 +536,8 @@ This is runtime state, not source. Add to `.gitignore`.
 |-------|---------|
 | PR not found | `❌ PR #$PR not found in $REPO` |
 | Repo auto-detect fails | `❌ Could not determine repo. Use --repo owner/repo` |
+| Provider detection fails | `⚠️ Could not detect provider from remote URL. Defaulting to generic.` |
+| Copilot not enabled (GitHub) | `⚠️ Copilot code review not enabled for $REPO. Pass --reviewer <login>` |
 | State file corrupt | `❌ Invalid state file. Run stop then start again.` |
 | Agent dispatch fails | `⚠️ Agent dispatch failed for PR #$PR. Will retry next cycle.` |
 | Merge fails (non-conflict) | `⚠️ Merge failed for PR #$PR: $REASON. Will retry.` |
