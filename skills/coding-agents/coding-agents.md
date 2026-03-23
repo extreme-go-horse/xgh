@@ -20,6 +20,56 @@ List and manage AI coding CLI agents (Codex, OpenCode, Gemini) and their model c
 
 See [implementation plan](../../docs/superpowers/plans/2026-03-22-dynamic-model-detection.md).
 
+### Dispatch Logic
+
+Parse `$ARGUMENTS` to determine the agent filter and whether to refresh:
+
+```
+AGENT=""       # empty = all agents
+REFRESH=false
+
+for arg in $ARGUMENTS; do
+  case "$arg" in
+    --refresh) REFRESH=true ;;
+    codex|opencode|gemini) AGENT="$arg" ;;
+  esac
+done
+```
+
+**If `--refresh` is set** (or no models file exists for the target agent):
+- Run the relevant probe function(s): `probe_opencode`, `probe_codex`, `probe_gemini`
+- If `AGENT` is set, run only that agent's probe. Otherwise run all three.
+
+**Display current state** by reading `~/.xgh/user_providers/<agent>/models.yaml` for each agent:
+
+```bash
+for agent in opencode codex gemini; do
+  file="$HOME/.xgh/user_providers/$agent/models.yaml"
+  if [ -f "$file" ]; then
+    echo "=== $agent ==="
+    cat "$file"
+  else
+    echo "=== $agent === (not probed — run /xgh-coding-agents $agent --refresh)"
+  fi
+done
+```
+
+If `AGENT` is set, show only that agent. Otherwise show all three.
+
+**Output format:**
+
+```
+## 🐴🤖 xgh coding-agents
+
+| Agent | Binary | Models | Last Probed |
+|-------|--------|--------|-------------|
+| OpenCode | opencode | 7 | 2026-03-23T00:00:00Z |
+| Codex | codex | 5 | 2026-03-23T00:00:00Z |
+| Gemini | gemini | 3 | 2026-03-23T00:00:00Z |
+
+<detail table per agent if a specific agent was requested>
+```
+
 ## OpenCode Probing
 
 **Discovery command:**
