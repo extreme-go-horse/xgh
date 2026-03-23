@@ -31,7 +31,7 @@ assert_file_exists "$PLUGIN_DIR/agents/retrieval-auditor.md"          "retrieval
 assert_file_exists "$PLUGIN_DIR/agents/onboarding-guide.md"           "onboarding-guide exists"
 
 # ── Frontmatter structure (all agents must have these) ──────────────────────
-for agent in code-reviewer collaboration-dispatcher pipeline-doctor context-curator investigation-lead pr-reviewer retrieval-auditor onboarding-guide; do
+for agent in code-reviewer collaboration-dispatcher pipeline-doctor context-curator investigation-lead pr-reviewer retrieval-auditor onboarding-guide pr-poller; do
   F="$PLUGIN_DIR/agents/${agent}.md"
   assert_contains "$F" "^---"                    "${agent}: has frontmatter delimiter"
   assert_contains "$F" "^name: ${agent}"         "${agent}: name field matches filename"

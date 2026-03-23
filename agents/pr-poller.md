@@ -1,5 +1,5 @@
 ---
-name: xgh:pr-poller
+name: pr-poller
 description: |
   Polls PRs for review status, handles reviewer comments, and merges when all criteria pass. Provider-aware: adapts review requests and comment handling to the detected host. Dispatched by xgh:babysit-prs on each cron tick — do not invoke directly.
 
@@ -80,6 +80,24 @@ gh api repos/<REPO>/pulls/<PR>/comments --paginate \
 ```
 
 If comment count > baseline AND a new review was submitted since baseline:
+
+**GitHub only — fetch thread metadata before classifying comments:**
+```bash
+gh api graphql -f query='
+  query($owner:String!,$repo:String!,$pr:Int!) {
+    repository(owner:$owner,name:$repo) {
+      pullRequest(number:$pr) {
+        reviewThreads(first:100) {
+          nodes { id isResolved isOutdated comments(first:1) { nodes { databaseId } } }
+        }
+      }
+    }
+  }' -F owner="<OWNER>" -F repo="<REPO_NAME>" -F pr=<PR>
+```
+
+Build a lookup map: `thread_by_comment_id[databaseId] → { thread_id, isOutdated }`.  
+When applying the decision tree below, match each REST comment's `id` to its thread via this map to determine `isOutdated`.
+
 - Apply the comment decision tree (below) for each new comment
 - Update baseline in state file after dispatching
 
