@@ -137,12 +137,16 @@ Informational only (no action needed)?
 
 **Accepting suggestion commits (GitHub):**
 ```bash
-# Accept the suggestion commit via GitHub Suggestions REST API
-# https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment
-gh api repos/<REPO>/pulls/<PR>/comments/<COMMENT_ID>/suggestions \
-  -X POST --raw-field "commit_message=Accept Copilot suggestion"
+# Retrieve the suggestion text from the review comment
+gh api repos/<REPO>/pulls/<PR>/comments/<COMMENT_ID> \
+  --jq '{path: .path, line: .original_line, body: .body}'
+
+# Apply the suggested change locally and push a commit (no special API needed)
+git switch "<PR_BRANCH_NAME>"
+# Edit the indicated file at the indicated line to match the suggestion in the comment body
+git commit -am "Accept reviewer suggestion from PR #<PR> comment <COMMENT_ID>"
+git push origin HEAD
 ```
-> **Note:** If this endpoint returns 404, fall back to accepting via the web UI or use the GraphQL `addPullRequestReviewThreadReply` mutation with the suggestion commit ID.
 
 **Reply format:**
 - After a fix is pushed: `"Fixed in <commit_url>"`
