@@ -347,7 +347,7 @@ Active since: 2026-03-22T03:00:00Z
 | #59  | 👀 watching | re-requested-review  | 00:08:20Z | 28       | —     |
 ```
 
-If no state file: `ℹ️ No active babysit-prs session.`
+If no state file: `ℹ️ No active watch-prs session.`
 
 ---
 
@@ -358,9 +358,9 @@ If no state file: `ℹ️ No active babysit-prs session.`
 3. If `cron_job_id` is set: call `CronDelete(cron_job_id)`. If not set, scan `CronList` for any job whose prompt contains `BABYSIT:<REPO>:` and delete matches.
 4. Delete state file
 5. Print confirmation:
-   - If `cron_job_id` was set and deleted: `✅ babysit-prs stopped. Cron job <id> deleted.`
-   - If scan was used (0 found): `✅ babysit-prs stopped. (No active cron job found.)`
-   - If scan was used (1+ found): `✅ babysit-prs stopped. Deleted <N> cron job(s): <id1> <id2> ...`
+   - If `cron_job_id` was set and deleted: `✅ watch-prs stopped. Cron job <id> deleted.`
+   - If scan was used (0 found): `✅ watch-prs stopped. (No active cron job found.)`
+   - If scan was used (1+ found): `✅ watch-prs stopped. Deleted <N> cron job(s): <id1> <id2> ...`
 
 ---
 
@@ -499,7 +499,7 @@ suggestion_commits: false
 
 This skill builds on `xgh:copilot-pr-review` for GitHub-specific API calls. Key mappings:
 
-| babysit-prs action | copilot-pr-review equivalent |
+| watch-prs action | copilot-pr-review equivalent |
 |--------------------|------------------------------|
 | Initialize baseline | `status <PR>` |
 | Re-request review | `re-review <PR>` |
@@ -510,7 +510,7 @@ This skill builds on `xgh:copilot-pr-review` for GitHub-specific API calls. Key 
 
 ## Known Pitfalls
 
-| Pitfall | How babysit-prs handles it |
+| Pitfall | How watch-prs handles it |
 |---------|--------------------------|
 | `@copilot` triggers delegation (except `@copilot review`) | Agent prompts include "NEVER tag @copilot except `@copilot review`" |
 | `[bot]` suffix required in REST API | Encodes suffix in REST calls; uses `gh pr edit` (GraphQL, no suffix) for reviewer list |
