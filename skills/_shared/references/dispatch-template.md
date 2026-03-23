@@ -79,10 +79,16 @@ Ask the user how to integrate the CLI's changes:
 | **Keep for review** | Leave worktree at `$WORKTREE` for manual inspection |
 | **Discard** | `git worktree remove "$WORKTREE" --force && git branch -D "$BRANCH"` |
 
-Cleanup after merge or cherry-pick:
+Cleanup after merge:
 ```bash
 git worktree remove "$WORKTREE"
 git branch -d "$BRANCH"
+```
+
+Cleanup after cherry-pick (branch is not considered "merged" by Git — use `-D`):
+```bash
+git worktree remove "$WORKTREE"
+git branch -D "$BRANCH"
 ```
 
 ---

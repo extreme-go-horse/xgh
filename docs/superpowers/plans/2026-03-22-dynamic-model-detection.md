@@ -34,7 +34,7 @@
 
 **Files:**
 - Create: `skills/coding-agents/coding-agents.md`
-- Create: `commands/coding-agents`
+- Create: `commands/coding-agents.md`
 
 - [ ] **Step 1: Create the skill directory**
 
@@ -97,7 +97,7 @@ fi
 - [ ] **Step 4: Make command executable**
 
 ```bash
-chmod +x commands/coding-agents
+# commands/coding-agents.md is a markdown descriptor, no chmod needed
 ```
 
 - [ ] **Step 5: Verify skill file exists**
@@ -109,7 +109,7 @@ test -f skills/coding-agents/coding-agents.md
 - [ ] **Step 6: Verify command exists**
 
 ```bash
-test -x commands/coding-agents
+test -f commands/coding-agents.md
 ```
 
 - [ ] **Step 7: Commit**

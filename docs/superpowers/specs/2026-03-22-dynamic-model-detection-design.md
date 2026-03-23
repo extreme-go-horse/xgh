@@ -155,7 +155,7 @@ fi
 | Action | Path | Responsibility |
 |--------|------|---------------|
 | Create | `skills/coding-agents/coding-agents.md` | CLI probing skill |
-| Create | `commands/coding-agents` | Command entry point |
+| Create | `commands/coding-agents.md` | Command entry point |
 | Modify | `skills/opencode/opencode.md` | Add model detection patterns |
 | Modify | `skills/codex/codex.md` | Add model detection patterns |
 | Modify | `skills/gemini/gemini.md` | Add model detection patterns |
