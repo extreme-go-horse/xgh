@@ -103,6 +103,13 @@ Triggers, workflows, and agents — the full 'what fires when' picture.
 - No context-mode references in xgh skill files (context-mode handles its own enforcement)
 - Skill frontmatter must include `name` and `description`. For the trigger key, both `trigger` (singular string) and `triggers` (list) are valid — use whichever fits.
 
+### Branch strategy
+
+- **Feature work**: branch off `develop` → PR targets `develop`
+- **Release**: PR from `develop` → `main` (no direct commits to `main`)
+- `develop` is the default branch; all PRs default to it
+- Never open a feature PR against `main`
+
 ### Running tests
 
 ```bash
