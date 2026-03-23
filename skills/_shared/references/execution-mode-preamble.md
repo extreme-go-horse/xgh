@@ -32,7 +32,7 @@ mode, autonomy = sys.argv[1], sys.argv[2]
 path = os.path.expanduser('~/.xgh/prefs.json')
 os.makedirs(os.path.dirname(path), exist_ok=True)
 try: p = json.load(open(path))
-except: p = {}
+except (FileNotFoundError, json.JSONDecodeError, OSError): p = {}
 p.setdefault('skill_mode', {})
 entry = {'mode': mode} if mode == 'interactive' else {'mode': mode, 'autonomy': autonomy}
 p['skill_mode']['<SKILL_NAME>'] = entry
