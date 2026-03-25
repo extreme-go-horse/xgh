@@ -121,7 +121,7 @@ probe_pr_field() {
       case "$provider" in
         github)
           enabled=$(gh api "repos/$repo/copilot/policies" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('code_review_enabled', d.get('copilot_code_review',{}).get('enabled','false')))" 2>/dev/null)
-          [[ "$enabled" == "true" ]] && echo "copilot-pull-request-reviewer[bot]" ;;
+          [[ "${enabled,,}" == "true" ]] && echo "copilot-pull-request-reviewer[bot]" ;;
       esac ;;
     reviewer_comment_author)
       local reviewer
@@ -145,8 +145,8 @@ with open('config/project.yaml','w') as f: yaml.dump(d, f, default_flow_style=Fa
 ```
 
 **Dependency expectations.** Python 3 is already required by the project (BM25 search, `gen-agents-md.sh`). PyYAML is a soft dependency: when installed, it enables automatic preference caching; when missing, preference caching MUST be skipped or fail fast with a clear "PyYAML is not installed; preference write disabled" message rather than silently writing empty defaults.
-
-**Comment preservation:** `yaml.dump()` rewrites the entire file and strips all YAML comments — not just comments near the new `pr:` block. Since probe-and-cache fires at most once per field (never overwrites), this rewrite happens only on first auto-detection. The user sees the full diff in `git status` before committing and can restore comments. Future improvement: switch to `ruamel.yaml` for round-trip comment preservation, or use targeted append instead of full rewrite.
+**Comment preservation:** `yaml.dump()` rewrites the entire file and strips all YAML comments — not just comments near the new `pr:` block. Since probe-and-cache fires at most once per field (never overwrites), this rewrite happens only on first auto-detection. The user can review the full change with `git diff` (using `git status` for a summary) before committing and can restore comments. Future improvement: switch to `ruamel.yaml` for round-trip comment preservation, or use targeted append instead of full rewrite.
+**Comment preservation:** `yaml.dump()` rewrites the entire file and strips all YAML comments — not just comments near the new `pr:` block. Since probe-and-cache fires at most once per field (never overwrites), this rewrite happens only on first auto-detection. The user can review the full change with `git diff` (using `git status` for a summary) before committing and can restore comments. Future improvement: switch to `ruamel.yaml` for round-trip comment preservation, or use targeted append instead of full rewrite and can restore comments. Future improvement: switch to `ruamel.yaml` for round-trip comment preservation, or use targeted append instead of full rewrite.
 
 **Relative paths:** All Python helpers use `config/project.yaml` relative to CWD. Skills must ensure CWD is the repo root (standard for Claude Code skill execution). Implementation should resolve via `$(git rev-parse --show-toplevel)/config/project.yaml` for robustness.
 
@@ -217,7 +217,7 @@ When `preferences.pr` is empty or missing fields, the first skill invocation aut
 | `[bot]` suffix rules | Inline in copilot-pr-review | `providers/github.md` |
 | Provider profile blocks (GitLab, Bitbucket, Azure DevOps) | Inline in ship-prs, watch-prs | Respective `providers/*.md` files |
 
-### GitHub Copilot review behavior (must be in `providers/github.md`)
+### GitHub Copilot review behavior (must be in `skills/_shared/references/providers/github.md`)
 
 **Copilot's code review bot (`copilot-pull-request-reviewer[bot]`) never submits an `APPROVED` review.** It always posts at least one comment. It either leaves inline fix requests (review state: `COMMENTED` or `CHANGES_REQUESTED`) or submits a comment-only review with observations. There is no approval signal — at best, it simply has no change requests.
 
