@@ -93,6 +93,17 @@ assert_contains "config/project.yaml" "preferences:"
 assert_contains "config/project.yaml" "pair_programming:"
 assert_contains "config/project.yaml" "xgh:codex"
 
+# --- preferences.pr section ---
+assert_contains "config/project.yaml" "pr:"
+assert_contains "config/project.yaml" "provider: github"
+assert_contains "config/project.yaml" "repo: extreme-go-horse/xgh"
+assert_contains "config/project.yaml" "copilot-pull-request-reviewer\[bot\]"
+assert_contains "config/project.yaml" "reviewer_comment_author: Copilot"
+assert_contains "config/project.yaml" "merge_method: squash"
+assert_contains "config/project.yaml" "review_on_push: true"
+assert_contains "config/project.yaml" "auto_merge: true"
+assert_contains "config/project.yaml" "branches:"
+
 assert_file_exists "config/team.yaml"
 assert_contains "config/team.yaml" "conventions:"
 assert_contains "config/team.yaml" "iron_laws:"
