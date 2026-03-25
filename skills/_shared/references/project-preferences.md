@@ -14,34 +14,137 @@ if os.path.exists("config/project.yaml"):
     prefs = cfg.get("preferences", {})
 ```
 
-## Key preference blocks
+## All preference domains
 
-| Block | Keys | Used by |
-|-------|------|---------|
-| `dispatch` | `default_agent`, `fallback_agent`, `exec_effort`, `review_effort` | `/xgh-dispatch` cold-start defaults |
-| `pair_programming` | `enabled`, `tool`, `effort`, `phases` | pair-programming skills |
-| `superpowers` | `implementation_model`, `review_model`, `effort` | superpowers dispatch |
-| `design` | `model`, `effort` | `/xgh-design` |
-| `agents` | `default_model` | agent frontmatter with `model: inherit` |
-| `pr` | `provider`, `repo`, `reviewer`, `reviewer_comment_author`, `merge_method`, `review_on_push`, `auto_merge`, `branches` | `/xgh-ship-prs`, `/xgh-watch-prs`, `/xgh-review-pr` |
+11 domains are defined. Skills source `lib/preferences.sh` and call the domain loader to
+get a resolved value — the loader applies the correct cascade automatically.
+
+```bash
+source lib/preferences.sh
+VALUE=$(load_<domain>_pref <field> [cli_override] [branch])
+```
+
+### Domain reference table
+
+| Domain | Loader | Cascade | Keys |
+|--------|--------|---------|------|
+| `pr` | `load_pr_pref` | CLI > branch > default > probe | `provider`, `repo`, `reviewer`, `reviewer_comment_author`, `merge_method`, `review_on_push`, `auto_merge`, `branches` |
+| `dispatch` | `load_dispatch_pref` | CLI > default | `default_agent`, `fallback_agent`, `exec_effort`, `review_effort` |
+| `superpowers` | `load_superpowers_pref` | CLI > default | `implementation_model`, `review_model`, `effort` |
+| `design` | `load_design_pref` | CLI > default | `model`, `effort` |
+| `agents` | `load_agents_pref` | CLI > default | `default_model` |
+| `pair_programming` | `load_pair_programming_pref` | CLI > default | `enabled`, `tool`, `effort`, `phases` |
+| `vcs` | `load_vcs_pref` | CLI > branch > default | `default_branch`, `merge_method`, `protected_branches` |
+| `testing` | `load_testing_pref` | CLI > branch > default | `runner`, `coverage_threshold`, `auto_run` |
+| `scheduling` | `load_scheduling_pref` | CLI > default | `timezone`, `working_hours`, `defer_non_urgent` |
+| `notifications` | `load_notifications_pref` | CLI > default | `channel`, `on_failure`, `on_success`, `mention` |
+| `retrieval` | `load_retrieval_pref` | CLI > default | `backend`, `max_results`, `min_score` |
+
+### Field details by domain
+
+**`dispatch`** — `/xgh-dispatch` cold-start defaults
+- `default_agent`: agent identifier used when no explicit agent is passed (e.g. `xgh:dispatch`)
+- `fallback_agent`: agent to use if dispatch can't determine best fit (e.g. `xgh:codex`)
+- `exec_effort`: reasoning effort for implementation tasks (`low` | `normal` | `high` | `max`)
+- `review_effort`: reasoning effort for review tasks (`low` | `normal` | `high` | `max`)
+
+**`superpowers`** — superpowers dispatch (implementation + review steps)
+- `implementation_model`: model shorthand for impl tasks (`sonnet` | `opus` | ...)
+- `review_model`: model shorthand for review tasks (`sonnet` | `opus` | ...)
+- `effort`: reasoning effort override (`low` | `normal` | `high` | `max`)
+
+**`design`** — `/xgh-design`
+- `model`: model shorthand (`sonnet` | `opus` | ...)
+- `effort`: reasoning effort (`low` | `normal` | `high` | `max`)
+
+**`agents`** — agent frontmatter resolution
+- `default_model`: fallback model for any agent whose frontmatter declares `model: inherit`
+
+**`pair_programming`** — pair-programming skills
+- `enabled`: whether pairing is active (`true` | `false`)
+- `tool`: agent to pair with (`xgh:dispatch` | `xgh:codex` | `xgh:gemini` | `xgh:opencode`)
+- `effort`: reasoning effort for the pair agent
+- `phases`: list of phases where pairing applies (`design` | `per_task` | both)
+
+**`vcs`** — VCS workflow defaults (branch-aware)
+- `default_branch`: target branch for PRs when not detected automatically
+- `merge_method`: default merge strategy (`squash` | `merge` | `rebase`)
+- `protected_branches`: list of branches that require PR flow
+
+**`testing`** — test runner defaults (branch-aware)
+- `runner`: test command or tool identifier
+- `coverage_threshold`: minimum coverage percentage (integer)
+- `auto_run`: whether to run tests automatically on commit/push
+
+**`scheduling`** — task scheduling preferences
+- `timezone`: IANA timezone string (e.g. `America/Sao_Paulo`)
+- `working_hours`: time window for scheduled tasks (e.g. `09:00-18:00`)
+- `defer_non_urgent`: defer non-urgent tasks outside working hours (`true` | `false`)
+
+**`notifications`** — notification routing
+- `channel`: notification destination (`telegram` | `slack` | `none`)
+- `on_failure`: notify on failure (`true` | `false`)
+- `on_success`: notify on success (`true` | `false`)
+- `mention`: handle/identifier to mention in notifications
+
+**`retrieval`** — context retrieval defaults
+- `backend`: retrieval backend (`context-mode` | `local` | `remote`)
+- `max_results`: maximum number of results to return (integer)
+- `min_score`: minimum relevance score threshold (float 0–1)
+
+**`pr`** — PR creation, review, and merge (`/xgh-ship-prs`, `/xgh-watch-prs`, `/xgh-review-pr`)
+- `provider`: VCS provider (`github`)
+- `repo`: `owner/repo` slug
+- `reviewer`: reviewer to request (e.g. `copilot-pull-request-reviewer[bot]`)
+- `reviewer_comment_author`: display name used in review comments (e.g. `Copilot`)
+- `merge_method`: default merge strategy (`squash` | `merge` | `rebase`)
+- `review_on_push`: auto-request review on push (`true` | `false`)
+- `auto_merge`: enable auto-merge when checks pass (`true` | `false`)
+- `branches.<ref>.*`: per-branch overrides for any field above
 
 ## Priority order
 
 Each preference domain defines its own priority order.
 
-**Default:** User override at call time → profile data (`model-profiles.yaml`) → **project preferences** → CLI defaults
+**Default (CLI > default):** User override at call time → **project preferences** → built-in defaults
 
-**PR domain:** CLI flag → `branches.<base_ref>.<field>` → `preferences.pr.<field>` → auto-detect probe
+**Branch-aware (CLI > branch > default):** User override at call time → `branches.<ref>.<field>` override → **project preferences** → built-in defaults
+
+**PR domain (CLI > branch > default > probe):** CLI flag → `branches.<base_ref>.<field>` → `preferences.pr.<field>` → auto-detect probe (provider only)
 
 Skills MUST respect these orders. Never let project preferences override an explicit user flag.
 
-## PR preferences helper
+## Using loaders in skills
 
-PR skills use `load_pr_pref` from `lib/config-reader.sh` instead of raw Python:
+Skills are Claude instruction files, not shell scripts. Reference the loaders conceptually
+to describe what values skills should read. When a skill dispatches to a shell helper or
+invokes a bash step, that step sources `lib/preferences.sh`:
 
 ```bash
-source lib/config-reader.sh
+source lib/preferences.sh
+
+# Simple domain (CLI > default)
+MODEL=$(load_superpowers_pref implementation_model "$CLI_MODEL")
+EFFORT=$(load_design_pref effort "$CLI_EFFORT")
+
+# Branch-aware domain (CLI > branch > default)
+MERGE=$(load_vcs_pref merge_method "$CLI_MERGE" "$TARGET_BRANCH")
+
+# PR domain (CLI > branch > default > probe) — branch arg is REQUIRED
 REPO=$(load_pr_pref repo "$CLI_REPO" "")
 MERGE_METHOD=$(load_pr_pref merge_method "$CLI_MERGE_METHOD" "$BASE_BRANCH")
 MERGE_METHOD="${MERGE_METHOD:-squash}"  # fallback — merge_method is not probed
+```
+
+## PR preferences helper (legacy alias)
+
+PR skills previously sourced `lib/config-reader.sh`. That source is still valid but
+`lib/preferences.sh` is the canonical location going forward:
+
+```bash
+source lib/preferences.sh   # preferred
+# source lib/config-reader.sh  # legacy — still works
+REPO=$(load_pr_pref repo "$CLI_REPO" "")
+MERGE_METHOD=$(load_pr_pref merge_method "$CLI_MERGE_METHOD" "$BASE_BRANCH")
+MERGE_METHOD="${MERGE_METHOD:-squash}"
 ```
