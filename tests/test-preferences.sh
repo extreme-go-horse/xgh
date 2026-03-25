@@ -192,9 +192,13 @@ assert_equals "pair_programming: CLI override" "low" "$result"
 # Domain: vcs (CLI > branch > default, defaults to current branch)
 # ============================================================
 
-# With no vcs config in project.yaml, should return empty
+# vcs defaults from project.yaml
 result=$(load_vcs_pref "commit_format" "" "")
-assert_equals "vcs: missing domain returns empty" "" "$result"
+assert_equals "vcs: project default commit_format" "<type>: <description>" "$result"
+
+# Missing field returns empty
+result=$(load_vcs_pref "nonexistent_field" "" "")
+assert_equals "vcs: missing field returns empty" "" "$result"
 
 result=$(load_vcs_pref "commit_format" "conventional" "")
 assert_equals "vcs: CLI override" "conventional" "$result"
@@ -204,7 +208,10 @@ assert_equals "vcs: CLI override" "conventional" "$result"
 # ============================================================
 
 result=$(load_testing_pref "timeout" "" "")
-assert_equals "testing: missing domain returns empty" "" "$result"
+assert_equals "testing: project default timeout" "120" "$result"
+
+result=$(load_testing_pref "nonexistent_field" "" "")
+assert_equals "testing: missing field returns empty" "" "$result"
 
 result=$(load_testing_pref "timeout" "30s" "")
 assert_equals "testing: CLI override" "30s" "$result"
@@ -213,20 +220,26 @@ assert_equals "testing: CLI override" "30s" "$result"
 # Domain: scheduling (CLI > default)
 # ============================================================
 
-result=$(load_scheduling_pref "poll_interval" "")
-assert_equals "scheduling: missing domain returns empty" "" "$result"
+result=$(load_scheduling_pref "retrieve_interval" "")
+assert_equals "scheduling: project default retrieve_interval" "30m" "$result"
 
-result=$(load_scheduling_pref "poll_interval" "5m")
+result=$(load_scheduling_pref "nonexistent_field" "")
+assert_equals "scheduling: missing field returns empty" "" "$result"
+
+result=$(load_scheduling_pref "retrieve_interval" "5m")
 assert_equals "scheduling: CLI override" "5m" "$result"
 
 # ============================================================
 # Domain: notifications (CLI > default)
 # ============================================================
 
-result=$(load_notifications_pref "channel" "")
-assert_equals "notifications: missing domain returns empty" "" "$result"
+result=$(load_notifications_pref "delivery" "")
+assert_equals "notifications: project default delivery" "inline" "$result"
 
-result=$(load_notifications_pref "channel" "slack")
+result=$(load_notifications_pref "nonexistent_field" "")
+assert_equals "notifications: missing field returns empty" "" "$result"
+
+result=$(load_notifications_pref "delivery" "slack")
 assert_equals "notifications: CLI override" "slack" "$result"
 
 # ============================================================
@@ -234,7 +247,10 @@ assert_equals "notifications: CLI override" "slack" "$result"
 # ============================================================
 
 result=$(load_retrieval_pref "depth" "")
-assert_equals "retrieval: missing domain returns empty" "" "$result"
+assert_equals "retrieval: project default depth" "normal" "$result"
+
+result=$(load_retrieval_pref "nonexistent_field" "")
+assert_equals "retrieval: missing field returns empty" "" "$result"
 
 result=$(load_retrieval_pref "depth" "3")
 assert_equals "retrieval: CLI override" "3" "$result"
