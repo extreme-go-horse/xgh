@@ -86,17 +86,26 @@ probe_pr_field() {
       local url
       url=$(git remote get-url origin 2>/dev/null) || return
       case "$url" in
-        *github.com*)    echo "github" ;;
-        *gitlab.com*)    echo "gitlab" ;;
-        *bitbucket.org*) echo "bitbucket" ;;
-        *dev.azure.com*) echo "azure-devops" ;;
+        *github.com*)       echo "github" ;;
+        *gitlab.com*|*gitlab.*) echo "gitlab" ;;
+        *bitbucket.org*)    echo "bitbucket" ;;
+        *dev.azure.com*|*visualstudio.com*) echo "azure-devops" ;;
+        *)                  echo "generic" ;;
       esac ;;
     repo)
       local provider
       provider=$(load_pr_pref provider "" "")
       case "$provider" in
-        github) gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null ;;
-        gitlab) glab project view -o json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['path_with_namespace'])" ;;
+        github)
+          command -v gh >/dev/null 2>&1 || return
+          gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true ;;
+        gitlab)
+          command -v glab >/dev/null 2>&1 || return
+          glab project view -o json 2>/dev/null | python3 -c "
+import sys,json
+try: print(json.load(sys.stdin)['path_with_namespace'])
+except: pass
+" 2>/dev/null || true ;;
       esac ;;
     reviewer)
       local provider repo
@@ -104,8 +113,15 @@ probe_pr_field() {
       repo=$(load_pr_pref repo "" "")
       case "$provider" in
         github)
+          command -v gh >/dev/null 2>&1 || return
           local enabled
-          enabled=$(gh api "repos/$repo/copilot/policies" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('code_review_enabled', d.get('copilot_code_review',{}).get('enabled','false')))" 2>/dev/null)
+          enabled=$(gh api "repos/$repo/copilot/policies" 2>/dev/null | python3 -c "
+import sys,json
+try:
+    d=json.load(sys.stdin)
+    print(d.get('code_review_enabled', d.get('copilot_code_review',{}).get('enabled','false')))
+except: print('false')
+" 2>/dev/null || echo "false")
           [[ "${enabled,,}" == "true" ]] && echo "copilot-pull-request-reviewer[bot]" ;;
       esac ;;
     reviewer_comment_author)

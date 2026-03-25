@@ -26,7 +26,7 @@ Actively drive a batch of PRs through review cycles until all are merged. **GitH
 
 **Defaults** (read from `config/project.yaml` → `preferences.pr`, overridden by CLI flags):
 - `--interval 3m`
-- `--merge-method merge`
+- `--merge-method` — from `preferences.pr.merge_method` (falls back to `squash` if unset)
 - `--reviewer` — loaded from project.yaml or auto-detected from provider profile
 - `--accept-suggestion-commits` — off (opt-in to auto-accept inline suggestion commits)
 - `--require-resolved-threads` — off (unresolved threads don't block merge by default)

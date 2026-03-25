@@ -37,7 +37,7 @@ REVIEWER=$(load_pr_pref reviewer "$CLI_REVIEWER" "")
 REVIEWER_COMMENT_AUTHOR=$(load_pr_pref reviewer_comment_author "" "")
 ```
 
-See `@references/providers/github.md` for provider-specific quirks.
+Provider-specific quirks are documented in `skills/_shared/references/providers/<provider>.md` (github, gitlab, bitbucket, azure-devops).
 
 ---
 
@@ -211,7 +211,7 @@ If no state file: `ℹ️ No active watch-prs session.`
 
 ## Provider Profiles
 
-See `@references/providers/github.md` for provider-specific quirks.
+Provider-specific quirks are documented in `skills/_shared/references/providers/<provider>.md` (github, gitlab, bitbucket, azure-devops).
 
 ---
 

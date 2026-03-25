@@ -1,6 +1,6 @@
 # GitHub Provider Reference
 
-Provider-specific quirks for GitHub PR workflows. Referenced by ship-prs, watch-prs, and pr-poller.
+Provider-specific quirks for GitHub PR workflows. Referenced by ship-prs, watch-prs, and review-pr.
 
 ## Copilot Code Review Behavior
 

@@ -62,8 +62,8 @@ assert_contains "skills/ship-prs/ship-prs.md" "providers/github.md"
 assert_contains "skills/watch-prs/watch-prs.md" "load_pr_pref"
 assert_contains "skills/watch-prs/watch-prs.md" "project.yaml"
 
-# --- review-pr reads project.yaml ---
-assert_contains "skills/review-pr/review-pr.md" "project.yaml"
+# --- review-pr reads project.yaml via config-reader ---
+assert_contains "skills/review-pr/review-pr.md" "load_pr_pref"
 
 echo ""
 echo "Skills test: $PASS passed, $FAIL failed"

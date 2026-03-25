@@ -17,7 +17,12 @@ xgh:review-pr                  # auto-detect open PRs by current user
 xgh:review-pr 114 --rounds 1   # single round only
 ```
 
-Repo is read from `config/project.yaml` via `load_pr_pref repo` (see `skills/_shared/references/project-preferences.md`).
+Bootstrap — load repo from project preferences:
+```bash
+source lib/config-reader.sh
+REPO=$(load_pr_pref repo "" "")
+```
+See `skills/_shared/references/project-preferences.md` for the full cascade.
 
 If no PR numbers given, fetch open PRs:
 ```bash
