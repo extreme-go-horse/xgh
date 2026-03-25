@@ -114,6 +114,11 @@ assert_contains "skills/_shared/references/providers/github.md" "never submits"
 assert_contains "skills/_shared/references/providers/github.md" "reviewer list cycle"
 assert_contains "skills/_shared/references/providers/github.md" "SWE Delegation"
 
+# --- Preference capture reference ---
+assert_file_exists "skills/_shared/references/preference-capture.md"
+assert_contains "skills/_shared/references/preference-capture.md" "config/project.yaml"
+assert_contains "skills/_shared/references/preference-capture.md" "confirm"
+
 assert_file_exists "config/team.yaml"
 assert_contains "config/team.yaml" "conventions:"
 assert_contains "config/team.yaml" "iron_laws:"
