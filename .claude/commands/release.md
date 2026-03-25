@@ -15,7 +15,7 @@ Argument: $ARGUMENTS (default: patch)
 
 ### Bump version
 
-1. `git checkout main && git pull origin main`
+1. `git checkout develop && git pull origin develop`
 2. Read current version from `package.json`
 3. Compute new version from the argument (patch/minor/major or explicit semver)
 4. Create branch: `git checkout -b release/v<new_version>`
@@ -37,13 +37,14 @@ Argument: $ARGUMENTS (default: patch)
 
 ### Edit release notes
 
-11. Gather changelog: `git log --oneline v<previous_version>..v<new_version>`
-12. Write release notes and edit with `gh release edit v<new_version> --notes "<body>"`. The notes should:
+11. Make sure you have the latest tags: `git fetch --tags origin`
+12. Gather changelog: `git log --oneline v<previous_version>..v<new_version>`
+13. Write release notes to a file (for example `release-notes-v<new_version>.md`) and edit the GitHub release with `gh release edit v<new_version> --notes-file release-notes-v<new_version>.md`. The notes should:
     - Lead with a **one-liner hook** — what's the headline change a user cares about?
     - Group changes under `## Highlights` (features worth calling out with 2-3 sentence explanations) and `## Changes` (bulleted list, conventional-commit style)
     - Use active voice, present tense ("Adds", "Fixes", not "Added", "Fixed")
     - Skip internal chores unless they affect users (CI, test-only, docs-only changes are noise)
-    - End with `**Full Changelog**: https://github.com/extreme-go-horse/xgh/compare/v<prev>...v<new>`
+    - End with `**Full Changelog**: https://github.com/extreme-go-horse/xgh/compare/v<previous_version>...v<new_version>`
     - Tone: confident, concise, no filler. Think Apple release notes meets open-source changelog.
 
 ## Rules
