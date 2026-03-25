@@ -88,6 +88,19 @@ else
   echo "NOTE: No SessionStart hooks registered — skipping SessionStart ordering check"
 fi
 
+# --- PostCompact: last hook entry must be post-compact-preferences ---
+compact_count=$(jq '.hooks.PostCompact | length // 0' "$SETTINGS")
+if [[ "$compact_count" -gt 0 ]]; then
+  last_compact_cmd=$(jq -r '.hooks.PostCompact[-1].hooks[-1].command // ""' "$SETTINGS")
+
+  assert_contains_str \
+    "PostCompact: last hook command contains 'post-compact-preferences'" \
+    "$last_compact_cmd" \
+    "post-compact-preferences"
+else
+  echo "NOTE: No PostCompact hooks registered — skipping PostCompact ordering check"
+fi
+
 # --- PostToolUse: (future) last hook must be post-tool-use-preferences ---
 post_count=$(jq '.hooks.PostToolUse | length // 0' "$SETTINGS")
 if [[ "$post_count" -gt 0 ]]; then
