@@ -49,7 +49,7 @@ preferences:
 
 For any field: **CLI flag > `branches.<base_ref>.<field>` > `preferences.pr.<field>` > auto-detect probe**
 
-> **Note:** This cascade is specific to `preferences.pr` fields. Other preference domains (e.g., `preferences.dispatch`) use their own cascade defined in `_shared/references/project-preferences.md`. The `model-profiles.yaml` layer from that reference is not applicable to PR workflow fields.
+> **Note:** This cascade is specific to `preferences.pr` fields. Each preference domain defines its own priority order — `_shared/references/project-preferences.md` should include a per-domain cascade table. The `model-profiles.yaml` layer from the existing dispatch cascade is not applicable to PR workflow fields, and PR fields add the auto-detect probe layer that dispatch lacks.
 
 ---
 
@@ -146,6 +146,10 @@ with open('config/project.yaml','w') as f: yaml.dump(d, f, default_flow_style=Fa
 
 **No new dependency.** Python 3 + PyYAML are already required by the project (BM25 search, `gen-agents-md.sh`).
 
+**Comment preservation:** `yaml.dump()` does not preserve YAML comments. Since probe-and-cache fires at most once per field (never overwrites), comment loss is limited to the first auto-detection. The user sees the result in `git diff` before committing. Future improvement: switch to `ruamel.yaml` for round-trip comment preservation if this becomes a pain point.
+
+**Relative paths:** All Python helpers use `config/project.yaml` relative to CWD. Skills must ensure CWD is the repo root (standard for Claude Code skill execution). Implementation should resolve via `$(git rev-parse --show-toplevel)/config/project.yaml` for robustness.
+
 **Branch names with slashes** (e.g., `release/1.0`): Python's `dict.get()` handles arbitrary string keys naturally, unlike dot-notation in `yq`. This is why we use Python over `yq`.
 
 **Concurrency:** `config/project.yaml` follows a single-writer constraint — only one skill invocation writes at a time. This is safe because Claude Code is single-threaded (skills run sequentially in the main session). Subagents receive pre-resolved values from the dispatching skill and never write to project.yaml directly.
@@ -169,9 +173,12 @@ When `preferences.pr` is empty or missing fields, the first skill invocation aut
 | Field | Probe method |
 |-------|-------------|
 | `provider` | `git remote get-url origin` → detect github.com / gitlab.com / bitbucket.org / dev.azure.com |
-| `repo` | GitHub: `gh repo view --json nameWithOwner`; GitLab: `glab project view`; Bitbucket/Azure DevOps: requires manual configuration |
-| `reviewer` | GitHub: `gh api repos/$REPO/copilot/policies` → if enabled, set copilot bot; GitLab: check project approval rules; Others: leave empty, warn user |
-| `merge_method` | Leave empty (skill defaults to squash if unset) |
+| `repo` | GitHub: `gh repo view --json nameWithOwner`; GitLab: `glab project view`; Bitbucket/Azure DevOps: warn and require manual config |
+| `reviewer` | GitHub: `gh api repos/$REPO/copilot/policies` → if enabled, set copilot bot; GitLab: check project approval rules; Others: warn and leave empty |
+| `merge_method` | Not probed — preference-only (skill defaults to squash if unset) |
+| `review_on_push` | Not probed — preference-only |
+| `auto_merge` | Not probed — preference-only |
+| `required_approvals` | Not probed — set per-branch by user |
 
 ### Write-back rules
 
@@ -216,7 +223,7 @@ When `preferences.pr` is empty or missing fields, the first skill invocation aut
 
 ### Shared reference: `_shared/references/preference-capture.md`
 
-Teaches Claude to recognize declarative user statements about project preferences and persist them to `config/project.yaml`.
+Teaches Claude to recognize declarative user statements about project preferences and persist them to `config/project.yaml`. Covers all `preferences.*` domains (not just `preferences.pr`) — any runtime preference that belongs in project.yaml.
 
 ### Trigger patterns
 
@@ -295,6 +302,6 @@ values in skill files.
 | Action | Files |
 |--------|-------|
 | **Modify** | `config/project.yaml` (add `preferences.pr`), `skills/ship-prs/ship-prs.md`, `skills/watch-prs/watch-prs.md`, `skills/review-pr/review-pr.md`, `skills/_shared/references/project-preferences.md` (add `pr` block), `AGENTS.md` |
-| **Create** | `skills/_shared/references/providers/github.md`, `skills/_shared/references/providers/gitlab.md`, `skills/_shared/references/providers/bitbucket.md`, `skills/_shared/references/providers/azure-devops.md`, `skills/_shared/references/preference-capture.md`, `skills/validate-project-prefs/validate-project-prefs.md` |
-| **Extend** | `lib/config-reader.sh` (add `load_pr_pref`, `probe_pr_field`, `cache_pr_pref`) |
+| **Create** | `skills/_shared/references/providers/github.md`, `skills/_shared/references/providers/gitlab.md`, `skills/_shared/references/providers/bitbucket.md`, `skills/_shared/references/providers/azure-devops.md`, `skills/_shared/references/preference-capture.md`, `skills/validate-project-prefs/validate-project-prefs.md`, `commands/validate-project-prefs.md` |
+| **Modify** | `lib/config-reader.sh` (add `load_pr_pref`, `probe_pr_field`, `cache_pr_pref`) |
 | **Delete** | `skills/copilot-pr-review/copilot-pr-review.md`, `commands/copilot-pr-review.md` |
