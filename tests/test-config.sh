@@ -28,11 +28,6 @@ assert_contains "config/agents.yaml" "auto_detect:"
 assert_contains "config/agents.yaml" "auto_detect: codex"
 assert_contains "config/agents.yaml" "auto_detect: gemini"
 
-# --- copilot-pr-review: command + skill registration ---
-assert_file_exists "commands/copilot-pr-review.md"
-assert_file_exists "skills/copilot-pr-review/copilot-pr-review.md"
-assert_contains "commands/copilot-pr-review.md" "copilot-pr-review"
-
 # --- watch-prs: command + skill registration ---
 assert_file_exists "commands/watch-prs.md"
 assert_file_exists "skills/watch-prs/watch-prs.md"
@@ -63,9 +58,6 @@ assert_file_exists "skills/test-builder/test-builder.md"
 assert_contains "commands/test-builder.md" "name: xgh-test-builder"
 
 # --- prompt test coverage for new skills (all variants) ---
-assert_file_exists "tests/skill-triggering/prompts/copilot-pr-review.txt"
-assert_file_exists "tests/skill-triggering/prompts/copilot-pr-review-2.txt"
-assert_file_exists "tests/skill-triggering/prompts/copilot-pr-review-3.txt"
 assert_file_exists "tests/skill-triggering/prompts/watch-prs.txt"
 assert_file_exists "tests/skill-triggering/prompts/watch-prs-2.txt"
 assert_file_exists "tests/skill-triggering/prompts/watch-prs-3.txt"
