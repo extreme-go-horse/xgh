@@ -1,5 +1,5 @@
 ---
-name: xgh:pr-poller
+name: pr-poller
 description: |
   Polls PRs for review status, handles reviewer comments, and merges when all criteria pass. Provider-aware: adapts review requests and comment handling to the detected host. Dispatched by xgh:watch-prs (observe mode) and xgh:ship-prs (ship mode) on each cron tick — do not invoke directly.
 
