@@ -12,9 +12,9 @@ Two-round parallel review: 4 personas run independently, then a second pass cros
 ## Input Parsing
 
 ```
-/xgh-review-pr 114 115          # review PRs #114 and #115
-/xgh-review-pr                  # auto-detect open PRs by current user
-/xgh-review-pr 114 --rounds 1   # single round only
+xgh:review-pr 114 115          # review PRs #114 and #115
+xgh:review-pr                  # auto-detect open PRs by current user
+xgh:review-pr 114 --rounds 1   # single round only
 ```
 
 If no PR numbers given, fetch open PRs:
@@ -34,7 +34,7 @@ Code quality, architecture fit, test coverage. Does it follow xgh conventions (s
 Attack surface, injection risks, path traversal, secrets in tracked files, TOCTOU gaps. Can any check be bypassed? Information leakage in error messages?
 
 ### 4. Documentation Specialist
-Are new skills/agents/commands documented? Does `AGENTS.md` need updating? Are skill descriptions ≤50 words and start with the trigger condition? Do commands reference correct file paths?
+Are new skills/agents/commands documented? Does `AGENTS.md` need updating? Are skill descriptions concise with trigger phrases front-loaded (e.g., "Use when...", "This skill should be used when...")? Do commands reference correct file paths?
 
 ## Steps
 
@@ -44,11 +44,11 @@ Are new skills/agents/commands documented? Does `AGENTS.md` need updating? Are s
 
 Each agent receives:
 ```
-You are a [PERSONA] reviewing PR(s) [NUMBERS] on [REPO].
+You are a [PERSONA] reviewing PR(s) [NUMBERS].
 [PERSONA FOCUS from above]
 
 For each PR:
-1. Run: gh pr diff [NUMBER] --repo [REPO]
+1. Run: gh pr diff [NUMBER]
 2. Read the changed files
 3. Report findings with severity (Critical / High / Medium / Low) and file:line references
 ```
@@ -84,6 +84,7 @@ Compile Round 2 findings. Deduplicate against Round 1.
 
 ```
 ## 🐴🤖 xgh review-pr
+Summary of multi-persona deep review findings across all requested PRs.
 
 ### Findings
 
