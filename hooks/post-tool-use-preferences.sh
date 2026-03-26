@@ -66,7 +66,8 @@ if command -v yq >/dev/null 2>&1; then
     _emit_context "[xgh] unable to parse current project.yaml — diff skipped"
     exit 0
   fi
-  CHANGES=$(python3 - "$OLD_JSON" "$NEW_JSON" << 'PYEOF'
+  if ! command -v python3 >/dev/null 2>&1; then CHANGES=""; else
+  CHANGES=$(python3 - "$OLD_JSON" "$NEW_JSON" 2>/dev/null << 'PYEOF'
 import sys, json
 
 def flatten(obj, prefix=""):
@@ -102,8 +103,8 @@ for k in sorted(all_keys):
 
 print(", ".join(changes) if changes else "")
 PYEOF
-  ) || CHANGES=""
-elif python3 -c "import yaml" 2>/dev/null; then
+  ) || CHANGES=""; fi
+elif command -v python3 >/dev/null 2>&1 && python3 -c "import yaml" 2>/dev/null; then
   CHANGES=$(python3 - "$SNAPSHOT" "$PROJ_YAML" << 'PYEOF'
 import sys, yaml, json
 

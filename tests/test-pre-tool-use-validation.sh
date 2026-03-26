@@ -96,12 +96,12 @@ else
   fail "git switch -c bad name should warn. Output: $output"
 fi
 
-# --- Check 4: Protected branch (block) — direct commit ---
+# --- Checks 4 & 5: All commit-related tests depend on current branch ---
 echo "--- 4. Commit on protected branch (block) ---"
 CURRENT_BRANCH=$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
-  echo "  NOTE: skipping test 4 — currently on protected branch '$CURRENT_BRANCH'"
-  PASS=$((PASS + 1))
+  echo "  NOTE: skipping tests 4, 5, 5b, 5c, 5d — currently on protected branch '$CURRENT_BRANCH'"
+  PASS=$((PASS + 5))
 else
   output=$(run_hook "$(make_input "Bash" "git commit -m 'test'")")
   if echo "$output" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
@@ -109,44 +109,57 @@ else
   else
     pass "commit on non-protected branch → pass-through"
   fi
-fi
 
-# --- Check 5: Commit format (warn) ---
-echo "--- 5. Commit format (warn) ---"
-output=$(run_hook "$(make_input "Bash" "git commit -m 'bad format no type prefix'")")
-if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
-  if echo "$output" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
-    fail "commit format should warn, not deny. Output: $output"
-  else
-    pass "bad commit format → warn"
-  fi
-else
-  fail "bad commit format should warn. Output: $output"
-fi
-
-echo "--- 5b. Valid commit format ---"
-output=$(run_hook "$(make_input "Bash" "git commit -m 'feat: add new feature'")")
-if [[ -z "$output" ]]; then
-  pass "valid commit format → silent pass-through"
-else
+  # --- Check 5: Commit format (warn) ---
+  echo "--- 5. Commit format (warn) ---"
+  output=$(run_hook "$(make_input "Bash" "git commit -m 'bad format no type prefix'")")
   if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
-    ctx=$(echo "$output" | jq -r '.hookSpecificOutput.additionalContext // ""')
-    if [[ "$ctx" == *"commit format"* ]] || [[ "$ctx" == *"commit_format"* ]]; then
-      fail "valid commit format should not warn about format. Output: $output"
+    if echo "$output" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null 2>&1; then
+      fail "commit format should warn, not deny. Output: $output"
     else
-      pass "valid commit format → no format warning"
+      pass "bad commit format → warn"
     fi
   else
-    pass "valid commit format → no warning"
+    fail "bad commit format should warn. Output: $output"
   fi
-fi
 
-echo "--- 5c. Commit format with --message flag ---"
-output=$(run_hook "$(make_input "Bash" "git commit --message 'bad format'")")
-if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
-  pass "git commit --message bad format → warn"
-else
-  fail "git commit --message bad format should warn. Output: $output"
+  echo "--- 5b. Valid commit format ---"
+  output=$(run_hook "$(make_input "Bash" "git commit -m 'feat: add new feature'")")
+  if [[ -z "$output" ]]; then
+    pass "valid commit format → silent pass-through"
+  else
+    if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+      ctx=$(echo "$output" | jq -r '.hookSpecificOutput.additionalContext // ""')
+      if [[ "$ctx" == *"commit format"* ]] || [[ "$ctx" == *"commit_format"* ]]; then
+        fail "valid commit format should not warn about format. Output: $output"
+      else
+        pass "valid commit format → no format warning"
+      fi
+    else
+      pass "valid commit format → no warning"
+    fi
+  fi
+
+  echo "--- 5c. Commit format with --message flag ---"
+  output=$(run_hook "$(make_input "Bash" "git commit --message 'bad format'")")
+  if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+    pass "git commit --message bad format → warn"
+  else
+    fail "git commit --message bad format should warn. Output: $output"
+  fi
+
+  echo "--- 5d. Commit format with shell substitution (heredoc) ---"
+  output=$(run_hook "$(make_input 'Bash' 'git commit -m "$(cat <<'"'"'EOF'"'"'\nfeat: something\nEOF\n)"')")
+  if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+    ctx=$(echo "$output" | jq -r '.hookSpecificOutput.additionalContext // ""')
+    if [[ "$ctx" == *"commit_format"* ]] || [[ "$ctx" == *"commit format"* ]]; then
+      fail "shell-substitution commit msg should not warn about format. Output: $output"
+    else
+      pass "shell-substitution commit msg → no format warning"
+    fi
+  else
+    pass "shell-substitution commit msg → silent pass-through"
+  fi
 fi
 
 # --- Check 6: Non-matching command (pass-through) ---
@@ -156,20 +169,6 @@ if [[ -z "$output" ]]; then
   pass "non-matching command → silent pass-through"
 else
   fail "non-matching command should produce no output. Output: $output"
-fi
-
-# --- Check 5d: Shell substitution message — skip validation ---
-echo "--- 5d. Commit format with shell substitution (heredoc) ---"
-output=$(run_hook "$(make_input 'Bash' 'git commit -m "$(cat <<'"'"'EOF'"'"'\nfeat: something\nEOF\n)"')")
-if echo "$output" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
-  ctx=$(echo "$output" | jq -r '.hookSpecificOutput.additionalContext // ""')
-  if [[ "$ctx" == *"commit_format"* ]] || [[ "$ctx" == *"commit format"* ]]; then
-    fail "shell-substitution commit msg should not warn about format. Output: $output"
-  else
-    pass "shell-substitution commit msg → no format warning"
-  fi
-else
-  pass "shell-substitution commit msg → silent pass-through"
 fi
 
 # --- Check 7: Non-Bash tool (early exit) ---
