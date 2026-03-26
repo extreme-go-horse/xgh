@@ -120,6 +120,19 @@ else
   echo "NOTE: No PostToolUse hooks registered — skipping PostToolUse ordering check (future)"
 fi
 
+# --- PostToolUseFailure: last hook must be post-tool-use-failure-preferences ---
+failure_count=$(jq '.hooks.PostToolUseFailure | length // 0' "$SETTINGS")
+if [[ "$failure_count" -gt 0 ]]; then
+  last_failure_cmd=$(jq -r '.hooks.PostToolUseFailure[-1].hooks[-1].command // ""' "$SETTINGS")
+
+  assert_contains_str \
+    "PostToolUseFailure: last hook command contains 'post-tool-use-failure-preferences'" \
+    "$last_failure_cmd" \
+    "post-tool-use-failure-preferences"
+else
+  echo "NOTE: No PostToolUseFailure hooks registered — skipping PostToolUseFailure ordering check"
+fi
+
 # --- Stop: (future) last hook must be stop-preferences ---
 stop_count=$(jq '.hooks.Stop | length // 0' "$SETTINGS")
 if [[ "$stop_count" -gt 0 ]]; then
