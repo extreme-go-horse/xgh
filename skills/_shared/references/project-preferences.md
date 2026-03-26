@@ -67,9 +67,11 @@ VALUE=$(load_<domain>_pref <field> [cli_override] [branch])
 - `phases`: list of phases where pairing applies (`design` | `per_task` | both)
 
 **`vcs`** — VCS workflow defaults (branch-aware)
-- `commit_format`: conventional commit pattern or style hint (e.g. `<type>: <description>`)
-- `branch_naming`: branch naming convention (e.g. `<type>/<description>`)
+- `commit_format`: regex pattern for validating commit messages (e.g. `^(feat|fix|docs|chore)(\\(.+\\))?: .+`) — Phase 2 changed from template string to regex
+- `branch_naming`: regex pattern for validating branch names (e.g. `^(feat|fix|docs|chore)/`) — Phase 2 changed from template string to regex
 - `pr_template`: path to PR description template (e.g. `.github/pull_request_template.md`)
+- `branches.<name>.protected`: whether branch is protected from direct commits and force-push (`true` | `false`)
+- `checks.<name>.severity`: enforcement level for each VCS check (`block` | `warn`). Known checks: `branch_naming`, `protected_branch`, `commit_format`, `force_push`
 
 **`testing`** — test runner defaults (branch-aware)
 - `timeout`: maximum time allowed for test runs in seconds (e.g. `120`)
@@ -100,6 +102,7 @@ VALUE=$(load_<domain>_pref <field> [cli_override] [branch])
 - `review_on_push`: auto-request review on push (`true` | `false`)
 - `auto_merge`: enable auto-merge when checks pass (`true` | `false`)
 - `branches.<ref>.*`: per-branch overrides for any field above
+- `checks.<name>.severity`: enforcement level for PR checks (`block` | `warn`). Known checks: `merge_method`
 
 ## Priority order
 

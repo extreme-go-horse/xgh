@@ -176,6 +176,85 @@ fi
 ```
 **Pass:** dependency found. **Fail:** delegation pattern missing.
 
+### 9. Phase 2: Check keys validation
+
+Verify `checks` keys in project.yaml match known check names:
+
+```bash
+KNOWN_PR_CHECKS="merge_method"
+KNOWN_VCS_CHECKS="branch_naming protected_branch commit_format force_push"
+
+# PR checks
+PR_CHECK_KEYS="$(yq -r '.preferences.pr.checks | keys | .[]' config/project.yaml 2>/dev/null || true)"
+for key in $PR_CHECK_KEYS; do
+  if ! echo "$KNOWN_PR_CHECKS" | grep -qw "$key"; then
+    echo "WARN: unknown pr check key: $key"
+  fi
+done
+
+# VCS checks
+VCS_CHECK_KEYS="$(yq -r '.preferences.vcs.checks | keys | .[]' config/project.yaml 2>/dev/null || true)"
+for key in $VCS_CHECK_KEYS; do
+  if ! echo "$KNOWN_VCS_CHECKS" | grep -qw "$key"; then
+    echo "WARN: unknown vcs check key: $key"
+  fi
+done
+```
+**Pass:** all check keys are known. **Warn:** unknown key found (might be a typo).
+
+### 10. Phase 2: Severity values validation
+
+Verify `severity` values are `block` or `warn`:
+
+```bash
+ALL_SEVERITIES="$(yq -r '.. | select(has("severity")) | .severity' config/project.yaml 2>/dev/null || true)"
+INVALID=""
+for sev in $ALL_SEVERITIES; do
+  if [[ "$sev" != "block" && "$sev" != "warn" ]]; then
+    INVALID="$INVALID $sev"
+  fi
+done
+if [[ -z "$INVALID" ]]; then
+  echo "PASS: all severity values are block or warn"
+else
+  echo "FAIL: invalid severity values:$INVALID"
+fi
+```
+**Pass:** all severity values valid. **Fail:** invalid value found.
+
+### 11. Phase 2: Protected branches exist in repo
+
+```bash
+PROTECTED_BRANCHES="$(yq -r '.preferences.vcs.branches | to_entries[] | select(.value.protected == true) | .key' config/project.yaml 2>/dev/null || true)"
+for branch in $PROTECTED_BRANCHES; do
+  if git show-ref --verify "refs/heads/$branch" >/dev/null 2>&1 || \
+     git show-ref --verify "refs/remotes/origin/$branch" >/dev/null 2>&1; then
+    echo "PASS: protected branch '$branch' exists"
+  else
+    echo "WARN: protected branch '$branch' not found locally or in origin"
+  fi
+done
+```
+**Pass:** branch exists. **Warn:** branch not found (might not be fetched yet).
+
+### 12. Phase 2: Regex validity
+
+```bash
+for field in commit_format branch_naming; do
+  REGEX="$(yq -r ".preferences.vcs.${field} // \"\"" config/project.yaml 2>/dev/null || true)"
+  if [[ -n "$REGEX" ]]; then
+    echo "" | grep -qE "$REGEX" 2>/dev/null
+    grep_exit=$?
+    if [[ $grep_exit -le 1 ]]; then
+      echo "PASS: $field is a valid regex"
+    else
+      echo "FAIL: $field has regex syntax errors: $REGEX"
+    fi
+  fi
+done
+```
+**Pass:** regex is syntactically valid. **Fail:** grep returns exit code 2 (syntax error).
+
 ## Output format
 
 ```
@@ -191,4 +270,8 @@ fi
 | preferences.sh health (11 loaders) | ✅ / ❌ | missing loaders or file absent |
 | Hook ordering contract | ✅ / ⚠️ / ❌ | PreToolUse ✅  SessionStart ⚠️  PostCompact ⚠️ |
 | Cross-domain dependencies | ✅ / ❌ | load_dispatch_pref → load_pr_pref |
+| Check keys validation (Phase 2) | ✅ / ⚠️ | unknown check keys |
+| Severity values (Phase 2) | ✅ / ❌ | invalid severity values |
+| Protected branches exist (Phase 2) | ✅ / ⚠️ | branch not found |
+| Regex validity (Phase 2) | ✅ / ❌ | regex syntax errors |
 ```
