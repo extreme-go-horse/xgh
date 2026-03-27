@@ -75,6 +75,8 @@ Fetch open GitHub issues → pre-flight filter → spawn parallel fix agents →
   [--dry-run]                Fetch and display only — no agents spawned
   [--yes]                    Skip confirmation (still enforces body-length gate)
   [--reviews-only]           Skip to Phase 6 (PR review handler only)
+  [--watch]                  Keep polling for new issues and review comments
+  [--interval 5m]            Minutes between watch polls (only with --watch)
   [--cron]                   Fire-and-forget mode for scheduled execution
   [--model <name>]           Model override for spawned fix agents
 ```
@@ -165,7 +167,7 @@ Each PR cycles through these states independently:
 | `pending-ci` | Polling CI; classify failures |
 | `fixing-ci` | Fixing branch-related failure; push; restart CI watch |
 | `retrying-flaky` | Rerunning failed jobs (up to `--max-flaky-retries`) |
-| `conflict` | PR has git conflict; attempt rebase; push; or `blocked` on failure |
+| `conflict` | PR has git conflict; attempt rebase; push; or `blocked` on failure. **Reachable from any non-terminal state** — checked on every poll cycle, not only from `pending-ci`. |
 | `awaiting-review` | Re-requesting review via reviewer-list cycle |
 | `fixing-review` | Addressing actionable review comments; push; resume CI watch |
 | `merge-ready` | All green + review-clean + mergeable |
@@ -265,7 +267,10 @@ Stop polling a PR and report when:
 
 ### State File
 
-`.xgh/babysit-pr/<session-id>.json`:
+`.xgh/babysit-pr/<session-id>.json`
+
+**session-id** is a timestamp: `YYYY-MM-DD-HHMMSS`. Only one active session per repo — `start` warns if an existing session file is found and offers to resume or overwrite. `status` reads the most recently modified `.xgh/babysit-pr/*.json`.
+
 ```json
 {
   "started_at": "ISO8601",
