@@ -40,6 +40,10 @@
           {
             "type": "command",
             "command": "bash hooks/post-tool-use-preferences.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/post-tool-use-shellcheck.sh"
           }
         ]
       }
