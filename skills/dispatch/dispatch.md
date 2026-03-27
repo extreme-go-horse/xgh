@@ -1,14 +1,7 @@
 ---
 name: xgh:dispatch
-description: "This skill should be used when the user asks to \"dispatch\", \"route task\", \"auto dispatch\", \"pick the best model\", \"send to best agent\", or wants to automatically select the optimal agent, model, and effort level for a task based on learned performance profiles. Wraps /xgh-codex, /xgh-gemini, and /xgh-opencode with intelligent model routing."
-trigger: "/xgh dispatch"
-mcp_dependencies:
-  required: []
-  optional:
-    - memory: "memory backend (lcm or compatible) — search past work, store outcomes"
+description: "Auto-route tasks to the best agent + model + effort based on learned performance"
 ---
-
-> **Output format:** Follow the [xgh output style guide](../../templates/output-style.md). Start with `## 🐴🤖 xgh dispatch`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
 
 # xgh:dispatch — Dynamic Model Router
 
@@ -168,3 +161,14 @@ The dispatch skill handles everything from here: workspace setup, execution, res
 - **Ignoring overrides.** If the user passes `--model` or `--agent`, respect it absolutely. The router's opinion is secondary to the user's.
 - **Prompting for model selection.** Never ask the user "which model?" — the whole point is automatic selection. If you can't decide, use CLI defaults.
 - **Stale profiles.** The profile file can grow large over time. Only read the last 100 observations for lookup. Older data is less relevant.
+
+## Usage
+
+```
+/xgh-dispatch "Add unit tests for the auth module"
+/xgh-dispatch exec "Refactor connection pooling"
+/xgh-dispatch review --base main
+/xgh-dispatch --agent codex "Fix the flaky test"
+/xgh-dispatch --model gpt-5.4-mini "Rename the variable"
+/xgh-dispatch --agent gemini --model gemini-2.5-flash "Quick docs update"
+```

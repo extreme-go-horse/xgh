@@ -9,12 +9,4 @@ aliases: ["rpr"]
 
 # /xgh-review-pr
 
-Run the `xgh:review-pr` skill to perform a deep multi-persona code review.
-
-## Usage
-
-```
-/xgh-review-pr 114 115          # review PRs #114 and #115
-/xgh-review-pr                  # auto-detect open PRs by current user
-/xgh-review-pr 114 --rounds 1   # single round only
-```
+Read and follow the implementation spec at `skills/review-pr/review-pr.md`.

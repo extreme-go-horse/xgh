@@ -7,12 +7,4 @@ description: Validate the full xgh ingest pipeline — config, connectivity, sch
 
 # /xgh-doctor — Pipeline Health Check
 
-Run the `xgh:doctor` skill to validate the full ingest pipeline.
-
-## Usage
-
-```
-/xgh-doctor
-```
-
-Outputs a structured ✓/✗ report with specific fix suggestions for any failures.
+Read and follow the implementation spec at `skills/doctor/doctor.md`.

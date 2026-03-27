@@ -6,4 +6,4 @@ usage: "/xgh-validate-project-prefs"
 
 # /xgh-validate-project-prefs
 
-Run the `xgh:validate-project-prefs` skill.
+Read and follow the implementation spec at `skills/validate-project-prefs/validate-project-prefs.md`.

@@ -1,8 +1,6 @@
 ---
 name: xgh:trigger
-description: "This skill should be used when the user runs /xgh-trigger or asks to list triggers, test triggers, silence noisy triggers, or view trigger firing history. Manages the xgh trigger engine — list, test, silence, and inspect trigger rules and their firing history."
----
-
+description: "Manage the xgh trigger engine — list triggers, test them, silence noisy ones, and view firing history."
 ---
 
 # /xgh-trigger — Trigger Engine Management
@@ -167,3 +165,9 @@ Per-step `on_error:` (or trigger-level default):
 - `continue` (default): log error, proceed to next step
 - `abort`: log error, skip remaining steps
 - `retry`: retry once after 5s, then continue
+
+## Usage
+
+```
+/xgh-trigger [list | test <name> | silence <name> <duration> | history <name>]
+```

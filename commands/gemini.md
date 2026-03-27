@@ -9,13 +9,16 @@ aliases: ["gem"]
 
 # /xgh-gemini
 
-Run the `xgh:gemini` skill to dispatch implementation tasks or code reviews to Google's Gemini CLI.
+> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
+> and gemini commands (short output). Use `Read` to review gemini output files.
 
-## Usage
+## Preamble — Execution mode
 
-```
-/xgh-gemini exec "Add unit tests for the auth module"
-/xgh-gemini review "Check for security issues in the latest changes"
-/xgh-gemini exec --model gemini-2.5-flash --effort high "Fix lint warnings in src/utils/"
-/xgh-gemini exec --same-dir --thinking xhigh "Add missing docstrings"
-```
+Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
+
+- `<SKILL_NAME>` = `gemini`
+- `<SKILL_LABEL>` = `Gemini dispatch`
+
+---
+
+Read and follow the implementation spec at `skills/gemini/gemini.md`.

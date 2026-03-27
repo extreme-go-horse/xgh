@@ -1,6 +1,6 @@
 ---
 name: xgh:briefing
-description: "This skill should be used when the user runs /xgh-briefing, /xgh-briefing compact, or /xgh-briefing focus, or asks for a morning briefing or session summary. Aggregates Slack, Jira, GitHub, Gmail, Calendar, Figma, and xgh team memory into a prioritized executive summary with a suggested focus."
+description: "Session briefing — aggregates Slack, Jira, GitHub, and team memory into a prioritized summary"
 ---
 
 # xgh:briefing — Intelligent Session Briefing
@@ -39,7 +39,9 @@ Follow the shared detection protocol in `skills/_shared/references/mcp-auto-dete
 
 Determine which projects this briefing covers:
 
-1. Run `bash ~/.xgh/scripts/detect-project.sh` and read `XGH_PROJECT` and `XGH_PROJECT_SCOPE`
+1. Run `bash ~/.xgh/scripts/detect-project.sh` using the **Bash tool directly** — never via
+   `ctx_search` or the FTS5 index, which may return stale results from prior sessions.
+   Parse the two output lines to get `XGH_PROJECT` and `XGH_PROJECT_SCOPE`.
 2. If `XGH_PROJECT` is non-empty:
    - Show in header: `🐴🤖 **xgh briefing** — [date] [time] — project: **[name]** (+[N] deps)`
    - Scope ALL data gathering queries to projects in `XGH_PROJECT_SCOPE`:
@@ -214,3 +216,39 @@ If no active CronCreate jobs are found or the pause file exists, append to the b
 
 When invoked by CronCreate or as a background task:
 1. Return the briefing summary inline — concise, structured, no raw API payloads.
+
+## Usage
+
+```
+/xgh-briefing              # Full briefing scoped to cwd project (or all if no git project detected)
+/xgh-briefing --all        # Full briefing across all active projects
+/xgh-briefing compact      # One-line summary + suggested focus
+/xgh-briefing focus        # Just the suggested focus, nothing else
+/xgh-briefing meeting NAME # Filter briefing for a specific meeting
+```
+
+## Project scoping
+
+By default the briefing runs `detect-project.sh` against the current working directory. If the cwd is inside a git repo that matches a project in `~/.xgh/ingest.yaml`, all data gathering (GitHub, Slack, Jira, Figma, memory queries) is scoped to that project and its dependencies. Pass `--all` to force all-projects mode regardless of cwd.
+
+## Auto-trigger
+
+The briefing is always available. Run it manually at session start or combine with `/xgh-brief` for a quick summary.
+
+## Output sections
+
+Full mode produces up to 6 sections (omitting empty ones):
+1. **NEEDS YOU NOW** — urgent items requiring action
+2. **IN PROGRESS** — work you were doing last session
+3. **INCOMING** — items arriving soon
+4. **TEAM PULSE** — team updates and convention changes
+5. **TODAY** — calendar events
+6. **SUGGESTED FOCUS** — single recommended task with rationale
+
+## Examples
+
+```
+/xgh-briefing           → full briefing with all available data
+/xgh-briefing compact   → 🐴🤖 2 need attention · 3 in flight · focus: fix auth bug
+/xgh-briefing focus     → 🐴🤖 Focus: fix auth bug — it's blocking QA
+```

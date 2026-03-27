@@ -42,9 +42,8 @@ assert_contains "skills/ship-prs/ship-prs.md" "pause"
 assert_contains "skills/ship-prs/ship-prs.md" "dry-run"
 assert_contains "skills/ship-prs/ship-prs.md" "fix_cycle_count"
 
-# --- config: command + skill registration ---
+# --- config: command registration ---
 assert_file_exists "commands/config.md"
-assert_file_exists "skills/config/config.md"
 assert_contains "commands/config.md" "name: xgh-config"
 
 # --- architecture: command + skill registration ---
@@ -96,20 +95,8 @@ assert_contains "config/project.yaml" "review_on_push: true"
 assert_contains "config/project.yaml" "auto_merge: true"
 assert_contains "config/project.yaml" "branches:"
 
-# --- Provider references ---
-assert_file_exists "skills/_shared/references/providers/github.md"
-assert_file_exists "skills/_shared/references/providers/gitlab.md"
-assert_file_exists "skills/_shared/references/providers/bitbucket.md"
-assert_file_exists "skills/_shared/references/providers/azure-devops.md"
-assert_contains "skills/_shared/references/providers/github.md" "copilot-pull-request-reviewer"
-assert_contains "skills/_shared/references/providers/github.md" "never submits"
-assert_contains "skills/_shared/references/providers/github.md" "reviewer list cycle"
-assert_contains "skills/_shared/references/providers/github.md" "SWE Delegation"
-
-# --- Preference capture reference ---
-assert_file_exists "skills/_shared/references/preference-capture.md"
-assert_contains "skills/_shared/references/preference-capture.md" "config/project.yaml"
-assert_contains "skills/_shared/references/preference-capture.md" "confirm"
+# --- Provider references and preference capture moved to project.yaml ---
+# (skills/_shared/references/ removed in skill cleanup)
 
 assert_file_exists "config/team.yaml"
 assert_contains "config/team.yaml" "conventions:"

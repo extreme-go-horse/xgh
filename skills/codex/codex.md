@@ -1,36 +1,6 @@
 ---
 name: xgh:codex
-description: "This skill should be used when the user asks to \"dispatch to codex\", \"run codex\", \"codex exec\", \"codex review\", \"use codex for\", \"send to codex\", or wants to delegate implementation or code review tasks to OpenAI's Codex CLI agent. Supports worktree-isolated parallel dispatch and same-directory sequential dispatch (--add-dir)."
----
-
-> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
-> and codex commands (short output). Use `Read` to review codex output files.
-
-## How to dispatch
-
-**ALWAYS dispatch via the `xgh:codex-driver` agent** using the Agent tool with `subagent_type: "xgh:codex-driver"`.
-
-The `xgh:codex-driver` agent handles:
-- Flag detection and command construction
-- Model fallback
-- Sandbox config
-- Output parsing
-- Retry logic
-
-> **WARNING: Do NOT run `codex` CLI commands directly via Bash.**
-> Invoking `codex exec` or `codex review` directly bypasses flag detection, model fallback, sandbox config, output parsing, and retry logic. All dispatch MUST go through the `xgh:codex-driver` agent.
-
-See [Step 2: Dispatch](#step-2-dispatch) for the agent prompt format.
-
----
-
-## Preamble — Execution mode
-
-Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
-
-- `<SKILL_NAME>` = `codex`
-- `<SKILL_LABEL>` = `Codex dispatch`
-
+description: "Dispatch tasks to Codex CLI for parallel implementation or code review"
 ---
 
 # xgh:codex -- Codex CLI Dispatch
@@ -293,3 +263,13 @@ Codex-specific additions:
 - **Vague prompts.** "Fix all the bugs" produces poor results. "Fix `src/auth.ts:42` — null check missing before `.userId` access" succeeds.
 - **No verification step.** Always include a test command in the prompt. Codex won't self-verify unless told to.
 - **No scope constraints.** Codex will touch whatever seems related. If you don't say "modify only X", it will modify Y and Z too.
+
+## Usage
+
+```
+/xgh-codex exec "Add unit tests for the auth module"
+/xgh-codex review --base main
+/xgh-codex exec --model gpt-5.4 --effort high "Refactor connection pooling"
+/xgh-codex review --uncommitted --thinking xhigh
+/xgh-codex exec --add-dir /path/to/repo "Fix lint warnings in src/utils/"
+```

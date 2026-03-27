@@ -1,9 +1,7 @@
 ---
 name: xgh:watch-prs
-description: "Use /xgh-watch-prs to passively monitor PRs — surfaces review changes, new comments, CI status, and merge-readiness without touching anything. Never merges, never fixes comments, never requests reviews. Pairs with /xgh-ship-prs for active orchestration."
+description: "Passively monitor PRs — surfaces review changes, new comments, CI status, and merge-readiness without touching anything. Never merges, never fixes, never requests reviews."
 ---
-
-> **Output format:** Start with `## 🐴🤖 xgh watch-prs`. Use markdown tables for state snapshots. Use ✅ ⚠️ ❌ for status. Show change-log between polls as bullet list. Keep per-poll output terse.
 
 # /xgh-watch-prs — PR Observer
 
@@ -239,4 +237,13 @@ Runtime state only — add to `.gitignore`.
 | Provider detection fails | `⚠️ Could not detect provider from remote URL. Defaulting to generic.` |
 | Copilot not enabled (GitHub) | `⚠️ Copilot code review not enabled for $REPO. Pass --reviewer <login>` |
 | State file corrupt | `❌ Invalid state file. Run stop then start again.` |
-| All PRs merged | `✅ All PRs merged! Session complete.` |
+| All PRs merged | `✅ All PRs merged! Session complete.` | Read-only — never merges, fixes comments, or requests reviews. Use `/xgh-ship-prs` to actively drive PRs to merge.
+
+## Usage
+
+```
+/xgh-watch-prs start 28 29 [--interval 3m] [--reviewer <login>]
+/xgh-watch-prs poll-once 28 29
+/xgh-watch-prs status
+/xgh-watch-prs stop
+```

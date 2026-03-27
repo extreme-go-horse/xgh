@@ -7,10 +7,6 @@ description: Manage the xgh trigger engine — list triggers, test them, silence
 
 # /xgh-trigger — Trigger Engine Management
 
-Run the `xgh:trigger` skill to manage the xgh trigger engine.
+---
 
-## Usage
-
-```
-/xgh-trigger [list | test <name> | silence <name> <duration> | history <name>]
-```
+Read and follow the implementation spec at `skills/trigger/trigger.md`.

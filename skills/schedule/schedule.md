@@ -1,9 +1,7 @@
 ---
 name: xgh:schedule
-description: "This skill should be used when the user runs /xgh-schedule or asks to check, pause, resume, or manage the scheduler, or asks about skill mode preferences. Interactive scheduler control panel — lists, pauses, resumes, and fires xgh CronCreate jobs. Also manages ~/.xgh/prefs.json skill execution mode preferences."
+description: "Manage xgh background scheduler — list, pause, resume, or run retrieve/analyze jobs. Also manage per-skill execution mode preferences."
 ---
-
-> **Output format:** Start with `## 🐴🤖 xgh schedule`. Use ✅ ⚠️ ❌ for status. Keep output concise.
 
 # xgh:schedule — Scheduler Control Panel
 
@@ -222,3 +220,9 @@ During each scheduled retrieve/analyze cycle, evaluate `source: schedule` trigge
 `date` output. For `0 9 * * MON`: fire if current hour=9, minute<5, weekday=Monday.
 Exact match within the retrieve window (5min) is sufficient; cron-exact precision
 is not required for this use case.
+
+## Usage
+
+```
+/xgh-schedule [status | pause <job> | resume <job> | run <job> | off | prefs | add "<skill>" "<cron>"]
+```

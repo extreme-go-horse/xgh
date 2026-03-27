@@ -8,15 +8,4 @@ allowed-tools: Bash, Read, Glob, Grep, Agent
 
 # /xgh-architecture — Codebase Architecture Analysis
 
-Run the `xgh:architecture` skill to analyze the codebase architecture.
-
-## Usage
-
-```
-/xgh-architecture [quick|full]
-```
-
-- `quick` (default): module boundaries, public surfaces, integration points
-- `full`: adds dependency graph, critical paths, and test landscape
-
-`ARGUMENTS: $ARGUMENTS`
+Read and follow the implementation spec at `skills/architecture/architecture.md`.

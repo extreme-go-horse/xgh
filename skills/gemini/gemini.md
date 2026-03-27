@@ -1,18 +1,6 @@
 ---
 name: xgh:gemini
-description: "This skill should be used when the user asks to \"dispatch to gemini\", \"run gemini\", \"use gemini for\", \"send to gemini\", \"gemini review\", or wants to delegate implementation or code review tasks to Google's Gemini CLI agent. Supports worktree-isolated parallel dispatch and same-directory sequential dispatch."
----
-
-> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
-> and gemini commands (short output). Use `Read` to review gemini output files.
-
-## Preamble — Execution mode
-
-Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
-
-- `<SKILL_NAME>` = `gemini`
-- `<SKILL_LABEL>` = `Gemini dispatch`
-
+description: "Dispatch tasks to Gemini CLI for parallel implementation or code review"
 ---
 
 # xgh:gemini -- Gemini CLI Dispatch
@@ -224,3 +212,12 @@ See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
 
 Gemini-specific additions:
 - **Vague prompts.** Gemini works best with focused, specific tasks. "Add unit tests for the TokenBucket.consume() method in src/lib/token-bucket.ts" will succeed where "Fix all the bugs" will not.
+
+## Usage
+
+```
+/xgh-gemini exec "Add unit tests for the auth module"
+/xgh-gemini review "Check for security issues in the latest changes"
+/xgh-gemini exec --model gemini-2.5-flash --effort high "Fix lint warnings in src/utils/"
+/xgh-gemini exec --same-dir --thinking xhigh "Add missing docstrings"
+```

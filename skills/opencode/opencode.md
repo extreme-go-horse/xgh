@@ -1,18 +1,6 @@
 ---
 name: xgh:opencode
-description: "This skill should be used when the user asks to \"dispatch to opencode\", \"run opencode\", \"opencode exec\", \"opencode review\", \"use opencode for\", \"send to opencode\", or wants to delegate implementation or code review tasks to OpenCode CLI agent. Supports worktree-isolated parallel dispatch and same-directory sequential dispatch."
----
-
-> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
-> and opencode commands (short output). Use `Read` to review opencode output files.
-
-## Preamble — Execution mode
-
-Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
-
-- `<SKILL_NAME>` = `opencode`
-- `<SKILL_LABEL>` = `OpenCode dispatch`
-
+description: "Dispatch tasks to OpenCode CLI for parallel implementation or code review"
 ---
 
 # xgh:opencode -- OpenCode CLI Dispatch
@@ -190,3 +178,12 @@ See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
 OpenCode-specific additions:
 - **Vague prompts.** OpenCode works best with focused, specific tasks. "Add unit tests for the TokenBucket.consume() method in src/lib/token-bucket.ts" will succeed where "Fix all the bugs" will not.
 - **Review without prompt constraint.** Always include 'Do NOT modify any files' in review prompts — OpenCode has no native read-only sandbox flag.
+
+## Usage
+
+```
+/xgh-opencode exec "Add unit tests for the auth module"
+/xgh-opencode review "Focus on error handling"
+/xgh-opencode exec --model anthropic/claude-opus-4-6 "Refactor connection pooling"
+/xgh-opencode exec --same-dir "Fix lint warnings in src/utils/"
+```

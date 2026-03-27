@@ -9,14 +9,34 @@ aliases: ["cdx"]
 
 # /xgh-codex
 
-Run the `xgh:codex` skill to dispatch implementation tasks or code reviews to OpenAI's Codex CLI.
+> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
+> and codex commands (short output). Use `Read` to review codex output files.
 
-## Usage
+## How to dispatch
 
-```
-/xgh-codex exec "Add unit tests for the auth module"
-/xgh-codex review --base main
-/xgh-codex exec --model gpt-5.4 --effort high "Refactor connection pooling"
-/xgh-codex review --uncommitted --thinking xhigh
-/xgh-codex exec --add-dir /path/to/repo "Fix lint warnings in src/utils/"
-```
+**ALWAYS dispatch via the `xgh:codex-driver` agent** using the Agent tool with `subagent_type: "xgh:codex-driver"`.
+
+The `xgh:codex-driver` agent handles:
+- Flag detection and command construction
+- Model fallback
+- Sandbox config
+- Output parsing
+- Retry logic
+
+> **WARNING: Do NOT run `codex` CLI commands directly via Bash.**
+> Invoking `codex exec` or `codex review` directly bypasses flag detection, model fallback, sandbox config, output parsing, and retry logic. All dispatch MUST go through the `xgh:codex-driver` agent.
+
+See [Step 2: Dispatch](#step-2-dispatch) for the agent prompt format.
+
+---
+
+## Preamble — Execution mode
+
+Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
+
+- `<SKILL_NAME>` = `codex`
+- `<SKILL_LABEL>` = `Codex dispatch`
+
+---
+
+Read and follow the implementation spec at `skills/codex/codex.md`.

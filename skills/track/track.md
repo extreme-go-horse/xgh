@@ -1,15 +1,6 @@
 ---
 name: xgh:track
-description: "This skill should be used when the user runs /xgh-track or asks to 'add project', 'track project', 'monitor new project'. Interactive project onboarding — prompts for Slack channels, Jira, Confluence, Figma, and GitHub refs, validates connectivity, runs initial backfill of recent Slack history, and appends the project to ~/.xgh/ingest.yaml."
----
-
-## Preamble — Execution mode
-
-Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
-
-- `<SKILL_NAME>` = `track`
-- `<SKILL_LABEL>` = `Track`
-
+description: "Add a new project to xgh context monitoring. Interactive onboarding for Slack channels, Jira, Confluence, GitHub, and Figma. Runs an initial backfill of recent history."
 ---
 
 # xgh:track — Project Onboarding
@@ -265,3 +256,11 @@ When invoked as `/xgh-track --regenerate <provider-name>`:
 4. Validate with a test fetch
 5. Replace old script only after validation passes
 6. Report: "Regenerated <provider-name>. Config preserved, script updated."
+
+## Usage
+
+```
+/xgh-track
+```
+
+No arguments. The skill walks you through the setup interactively.

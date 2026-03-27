@@ -1,6 +1,6 @@
 ---
 name: xgh:test-builder
-description: "Use when running /xgh-test-builder or asking to generate tests or build a test suite. Generates tailored test suites from architectural analysis — module boundaries, public surfaces, and integration points — producing a structured manifest of test flows."
+description: "Generate and run tailored test suites from architectural analysis — init to generate, run to execute"
 ---
 
 # xgh:test-builder — Test Suite Generator
@@ -252,7 +252,7 @@ Report: "Manifest generation failed: <reason>. No partial manifest written."
 |-----------|-----------|---------|
 | exit_code | shell, custom | `exit_code: 0` |
 | stdout_contains | shell, custom | `stdout_contains: "OK"` |
-| stdout_matches | shell, custom | `stdout_matches: "v\\d+\\.\\d+"` |
+| stdout_matches | shell, custom | `stdout_matches: "v\d+\.\d+"` |
 | status | http | `status: 200` |
 | body_contains | http | `body_contains: '"ok"'` |
 | body_json_path | http | `body_json_path: { path: "$.id", exists: true }` |
@@ -530,3 +530,15 @@ Test suite run completed
 Exit with:
 - 0 if all flows passed or skipped
 - 1 if any flow failed
+
+## Usage
+
+```
+/xgh-test-builder init
+/xgh-test-builder run [flow-name]
+```
+
+- `init`: Analyze architecture and generate `.xgh/test-builder/manifest.yaml`
+- `run [flow-name]`: Execute all flows, or a specific flow by name
+
+`ARGUMENTS: $ARGUMENTS`

@@ -9,10 +9,4 @@ aliases: ["inject"]
 
 # /xgh-seed
 
-Run the `xgh:seed` skill to inject project context into AI CLI tools' skill directories.
-
-## Usage
-
-```
-/xgh-seed
-```
+Read and follow the implementation spec at `skills/seed/seed.md`.

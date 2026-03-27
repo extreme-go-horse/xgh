@@ -1,6 +1,6 @@
 ---
 name: xgh:analyze
-description: "This skill should be used when the user runs /xgh-analyze, when invoked by the CronCreate scheduler, or when ~/.xgh/inbox/.urgent exists. Headless analyzer loop — reads ~/.xgh/inbox/, classifies content types, extracts structured memories, deduplicates against lossless-claude, writes to workspace or personal collection, manages TTL, and generates Obsidian-compatible daily digest."
+description: "Run the xgh context analysis loop. Reads ~/.xgh/inbox/, classifies and extracts structured memories, writes to lossless-claude workspace, and generates a daily digest. Invoked by the scheduler every 30 minutes."
 ---
 
 # xgh:analyze — Analysis Loop
@@ -256,3 +256,17 @@ If no active CronCreate jobs found, append:
 ⚠️ Running manually — scheduler is paused or not started.
    /xgh-schedule resume    (enable for this session and future sessions)
 ```
+
+## Usage
+
+```
+/xgh-analyze
+```
+
+No arguments. All configuration comes from `~/.xgh/ingest.yaml`.
+
+## Notes
+
+- Invoked automatically each Claude session via CronCreate (scheduler is always-on; pause with `~/.xgh/scheduler-paused`).
+- Also triggered immediately when the retriever detects a critical urgency item.
+- Run `/xgh-doctor` to check pipeline freshness and workspace stats.

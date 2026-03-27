@@ -7,12 +7,13 @@ description: Add a new project to xgh context monitoring. Interactive onboarding
 
 # /xgh-track — Add Project to Monitoring
 
-Run the `xgh:track` skill to add a new project to the continuous ingestion pipeline.
+## Preamble — Execution mode
 
-## Usage
+Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
 
-```
-/xgh-track
-```
+- `<SKILL_NAME>` = `track`
+- `<SKILL_LABEL>` = `Track`
 
-No arguments. The skill walks you through the setup interactively.
+---
+
+Read and follow the implementation spec at `skills/track/track.md`.

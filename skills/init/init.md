@@ -1,6 +1,6 @@
 ---
 name: xgh:init
-description: "This skill should be used when the user runs /xgh-init or says 'set up xgh', 'initialize xgh', 'get started'. First-run onboarding after install — verifies MCP connections, sets up profile, adds first project, runs initial retrieval, and optionally profiles the team and indexes the codebase."
+description: "First-run onboarding. Verifies MCP connections, sets up profile, adds first project, runs initial retrieval, and optionally profiles the team and indexes the codebase."
 ---
 
 # xgh:init — First-Run Onboarding
@@ -122,7 +122,8 @@ if [ -n "$XGH_TMPL" ]; then
   mkdir -p .xgh
   cp "$XGH_TMPL" .xgh/xgh.md
   # Add @reference to CLAUDE.local.md if not present
-  grep -q '@.xgh/xgh.md' CLAUDE.local.md 2>/dev/null || echo -e "\n@.xgh/xgh.md" >> CLAUDE.local.md
+  grep -q '@.xgh/xgh.md' CLAUDE.local.md 2>/dev/null || echo -e "
+@.xgh/xgh.md" >> CLAUDE.local.md
 fi
 ```
 
@@ -607,3 +608,33 @@ This skill chains together existing skills rather than duplicating their logic:
 | Step 7 — Initial curation | `xgh:curate` interactive |
 | Step 7a — Generate AGENTS.md | `bash scripts/gen-agents-md.sh` + platform wrappers |
 | Step 7b — Scheduler | Auto-registered via `hooks/session-start.sh` |
+
+## Usage
+
+```
+/xgh-init
+```
+
+No arguments. The skill walks you through everything interactively.
+
+## What It Does
+
+1. **Verify MCP connections** — checks lossless-claude, Slack, Atlassian, Figma, GitHub CLI
+2. **Profile setup** — name, role, squad, platforms
+3. **Add first project** — invokes `/xgh-track` for full project onboarding
+4. **Initial retrieval** — backfills recent Slack messages and linked resources
+5. **Team profiling** (optional) — runs `/xgh-profile` for each team member
+6. **Index codebase** (optional) — runs `/xgh-index` in quick mode
+7. **Initial curation** (optional) — asks if you want to capture initial knowledge (architecture decisions, team conventions, known gotchas). If yes, invokes `/xgh-curate` interactively.
+
+## Prerequisites
+
+- xgh must be installed (`~/.xgh/ingest.yaml` must exist — created by `/xgh-init`)
+- lossless-claude and Slack MCPs must be configured (run `/xgh-setup` if not)
+
+## Related Skills
+
+- `xgh:init` — the full workflow skill this command triggers
+- `xgh:mcp-setup` — standalone MCP configuration audit
+- `xgh:track` — add additional projects after initial setup
+- `xgh:brief` — your first command after init completes

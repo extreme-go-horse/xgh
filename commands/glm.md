@@ -9,13 +9,16 @@ aliases: ["glm"]
 
 # /xgh-glm
 
-Run the `xgh:glm` skill to dispatch implementation tasks or code reviews to Z.AI GLM models via OpenCode CLI.
+> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
+> and opencode commands (short output). Use `Read` to review opencode output files.
 
-## Usage
+## Preamble — Execution mode
 
-```
-/xgh-glm exec "Add unit tests for the auth module"
-/xgh-glm review "Focus on error handling"
-/xgh-glm exec --effort high "Refactor connection pooling"
-/xgh-glm exec --same-dir "Fix lint warnings in src/utils/"
-```
+Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
+
+- `<SKILL_NAME>` = `glm`
+- `<SKILL_LABEL>` = `GLM dispatch`
+
+---
+
+Read and follow the implementation spec at `skills/glm/glm.md`.

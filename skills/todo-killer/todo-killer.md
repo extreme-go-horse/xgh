@@ -1,6 +1,6 @@
 ---
 name: xgh:todo-killer
-description: "This skill should be used when the user runs /xgh-todo-killer or asks to 'kill todos', 'fix todos', 'clean up comments'. Systematically finds and fixes TODOs, FIXMEs, HACKs, and deprecated comments in the codebase — turns them into structured migration signals and resolves them highest impact first."
+description: "todo-killer"
 ---
 
 # xgh:todo-killer — Systematic TODO Resolution

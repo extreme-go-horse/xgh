@@ -1,18 +1,6 @@
 ---
 name: xgh:glm
-description: "This skill should be used when the user asks to \"dispatch to glm\", \"run glm\", \"glm exec\", \"glm review\", \"use glm for\", \"send to glm\", or wants to delegate implementation or code review tasks to Z.AI's GLM models via OpenCode CLI. Supports worktree-isolated parallel dispatch and same-directory sequential dispatch."
----
-
-> **Context-mode:** This skill primarily runs Bash commands. Use Bash directly for git
-> and opencode commands (short output). Use `Read` to review opencode output files.
-
-## Preamble — Execution mode
-
-Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
-
-- `<SKILL_NAME>` = `glm`
-- `<SKILL_LABEL>` = `GLM dispatch`
-
+description: "Dispatch tasks to Z.AI GLM models via OpenCode CLI for parallel implementation or code review"
 ---
 
 # xgh:glm -- GLM Model Dispatch via OpenCode
@@ -164,4 +152,13 @@ See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
 GLM-specific additions:
 - **Vague prompts.** GLM works best with focused, specific tasks. "Add unit tests for the TokenBucket.consume() method in src/lib/token-bucket.ts" will succeed where "Fix all the bugs" will not.
 - **Review without prompt constraint.** Always include 'Do NOT modify any files' in review prompts — no native read-only sandbox flag.
-- **Using z.ai API directly.** Always dispatch through OpenCode CLI to ensure coding plan quota applies correctly.
+- **Using z.ai API directly.** Always dispatch through OpenCode CLI to ensure coding plan quota applies correctly.AI GLM models via OpenCode CLI.
+
+## Usage
+
+```
+/xgh-glm exec "Add unit tests for the auth module"
+/xgh-glm review "Focus on error handling"
+/xgh-glm exec --effort high "Refactor connection pooling"
+/xgh-glm exec --same-dir "Fix lint warnings in src/utils/"
+```

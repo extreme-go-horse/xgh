@@ -1,6 +1,6 @@
 ---
 name: xgh:validate-project-prefs
-description: "Use when checking that skills read PR workflow values from config/project.yaml instead of hardcoding reviewer logins, repo names, or merge methods; and to audit all 11 preference domains, lib/preferences.sh health, hook ordering, and cross-domain dependencies."
+description: "Validate that skills read from config/project.yaml instead of hardcoding PR workflow values"
 ---
 
 # xgh:validate-project-prefs — Preference Compliance Checker
@@ -57,7 +57,8 @@ REQUIRED_DOMAINS="pr dispatch superpowers design agents pair_programming vcs sch
 PRESENT_DOMAINS="$(yq -r '.preferences | keys | .[]' config/project.yaml 2>/dev/null || true)"
 MISSING=""
 for domain in $REQUIRED_DOMAINS; do
-  if ! printf '%s\n' "$PRESENT_DOMAINS" | grep -qx "$domain"; then
+  if ! printf '%s
+' "$PRESENT_DOMAINS" | grep -qx "$domain"; then
     MISSING="$MISSING $domain"
   fi
 done

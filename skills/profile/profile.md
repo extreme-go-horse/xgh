@@ -1,6 +1,6 @@
 ---
 name: xgh:profile
-description: "This skill should be used when the user runs /xgh-profile or asks about engineer capacity, assignment, or estimation. Analyzes engineer Jira history to produce throughput profiles, ticket affinity, and data-driven time estimates for task assignment — supports single engineer and team-view modes."
+description: "Analyze an engineer's Jira history to produce throughput profiles, ticket affinity, and data-driven estimates for task assignment."
 ---
 
 # xgh:profile — Engineer Throughput & Affinity Analysis
@@ -369,3 +369,50 @@ Always include this disclaimer in the report:
 - **Engineer name not found:** Suggest using `mcp__claude_ai_Atlassian__lookupJiraAccountId` to verify the name, then retry
 - **API rate limits:** If a query fails, wait 5 seconds and retry once. If it fails again, report partial results with a note
 - **Fewer than 3 similar tickets for estimation:** Mark confidence as "Low" and note "Consider breaking this ticket down or comparing with team-wide data"
+
+## Usage
+
+```
+/xgh-profile <engineer name>
+/xgh-profile <engineer name> <project key>
+/xgh-profile <name1>,<name2>,<name3> <project key>
+```
+
+## Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `engineer name` | Yes | Engineer's Jira display name. Use commas for multiple names (team view). |
+| `project key` | No | Jira project key (e.g., PTECH). Enables estimation and assignment recommendations. |
+
+## Examples
+
+```
+/xgh-profile Alice
+/xgh-profile Alice PTECH
+/xgh-profile Alice,Bob,Carol PTECH
+```
+
+## What It Does
+
+1. **Throughput Profile** — Cycle times (median, P75, P90) grouped by issue type, labels, and story point complexity. Throughput rates over 30/60/90-day windows.
+2. **Ticket Affinity** — Distribution of work by type, label, component, and epic. Identifies the engineer's "sweet spot" (high volume + fast cycle time).
+3. **Data-Driven Estimates** (requires project key) — Matches open backlog tickets to similar completed work and estimates duration with confidence levels.
+4. **Assignment Recommendations** (requires project key) — Ranks open tickets by affinity score based on label overlap, type match, SP sweet spot, and epic continuity.
+5. **Team View** (requires multiple names + project key) — Produces an assignment matrix and optimal assignment across engineers.
+
+## Output
+
+- Full report written to `.xgh/research/<engineer-name-slug>-profile.md`
+- Summary printed to conversation
+- Profile cached to lossless-claude memory (if available) for future reference
+
+## Prerequisites
+
+- Atlassian MCP must be configured. Run `/xgh-setup` if not yet connected.
+
+## Related Skills
+
+- `xgh:profile` — the full workflow skill this command triggers
+- `xgh:brief` — session briefing that can surface capacity issues
+- `xgh:implement` — uses profile data to inform assignment decisions

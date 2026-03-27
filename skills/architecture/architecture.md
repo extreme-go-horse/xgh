@@ -1,6 +1,6 @@
 ---
 name: xgh:architecture
-description: "This skill should be used when the user runs /xgh-architecture or asks to 'analyze architecture', 'show architecture', 'how are the modules connected', 'map the codebase'. Higher-level architectural analysis — reads index inventory and produces structured definitions of how modules connect, including boundaries, dependency graph, critical paths, and public surfaces."
+description: "Analyze codebase architecture — module boundaries, dependency graph, critical paths, public surfaces"
 ---
 
 # xgh:architecture — Codebase Architecture Analysis
@@ -256,3 +256,14 @@ Architecture analysis complete for <repo-name>
 Then suggest next step:
 - If mode was `quick`: *Run `/xgh:architecture full` for dependency graph, critical paths, and test landscape.*
 - If mode was `full`: *Run `/xgh:test-builder` to generate tests based on the architecture map.*
+
+## Usage
+
+```
+/xgh-architecture [quick|full]
+```
+
+- `quick` (default): module boundaries, public surfaces, integration points
+- `full`: adds dependency graph, critical paths, and test landscape
+
+`ARGUMENTS: $ARGUMENTS`

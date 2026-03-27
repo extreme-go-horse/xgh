@@ -8,16 +8,4 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 
 # /xgh-test-builder — Test Suite Generator
 
-Run the `xgh:test-builder` skill to generate or execute a tailored test suite based on architectural analysis.
-
-## Usage
-
-```
-/xgh-test-builder init
-/xgh-test-builder run [flow-name]
-```
-
-- `init`: Analyze architecture and generate `.xgh/test-builder/manifest.yaml`
-- `run [flow-name]`: Execute all flows, or a specific flow by name
-
-`ARGUMENTS: $ARGUMENTS`
+Read and follow the implementation spec at `skills/test-builder/test-builder.md`.

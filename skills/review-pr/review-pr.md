@@ -1,6 +1,6 @@
 ---
 name: xgh:review-pr
-description: "Use when asked to review one or more PRs deeply — beyond Copilot's single-pass review. Triggers on: 'review PR', 'deep review', 'multi-persona review', 'thorough review'. Distinct from xgh:copilot-pr-review (bot delegation) — this runs 4 parallel Claude personas in 2 rounds."
+description: "Run a deep multi-persona code review on one or more PRs — 4 parallel personas, 2 rounds of cross-pollination"
 ---
 
 # xgh:review-pr — Multi-Persona Code Review
@@ -117,3 +117,11 @@ Summary of multi-persona deep review findings across all requested PRs.
 | Skipping Round 2 because Round 1 found nothing | Round 2 catches what Round 1 missed — always run both |
 | Merging Round 1 and Round 2 into one agent | Keep rounds separate — Round 2 needs Round 1 as input |
 | `--rounds 1` skips Round 2 | Only skip if user explicitly passes `--rounds 1` |
+
+## Usage
+
+```
+/xgh-review-pr 114 115          # review PRs #114 and #115
+/xgh-review-pr                  # auto-detect open PRs by current user
+/xgh-review-pr 114 --rounds 1   # single round only
+```

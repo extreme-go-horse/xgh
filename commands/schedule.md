@@ -7,10 +7,6 @@ description: Manage xgh background scheduler — list, pause, resume, or run ret
 
 # /xgh-schedule — Scheduler Control Panel
 
-Run the `xgh:schedule` skill to manage the session scheduler and skill execution preferences.
+> **Output format:** Start with `## 🐴🤖 xgh schedule`. Use ✅ ⚠️ ❌ for status. Keep output concise.
 
-## Usage
-
-```
-/xgh-schedule [status | pause <job> | resume <job> | run <job> | off | prefs | add "<skill>" "<cron>"]
-```
+Read and follow the implementation spec at `skills/schedule/schedule.md`.

@@ -14,4 +14,4 @@ Scan and fix TODO/FIXME/HACK/DEPRECATED comments. Populates `.xgh/patterns.yaml`
 /xgh-todo-killer --dry-run                # preview without changes
 ```
 
-Run the `xgh:todo-killer` skill.
+Read and follow the implementation spec at `skills/todo-killer/todo-killer.md`.

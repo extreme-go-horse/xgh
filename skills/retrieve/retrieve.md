@@ -1,6 +1,6 @@
 ---
 name: xgh:retrieve
-description: "This skill should be used when the user runs /xgh-retrieve or when invoked by the CronCreate scheduler (every 5 minutes). Headless retrieval loop — scans configured Slack channels, follows links 1-hop to Jira/Confluence/GitHub/Figma, stashes raw content to ~/.xgh/inbox/, and detects urgency."
+description: "Run the xgh context retrieval loop. Scans configured Slack channels, follows links to Jira/Confluence/GitHub/Figma, and stashes raw content to ~/.xgh/inbox/. Invoked by the scheduler every 5 minutes."
 ---
 
 # xgh:retrieve — Retrieval Loop
@@ -23,7 +23,13 @@ Invoked by CronCreate:
 
 Determine which projects to retrieve for:
 
-1. Run `bash ~/.xgh/scripts/detect-project.sh` and read `XGH_PROJECT` and `XGH_PROJECT_SCOPE`
+1. Run `bash ~/.xgh/scripts/detect-project.sh` using the **Bash tool directly** — never via
+   `ctx_search` or the FTS5 index, which may return stale results from prior sessions.
+   Capture stdout and parse the two output lines:
+   ```
+   XGH_PROJECT=<name>
+   XGH_PROJECT_SCOPE=<name,dep1,dep2>
+   ```
 2. If `XGH_PROJECT` is non-empty:
    - Log: `Scoped to project: $XGH_PROJECT (+ dependencies: ...)`
    - In Step 1, filter `ingest.yaml` projects to only those in `XGH_PROJECT_SCOPE`
@@ -349,3 +355,17 @@ Retrieval operates in three lanes:
 
 The automated paths (1 + 2) handle 95% of retrieval. The interactive path is a fallback
 providing richer analysis (urgency scoring, thread following, link enrichment).
+
+## Usage
+
+```
+/xgh-retrieve
+```
+
+No arguments. All configuration comes from `~/.xgh/ingest.yaml`.
+
+## Notes
+
+- Invoked automatically each Claude session via CronCreate (scheduler is always-on; pause with `~/.xgh/scheduler-paused`). Also run manually to test.
+- Critical items (urgency ≥ 80) trigger an immediate Slack DM.
+- Run `/xgh-doctor` to check pipeline freshness.

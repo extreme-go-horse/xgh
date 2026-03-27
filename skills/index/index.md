@@ -1,6 +1,6 @@
 ---
 name: xgh:index
-description: "This skill should be used when the user runs /xgh-index or asks to 'index repo', 'index codebase', 'scan the codebase'. Raw codebase inventory — extracts module list, key files, and naming conventions into lossless-claude memory. Reads stack and surfaces from ~/.xgh/ingest.yaml."
+description: "Raw codebase inventory — extracts module list, key files, and naming conventions into lossless-claude memory."
 ---
 
 # xgh:index — Codebase Inventory
@@ -116,3 +116,17 @@ Index complete for <repo-name>
 ```
 
 Then ask: "Index complete. Run `/xgh:architecture`? [y/n]"
+
+## Usage
+
+```
+/xgh-index [path]
+```
+
+**Examples:**
+```
+/xgh-index
+/xgh-index ~/code/my-ios-app
+```
+
+- `path` — optional (defaults to current directory)

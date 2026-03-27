@@ -7,18 +7,4 @@ description: Run the xgh context retrieval loop. Scans configured Slack channels
 
 # /xgh-retrieve — Context Retrieval Loop
 
-Run the `xgh:retrieve` skill to scan all active projects for new messages and linked resources.
-
-## Usage
-
-```
-/xgh-retrieve
-```
-
-No arguments. All configuration comes from `~/.xgh/ingest.yaml`.
-
-## Notes
-
-- Invoked automatically each Claude session via CronCreate (scheduler is always-on; pause with `~/.xgh/scheduler-paused`). Also run manually to test.
-- Critical items (urgency ≥ 80) trigger an immediate Slack DM.
-- Run `/xgh-doctor` to check pipeline freshness.
+Read and follow the implementation spec at `skills/retrieve/retrieve.md`.

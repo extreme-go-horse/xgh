@@ -9,15 +9,6 @@ aliases: ["route"]
 
 # /xgh-dispatch
 
-Run the `xgh:dispatch` skill to automatically select the optimal agent, model, and effort level for a task.
+> **Output format:** Follow the [xgh output style guide](../../templates/output-style.md). Start with `## 🐴🤖 xgh dispatch`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. End with an italicized next step.
 
-## Usage
-
-```
-/xgh-dispatch "Add unit tests for the auth module"
-/xgh-dispatch exec "Refactor connection pooling"
-/xgh-dispatch review --base main
-/xgh-dispatch --agent codex "Fix the flaky test"
-/xgh-dispatch --model gpt-5.4-mini "Rename the variable"
-/xgh-dispatch --agent gemini --model gemini-2.5-flash "Quick docs update"
-```
+Read and follow the implementation spec at `skills/dispatch/dispatch.md`.

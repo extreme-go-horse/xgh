@@ -8,19 +8,6 @@ usage: "/xgh-ship-prs start <PR> [<PR>...] [--repo owner/repo] [--interval 3m] [
 
 # /xgh-ship-prs
 
-Run the `xgh:ship-prs` skill to shepherd multiple PRs through GitHub Copilot review cycles until all are merged.
+> **Output format:** Start with `## 🐴🤖 xgh ship-prs`. Use markdown tables for structured data. Use ✅ ⚠️ ❌ for status. Keep per-poll output terse.
 
-## Usage
-
-```
-/xgh-ship-prs start 28 29 [--repo owner/repo] [--interval 3m] [--merge-method merge|squash|rebase] [--reviewer <login>] [--accept-suggestion-commits] [--require-resolved-threads] [--max-fix-cycles 3] [--post-merge-hook 'make deploy']
-/xgh-ship-prs poll-once 28 29
-/xgh-ship-prs status
-/xgh-ship-prs stop
-/xgh-ship-prs pause
-/xgh-ship-prs resume
-/xgh-ship-prs hold 28
-/xgh-ship-prs unhold 28
-/xgh-ship-prs dry-run [28]
-/xgh-ship-prs log [28]
-```
+Read and follow the implementation spec at `skills/ship-prs/ship-prs.md`.

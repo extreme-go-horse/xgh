@@ -1,6 +1,6 @@
 ---
 name: xgh:calibrate
-description: "Use when running /xgh-calibrate or asking to tune the dedup threshold. Calibrates similarity threshold against real lossless-claude memory pairs, computes F1 scores at multiple thresholds, and offers to update analyzer.dedup_threshold in ingest.yaml."
+description: "Calibrate the dedup similarity threshold by evaluating real memory pairs. Supports interactive, headless, and comparison modes with F1 scoring."
 ---
 
 # xgh:calibrate — Dedup Threshold Calibration
@@ -77,3 +77,15 @@ Fewer than 10 sample pairs → print warning, abort calibration (not enough sign
 ## Validation
 
 After updating analyzer.dedup_threshold in ingest.yaml, run /xgh-retrieve to fetch fresh items, then run /xgh-analyze and check the dedup report line: 'X duplicates suppressed'. If 0 duplicates suppressed on a project with history, threshold may be too low.
+
+## Usage
+
+```
+/xgh-calibrate
+/xgh-calibrate --auto
+/xgh-calibrate --compare
+```
+
+- (no flag) — interactive mode: you judge each pair
+- `--auto` — headless mode: Claude judges, auto-updates if confidence > 90%
+- `--compare` — runs both and shows AI vs human agreement rate

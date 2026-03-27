@@ -8,14 +8,6 @@ usage: "/xgh-watch-prs <start|poll-once> <PR> [<PR>...] [--repo owner/repo] [--i
 
 # /xgh-watch-prs
 
-Run the `xgh:watch-prs` skill to passively observe PRs and surface changes between polls. Read-only — never merges, fixes comments, or requests reviews. Use `/xgh-ship-prs` to actively drive PRs to merge.
+> **Output format:** Start with `## 🐴🤖 xgh watch-prs`. Use markdown tables for state snapshots. Use ✅ ⚠️ ❌ for status. Show change-log between polls as bullet list. Keep per-poll output terse.
 
-## Usage
-
-```
-/xgh-watch-prs start 28 29 [--interval 3m] [--reviewer <login>]
-/xgh-watch-prs poll-once 28 29
-/xgh-watch-prs status
-/xgh-watch-prs stop
-```
-
+Read and follow the implementation spec at `skills/watch-prs/watch-prs.md`.

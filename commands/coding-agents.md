@@ -9,13 +9,4 @@ aliases: ["ca"]
 
 # /xgh-coding-agents
 
-Run the `xgh:coding-agents` skill to list available coding agents and their model capabilities.
-
-## Usage
-
-```
-/xgh-coding-agents                    # List all agents + their models
-/xgh-coding-agents opencode           # Show OpenCode details
-/xgh-coding-agents --refresh          # Re-probe all agents
-/xgh-coding-agents opencode --refresh # Re-probe just OpenCode
-```
+Read and follow the implementation spec at `skills/coding-agents/coding-agents.md`.

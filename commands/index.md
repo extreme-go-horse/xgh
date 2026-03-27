@@ -9,18 +9,4 @@ ARGUMENTS: $ARGUMENTS
 
 # /xgh-index — Codebase Inventory
 
-Run the `xgh:index` skill to extract a raw inventory of modules, key files, and naming conventions from a repository.
-
-## Usage
-
-```
-/xgh-index [path]
-```
-
-**Examples:**
-```
-/xgh-index
-/xgh-index ~/code/my-ios-app
-```
-
-- `path` — optional (defaults to current directory)
+Read and follow the implementation spec at `skills/index/index.md`.

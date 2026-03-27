@@ -1,6 +1,6 @@
 ---
 name: xgh:seed
-description: "Use when injecting xgh project context into another AI CLI agent before dispatch (Gemini, OpenCode, Codex). Writes a project-context brief to .gemini/skills/xgh/, .agents/skills/xgh/, or .opencode/skills/xgh/ so dispatched agents start with project memory pre-loaded."
+description: "Inject xgh project context into other AI CLI tools' skill directories (Gemini CLI, Codex, OpenCode) before dispatch"
 ---
 
 # xgh:seed — Context Injection for Dispatched Agents
@@ -144,3 +144,9 @@ lcm_store("xgh-seed: seeded context into [platforms] on [date]. Context sources:
 - **Seeding without fresh context.** If `~/.xgh/inbox/digest.md` is old (>24h) and no context-tree files exist, warn the user: "Context sources are stale. Run `/xgh-brief` first."
 - **Over-seeding.** Only seed platforms that are actually installed (detected by detect-agents.sh).
 - **Stale seeds.** Re-run `/xgh-seed` before dispatching long-running tasks — context files don't auto-update.
+
+## Usage
+
+```
+/xgh-seed
+```

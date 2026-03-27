@@ -1,6 +1,6 @@
 ---
 name: xgh:doctor
-description: "This skill should be used when the user runs /xgh-doctor or asks to 'check health', 'run diagnostics', 'validate pipeline', 'check ingest', 'is the pipeline running'. Validates config completeness, Slack/Jira/lossless-claude connectivity, scheduler freshness, workspace stats, and codebase index status — outputs a structured pass/fail report with fix suggestions."
+description: "Validate the full xgh ingest pipeline — config, connectivity, scheduler freshness, and workspace stats."
 ---
 
 # xgh:doctor — Pipeline Health Check
@@ -333,3 +333,11 @@ Agent Versions
 Summary: 9 passed, 0 warnings, 2 failures
 Fix: Check #channel-missing name. Run: claude -p "/xgh-analyze" to clear overdue analyzer.
 ```
+
+## Usage
+
+```
+/xgh-doctor
+```
+
+Outputs a structured ✓/✗ report with specific fix suggestions for any failures.

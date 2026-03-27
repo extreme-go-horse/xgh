@@ -16,6 +16,9 @@
     "cockpit",
     "devtools"
   ],
+  "commands": "./commands/",
+  "skills": "./skills/",
+  "agents": "./agents/",
   "hooks": {
     "SessionStart": [
       {
