@@ -1,0 +1,58 @@
+{
+  "target": ".xgh/specs/2026-03-27-retrieve-prefetch-design.md",
+  "date": "2026-03-27",
+  "rounds": 4,
+  "model": "claude-sonnet-4-6",
+  "confirmed": [
+    {"id":"F2","severity":"critical","winner":"adversary","round":1,"description":"Stuck-running state never reset by session-start — error table says 'resolved on next session-start' but the guard (if state!=running→write) explicitly prevents that reset.","resolution":"Add TTL expiry logic: if state==running and started_at is older than TTL, overwrite regardless of guard."},
+    {"id":"F1","severity":"high","winner":"adversary","round":1,"description":"Orphan-trigger: if session dies before CronCreate fires, state=running is stuck and no retrieve ever runs.","resolution":"Add TTL check in session-start before writing state=running."},
+    {"id":"F6","severity":"high","winner":"adversary","round":1,"description":"Briefing stale path calls CronCreate but never writes state=running — duplicate jobs on back-to-back briefing invocations.","resolution":"Briefing stale path must write state=running before calling CronCreate."},
+    {"id":"F25","severity":"high","winner":"advocate","round":3,"description":"Permanent cross-session prefetch deadlock after retrieve crash — every subsequent session-start sees state=running and outputs retrieveTrigger=false with no escape.","resolution":"Same TTL fix as F2 collapses this cluster."},
+    {"id":"F33","severity":"high","winner":"adversary","round":4,"description":"$STARTED_AT used in retrieve Step 10 but never assigned — every retrieve writes started_at as empty string (silent data corruption).","resolution":"Add STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ) to retrieve Step 0; use in Step 10."},
+    {"id":"F35","severity":"high","winner":"adversary","round":4,"description":"check-retrieve-freshness.sh exits 2 for state=running with no duration TTL — crashed retrieve from days ago produces EXIT=2 forever.","resolution":"Add max-running-duration TTL to freshness script: if started_at older than TTL, exit 1 instead of 2."},
+    {"id":"F3","severity":"medium","winner":"split","round":1,"description":"Two-session session_id mismatch consequence undocumented — silent fallback to time-only check.","resolution":"Add spec note clarifying session_id mismatch falls through to time-based freshness."},
+    {"id":"F5","severity":"medium","winner":"adversary","round":1,"description":"Non-atomic echo redirect for state file writes — concurrent writes can corrupt.","resolution":"Write to temp file then mv for atomic replacement."},
+    {"id":"F8","severity":"medium","winner":"adversary","round":1,"description":"Empty-string CLAUDE_SESSION_ID causes spurious session match — fallback only triggers on absent var, not empty.","resolution":"Guard must check both absent and empty CLAUDE_SESSION_ID."},
+    {"id":"F9","severity":"medium","winner":"adversary","round":1,"description":"Briefing has no mechanism to read completed_at for banner — freshness script returns exit code only.","resolution":"Freshness script must emit completed_at to stdout on exit 0/2 so briefing can display 'data as of' banner."},
+    {"id":"F11","severity":"medium","winner":"adversary","round":1,"description":"Test #10 tests missing session_id field in state file, but spec defines fallback on missing CLAUDE_SESSION_ID env var — different conditions.","resolution":"Split test #10 into two cases: absent env var and absent state file field."},
+    {"id":"F13","severity":"medium","winner":"adversary","round":1,"description":"YAML parser for ingest.yaml unspecified in check-retrieve-freshness.sh — yq/python3/grep have different failure modes.","resolution":"Spec must name the parser (yq or python3)."},
+    {"id":"F14","severity":"medium","winner":"adversary","round":1,"description":"retrieveTrigger→CronCreate is an LLM behavioral contract with no fallback — silent drop if Claude ignores the flag.","resolution":"Document LLM contract risk; TTL-based recovery in session-start is the fallback."},
+    {"id":"F18","severity":"medium","winner":"split","round":2,"description":"retrieve Step 0 unconditionally overwrites session_id — in two-session race, wrong session_id stamped on completed state.","resolution":"Document that session_id stomp is intentional (last-writer-wins); note consequence."},
+    {"id":"F19","severity":"medium","winner":"adversary","round":2,"description":"Within-session stuck banner: crashed retrieve leaves briefing showing in-progress banner for entire session.","resolution":"TTL fix in freshness script also heals within-session case."},
+    {"id":"F21","severity":"medium","winner":"adversary","round":2,"description":"Banner references 'session start' timestamp not stored in state file — started_at is retrieve-start, not session-start.","resolution":"Change banner copy to 'data as of <started_at>' or add session_start field to state file."},
+    {"id":"F31","severity":"medium","winner":"advocate","round":4,"description":"TOCTOU: two concurrent session-starts both read state=idle before either writes — both pass duplicate guard and both fire CronCreate.","resolution":"Acknowledge in error table; consider flock or write-to-temp-then-mv guard."},
+    {"id":"F7","severity":"low","winner":"split","round":1,"description":"started_at authority unclear — session-start writes T1, retrieve Step 0 overwrites with T2.","resolution":"Document which is authoritative (retrieve's T2) or remove from session-start write."},
+    {"id":"F12","severity":"low","winner":"split","round":1,"description":"CronCreate one-shot semantics asserted but API contract not cited.","resolution":"Cite CronCreate API contract for one-shot semantics in spec."},
+    {"id":"F16","severity":"low","winner":"adversary","round":1,"description":"No mkdir -p before state file write — fails silently if ~/.xgh/ missing.","resolution":"Add mkdir -p ~/.xgh/ before any state file write."},
+    {"id":"F17","severity":"low","winner":"adversary","round":1,"description":"Test #20 grep targets retrieve/config skills but spec places briefing_staleness_minutes in ingest.yaml schema section.","resolution":"Test #20 must grep ingest.yaml schema location."},
+    {"id":"F20","severity":"low","winner":"split","round":2,"description":"No value validation for briefing_staleness_minutes — 0 makes every retrieve immediately stale.","resolution":"Spec must state 'must be a positive integer'; treat 0 or negative as default (30)."},
+    {"id":"F23","severity":"low","winner":"split","round":2,"description":"CronCreate failure in briefing stale path silently omits banner — user gets stale data with no signal.","resolution":"Show static '⚠ data may be stale' banner when CronCreate fails."},
+    {"id":"F26","severity":"low","winner":"adversary","round":3,"description":"EXIT=2 banner same missing-timestamp root cause as F21 — second code path.","resolution":"F21 fix closes this path."},
+    {"id":"F27","severity":"low","winner":"adversary","round":3,"description":"CronCreate child may not inherit CLAUDE_SESSION_ID — retrieve Step 0 overwrites session_id with empty.","resolution":"Spec must define CLAUDE_SESSION_ID propagation for CronCreate child environment."},
+    {"id":"F30","severity":"low","winner":"advocate","round":3,"description":"Missing ingest.yaml file entirely is unspecified — default-30 fallback only covers missing key within existing file.","resolution":"Spec must define behavior when ingest.yaml is absent (treat as default-30)."}
+  ],
+  "debunked": [
+    {"id":"F4","round":1,"description":"partial-write producing state=complete without completed_at","reason":"Crash before Step 10 leaves state=running, not state=complete; corrupted JSON already covered."},
+    {"id":"F10","round":1,"description":"single-source-of-truth framing misleading","reason":"Framing applies to read/decide logic; retrieve writing directly is correct producer pattern."},
+    {"id":"F15","round":1,"description":"test#19 keyword grep insufficient to prove non-blocking","reason":"Structural regression guard is valid; not actionable."},
+    {"id":"F22","round":2,"description":"test#10 missing field vs missing env var","reason":"Both produce null/empty — same code path in practice."},
+    {"id":"F24","round":2,"description":"test#20 'or config skill' passes by accident","reason":"Disjunction is intentional implementation-agnostic flexibility."},
+    {"id":"F28","round":3,"description":"stale→running UX transition unspecified","reason":"EXIT=2 provides sufficient signal on re-invocation; spec need not narrate every re-entry."},
+    {"id":"F29","round":3,"description":"test suite has no decision logic coverage","reason":"Tests 2-10 run actual script against mock state files — that IS behavioral testing."},
+    {"id":"F32","round":4,"description":"time-only fallback field unspecified for state=running","reason":"Time check is in state==complete branch only; state==running exits 2 immediately with no time comparison."},
+    {"id":"F34","round":4,"description":"missing state file exit code unspecified","reason":"Spec line 57 explicitly states: state file missing → exit 1 (stale)."}
+  ],
+  "meta": {
+    "total_findings": 35,
+    "confirmed": 26,
+    "debunked": 9,
+    "by_severity": {"critical": 1, "high": 5, "medium": 11, "low": 9},
+    "convergence_round": null,
+    "note": "Judge reported convergence at round 3 but deterministic check failed (different finding IDs each round). Ran full 4 rounds.",
+    "top_fixes": [
+      "F2+F25+F35: Add running_since TTL (10 min) to freshness script and session-start guard",
+      "F33: Assign STARTED_AT=$(date) in retrieve Step 0",
+      "F6: Briefing stale path writes state=running before CronCreate"
+    ]
+  }
+}
