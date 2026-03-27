@@ -131,7 +131,7 @@ Display a summary table:
 | gemini   | .gemini/skills/xgh/ | context.md, SKILL.md |
 ```
 
-Store a brief memory if memory backend available (see `_shared/references/memory-backend.md`):
+Store a brief memory if memory backend available:
 
 ```
 lcm_store("xgh-seed: seeded context into [platforms] on [date]. Context sources: [which sources were available]", ["session"])

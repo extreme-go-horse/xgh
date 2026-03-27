@@ -22,7 +22,7 @@ Bootstrap — load repo from project preferences:
 source lib/config-reader.sh
 REPO=$(load_pr_pref repo "" "")
 ```
-See `skills/_shared/references/project-preferences.md` for the full cascade.
+Reads from `config/project.yaml` preferences cascade.
 
 If no PR numbers given, fetch open PRs:
 ```bash

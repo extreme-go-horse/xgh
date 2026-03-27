@@ -7,8 +7,7 @@ description: "Dispatch tasks to Gemini CLI for parallel implementation or code r
 
 Dispatch implementation tasks or code reviews to Google's Gemini CLI as a parallel or sequential agent. Gemini runs non-interactively via `-p` (headless mode), optionally in an isolated git worktree for safe parallel work alongside Claude Code.
 
-> **Shared workflow:** Steps 1, 3, 4, and 5 follow `skills/_shared/references/dispatch-template.md`.
-> Use `<CLI>` = `gemini`, `<CLI_LABEL>` = `Gemini`, `<cli>` = `gemini`, `<tag>` = `gemini`.
+> Steps 1, 3, 4, and 5 follow the shared dispatch workflow pattern.
 
 ## Prerequisites
 
@@ -79,7 +78,7 @@ Any unrecognized flags are forwarded to `gemini` as-is.
 
 ## Step 1: Setup Workspace
 
-Follow `skills/_shared/references/dispatch-template.md` Step 1. Use `<CLI>` = `gemini`.
+Set up the workspace for Gemini dispatch.
 
 Same-dir fallback flag: `--same-dir`.
 
@@ -128,19 +127,17 @@ Review prompt examples:
 
 ## Step 3: Collect Results
 
-Follow `skills/_shared/references/dispatch-template.md` Step 3. Use `<CLI_LABEL>` = `Gemini`.
+Collect and present the Gemini dispatch results.
 
 ---
 
 ## Step 4: Integration (worktree mode only)
 
-Follow `skills/_shared/references/dispatch-template.md` Step 4.
+Integrate worktree changes back into the working branch.
 
 ---
 
-## Step 5: Curate (if memory backend available — see `_shared/references/memory-backend.md`)
-
-Follow `skills/_shared/references/dispatch-template.md` Step 5. Use `<CLI_LABEL>` = `Gemini`, `<cli>` = `gemini`.
+## Step 5: Curate (if memory backend available)
 
 **Write observation to model profiles** (always, regardless of lossless-claude):
 
@@ -208,7 +205,7 @@ The user can override via `--approval-mode <mode>`:
 
 ## Anti-Patterns
 
-See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
+Shared anti-patterns for all dispatch skills:
 
 Gemini-specific additions:
 - **Vague prompts.** Gemini works best with focused, specific tasks. "Add unit tests for the TokenBucket.consume() method in src/lib/token-bucket.ts" will succeed where "Fix all the bugs" will not.

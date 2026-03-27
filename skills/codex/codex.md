@@ -7,8 +7,7 @@ description: "Dispatch tasks to Codex CLI for parallel implementation or code re
 
 Dispatch implementation tasks or code reviews to OpenAI's Codex CLI as a parallel or sequential agent. Codex runs non-interactively via `codex exec` or `codex review`, optionally in an isolated git worktree for safe parallel work alongside Claude Code.
 
-> **Shared workflow:** Steps 1, 3, 4, and 5 follow `skills/_shared/references/dispatch-template.md`.
-> Use `<CLI>` = `codex`, `<CLI_LABEL>` = `Codex`, `<cli>` = `codex`, `<tag>` = `codex`.
+> Steps 1, 3, 4, and 5 follow the shared dispatch workflow pattern.
 
 ## Prerequisites
 
@@ -75,7 +74,7 @@ Any unrecognized flags are forwarded to `codex exec` / `codex review` as-is.
 
 ## Step 1: Setup Workspace
 
-Follow `skills/_shared/references/dispatch-template.md` Step 1. Use `<CLI>` = `codex`.
+Set up the workspace for Codex dispatch.
 
 **Same-dir mode:** Set `WORK_DIR=$(pwd)`. No worktree is created. For exec, pass `--add-dir $(pwd)` in the Codex invocation so the sandbox grants write access to the repo directory. Note: `--add-dir` is a Codex sandbox flag, not the isolation selector — same-dir mode is chosen when the user does not want worktree isolation (e.g. for reviews, or explicit `--add-dir` choice).
 
@@ -114,7 +113,7 @@ Passthrough flags: <any user-provided flags>
 
 ## Step 3: Collect Results
 
-Follow `skills/_shared/references/dispatch-template.md` Step 3. Use `<CLI_LABEL>` = `Codex`.
+Collect and present the Codex dispatch results.
 
 The codex-driver agent returns a structured result block — surface it directly. The `git log` / `diff stat` commands are run by the agent and included in its result.
 
@@ -122,13 +121,11 @@ The codex-driver agent returns a structured result block — surface it directly
 
 ## Step 4: Integration (worktree mode only)
 
-Follow `skills/_shared/references/dispatch-template.md` Step 4.
+Integrate worktree changes back into the working branch.
 
 ---
 
-## Step 5: Curate (if memory backend available — see `_shared/references/memory-backend.md`)
-
-Follow `skills/_shared/references/dispatch-template.md` Step 5. Use `<CLI_LABEL>` = `Codex`, `<cli>` = `codex`.
+## Step 5: Curate (if memory backend available)
 
 **Write observation to model profiles** (always, regardless of lossless-claude):
 
@@ -257,7 +254,7 @@ Commit as: '<message>'
 
 ## Anti-Patterns
 
-See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
+Shared anti-patterns for all dispatch skills:
 
 Codex-specific additions:
 - **Vague prompts.** "Fix all the bugs" produces poor results. "Fix `src/auth.ts:42` — null check missing before `.userId` access" succeeds.

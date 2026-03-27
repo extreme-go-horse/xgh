@@ -9,13 +9,12 @@ Scan skill files for hardcoded PR workflow values that should be read from `conf
 
 ## Checks
 
-Run these grep patterns against `skills/` (excluding `_shared/references/providers/` and this skill):
+Run these grep patterns against `skills/` (excluding this skill):
 
 ### 1. Hardcoded reviewer logins
 
 ```bash
 grep -rn "copilot-pull-request-reviewer" skills/ --include="*.md" \
-  | grep -v "_shared/references/providers/" \
   | grep -v "validate-project-prefs"
 ```
 **Pass:** no matches. **Fail:** list file:line for each match.
@@ -32,7 +31,6 @@ grep -rn "gh repo view --json nameWithOwner" skills/ --include="*.md" \
 
 ```bash
 grep -rn "reviewer_bot:" skills/ --include="*.md" \
-  | grep -v "_shared/references/providers/" \
   | grep -v "validate-project-prefs"
 ```
 **Pass:** no matches. **Fail:** list file:line.

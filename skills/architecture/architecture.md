@@ -7,7 +7,7 @@ description: "Analyze codebase architecture — module boundaries, dependency gr
 
 ## Step 1 — Resolve project from ingest.yaml
 
-Follow the shared project resolution protocol in `skills/_shared/references/project-resolution.md`. Store the resolved project name for use in subsequent steps. If resolution fails, follow the error-specific guidance in the shared protocol.
+Resolve the active project from `~/.xgh/ingest.yaml`. Store the resolved project name for use in subsequent steps.
 
 ## Step 2 — Hard prerequisite: index freshness
 
@@ -202,7 +202,7 @@ Run additional analysis based on `<stack>`:
 | critical-paths | — | ✓ |
 | test-landscape | — | ✓ |
 
-## Step 8 — Store artifacts to memory backend (see `_shared/references/memory-backend.md`)
+## Step 8 — Store artifacts to memory backend
 
 For each artifact produced, [STORE] → call `lcm_store`:
 

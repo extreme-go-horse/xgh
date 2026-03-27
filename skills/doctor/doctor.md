@@ -39,7 +39,7 @@ curl -sf --max-time 5 "${XGH_REMOTE_URL}/v1/models"
     Fix: ensure the server is running and port is accessible from this machine
   ```
 
-Memory backend availability (see `_shared/references/memory-backend.md` for detection priority):
+Memory backend availability:
 
 For lossless-claude (current reference backend): check if `lcm_search` is present in the available tool list:
 - Tool absent → lossless-claude MCP not registered. Fix: add lossless-claude entry to `.claude/.mcp.json`

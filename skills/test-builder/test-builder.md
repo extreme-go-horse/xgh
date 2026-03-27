@@ -7,7 +7,7 @@ description: "Generate and run tailored test suites from architectural analysis 
 
 ## Prerequisites — Resolve active project
 
-Follow the shared project resolution protocol in `skills/_shared/references/project-resolution.md`. Store the resolved project name for use in subsequent steps. If resolution fails, follow the error-specific guidance in the shared protocol.
+Resolve the active project from `~/.xgh/ingest.yaml`. Store the resolved project name for use in subsequent steps.
 
 ## Argument Parsing
 
@@ -30,7 +30,7 @@ Usage:
 
 ### Step 1 — Hard prerequisite: architecture freshness
 
-#### 1a — Search memory for architecture entries (see `_shared/references/memory-backend.md`)
+#### 1a — Search memory for architecture entries
 
 [SEARCH] tags `["xgh:architecture", "<repo-name>"]` → call `lcm_search("xgh:architecture", { tags: ["xgh:architecture", "<repo-name>"] })`.
 

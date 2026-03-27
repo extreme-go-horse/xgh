@@ -7,7 +7,7 @@ description: "Raw codebase inventory — extracts module list, key files, and na
 
 ## Step 1 — Resolve project from ingest.yaml
 
-Follow the shared project resolution protocol in `skills/_shared/references/project-resolution.md`. Store the resolved project name for use in subsequent steps. If resolution fails, follow the error-specific guidance in the shared protocol.
+Resolve the active project from `~/.xgh/ingest.yaml`. Store the resolved project name for use in subsequent steps.
 
 ## Step 2 — Read stack and surfaces
 
@@ -78,7 +78,7 @@ Indexed: <ISO date>
 
 Tags: `["xgh:index", "<repo-name>"]`
 
-Do not pass raw file content to `lcm_store` (or equivalent — see `_shared/references/memory-backend.md`). Synthesize a concise summary for each module.
+Do not pass raw file content to `lcm_store`. Synthesize a concise summary for each module.
 
 ## Step 8 — Update index timestamp
 

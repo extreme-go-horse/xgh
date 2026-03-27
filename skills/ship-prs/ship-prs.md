@@ -36,7 +36,7 @@ Actively drive a batch of PRs through review cycles until all are merged. **GitH
 
 ### Step 0a — Load preferences from project.yaml
 
-Source `lib/config-reader.sh` for `load_pr_pref`. See `skills/_shared/references/project-preferences.md` for the full cascade.
+Source `lib/config-reader.sh` for `load_pr_pref`. Reads from `config/project.yaml` preferences cascade.
 
 ```bash
 REPO=$(load_pr_pref repo "$CLI_REPO" "")

@@ -26,7 +26,7 @@ Passively watch a batch of PRs and surface changes between polls: new comments, 
 
 ### Step 0a — Load preferences from project.yaml
 
-Source `lib/config-reader.sh` for `load_pr_pref`. See `skills/_shared/references/project-preferences.md` for the full cascade.
+Source `lib/config-reader.sh` for `load_pr_pref`. Reads from `config/project.yaml` preferences cascade.
 
 ```bash
 REPO=$(load_pr_pref repo "$CLI_REPO" "")
@@ -35,7 +35,7 @@ REVIEWER=$(load_pr_pref reviewer "$CLI_REVIEWER" "")
 REVIEWER_COMMENT_AUTHOR=$(load_pr_pref reviewer_comment_author "" "")
 ```
 
-Provider-specific quirks are documented in `skills/_shared/references/providers/<provider>.md` (github, gitlab, bitbucket, azure-devops).
+Provider-specific quirks are configured in `config/project.yaml` under `preferences.pr`.
 
 ---
 
@@ -209,7 +209,7 @@ If no state file: `ℹ️ No active watch-prs session.`
 
 ## Provider Profiles
 
-Provider-specific quirks are documented in `skills/_shared/references/providers/<provider>.md` (github, gitlab, bitbucket, azure-devops).
+Provider-specific quirks are configured in `config/project.yaml` under `preferences.pr`.
 
 ---
 

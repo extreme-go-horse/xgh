@@ -7,13 +7,4 @@ description: Add a new project to xgh context monitoring. Interactive onboarding
 
 # /xgh-track — Add Project to Monitoring
 
-## Preamble — Execution mode
-
-Follow the shared execution mode protocol in `skills/_shared/references/execution-mode-preamble.md`. Apply it to this skill's command name.
-
-- `<SKILL_NAME>` = `track`
-- `<SKILL_LABEL>` = `Track`
-
----
-
 Read and follow the implementation spec at `skills/track/track.md`.

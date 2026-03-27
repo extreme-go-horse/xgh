@@ -7,8 +7,7 @@ description: "Dispatch tasks to OpenCode CLI for parallel implementation or code
 
 Dispatch implementation tasks or code reviews to OpenCode CLI as a parallel or sequential agent. OpenCode runs non-interactively via `opencode run "<prompt>"`, optionally in an isolated git worktree for safe parallel work alongside Claude Code.
 
-> **Shared workflow:** Steps 1, 3, 4, and 5 follow `skills/_shared/references/dispatch-template.md`.
-> Use `<CLI>` = `opencode`, `<CLI_LABEL>` = `OpenCode`, `<cli>` = `opencode`, `<tag>` = `opencode`.
+> Steps 1, 3, 4, and 5 follow the shared dispatch workflow pattern.
 
 ## Prerequisites
 
@@ -57,7 +56,7 @@ Any unrecognized flags are forwarded to `opencode run` as-is.
 
 ## Step 1: Setup Workspace
 
-Follow `skills/_shared/references/dispatch-template.md` Step 1. Use `<CLI>` = `opencode`.
+Set up the workspace for OpenCode dispatch.
 
 Same-dir fallback flag: `--same-dir`.
 
@@ -92,19 +91,17 @@ Note: Review is enforced via prompt engineering — OpenCode has no `-s read-onl
 
 ## Step 3: Collect Results
 
-Follow `skills/_shared/references/dispatch-template.md` Step 3. Use `<CLI_LABEL>` = `OpenCode`.
+Collect and present the OpenCode dispatch results.
 
 ---
 
 ## Step 4: Integration (worktree mode only)
 
-Follow `skills/_shared/references/dispatch-template.md` Step 4.
+Integrate worktree changes back into the working branch.
 
 ---
 
-## Step 5: Curate (if memory backend available — see `_shared/references/memory-backend.md`)
-
-Follow `skills/_shared/references/dispatch-template.md` Step 5. Use `<CLI_LABEL>` = `OpenCode`, `<cli>` = `opencode`.
+## Step 5: Curate (if memory backend available)
 
 **Write observation to model profiles** (always, regardless of lossless-claude):
 
@@ -173,7 +170,7 @@ Replace `<MODEL>`, `<ARCHETYPE>` with the actual values from the dispatch. Deter
 
 ## Anti-Patterns
 
-See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
+Shared anti-patterns for all dispatch skills:
 
 OpenCode-specific additions:
 - **Vague prompts.** OpenCode works best with focused, specific tasks. "Add unit tests for the TokenBucket.consume() method in src/lib/token-bucket.ts" will succeed where "Fix all the bugs" will not.

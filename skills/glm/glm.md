@@ -72,7 +72,7 @@ Parse the user's request to determine dispatch parameters. Only extract what the
 
 ## Step 1: Setup Workspace
 
-Follow `skills/_shared/references/dispatch-template.md` Step 1. Use `<CLI>` = `opencode`, `<CLI_LABEL>` = `GLM`.
+Set up the workspace for GLM dispatch via OpenCode.
 
 Same-dir fallback flag: `--same-dir`.
 
@@ -113,19 +113,17 @@ cd "$WORK_DIR" && opencode run --model "$MODEL" "Code review: $PROMPT. Analyze t
 
 ## Step 3: Collect Results
 
-Follow `skills/_shared/references/dispatch-template.md` Step 3. Use `<CLI_LABEL>` = `GLM`.
+Collect and present the GLM dispatch results.
 
 ---
 
 ## Step 4: Integration (worktree mode only)
 
-Follow `skills/_shared/references/dispatch-template.md` Step 4.
+Integrate worktree changes back into the working branch.
 
 ---
 
-## Step 5: Curate (if memory backend available — see `_shared/references/memory-backend.md`)
-
-Follow `skills/_shared/references/dispatch-template.md` Step 5. Use `<CLI_LABEL>` = `GLM`, `<cli>` = `opencode`.
+## Step 5: Curate (if memory backend available)
 
 ---
 
@@ -147,7 +145,7 @@ Follow `skills/_shared/references/dispatch-template.md` Step 5. Use `<CLI_LABEL>
 
 ## Anti-Patterns
 
-See shared anti-patterns in `skills/_shared/references/dispatch-template.md`.
+Shared anti-patterns for all dispatch skills:
 
 GLM-specific additions:
 - **Vague prompts.** GLM works best with focused, specific tasks. "Add unit tests for the TokenBucket.consume() method in src/lib/token-bucket.ts" will succeed where "Fix all the bugs" will not.
