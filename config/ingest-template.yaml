@@ -109,6 +109,10 @@ schedule:
     # - skill: "/xgh-brief"
     #   cron: "0 8 * * 1-5"
     #   description: "Weekday morning briefing"
+    - name: watch-prs
+      skill: xgh:watch-prs
+      cron: "*/15 * * * *"
+      description: "PR babysitter — surfaces review changes, CI status, Copilot comments; notifies Pedro via Telegram. Read-only, no auto-merge (claudinho#48)."
 
 content_types:
   decision:
