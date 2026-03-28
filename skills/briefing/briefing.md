@@ -55,9 +55,54 @@ Determine which projects this briefing covers:
 
 **Override:** `/xgh-briefing --all` forces all-projects mode regardless of cwd.
 
+## Teams Mode Detection
+
+Before gathering data, check if `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is active:
+
+1. Read `~/.claude/settings.json` and check for `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in the `env` block.
+   - This env var is injected by Claude Code into the Claude process — it cannot be read via `$VAR` in Bash.
+   - If `settings.json` contains `"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"`, set `TEAMS_MODE=true`.
+   - Otherwise, set `TEAMS_MODE=false`.
+
+2. Use the appropriate gather strategy below based on `TEAMS_MODE`.
+
+> **Constraint (UNBREAKABLE_RULES §2):** Never spawn more than 5 concurrent subagents. The parallel path below respects this limit exactly.
+
 ## Data Gathering
 
-### 1. xgh Memory (always — lossless-claude)
+### Parallel Path (TEAMS_MODE=true)
+
+When teams mode is active, launch 5 Haiku workers simultaneously. Each worker is independent and read-only — no shared state, no cursor dependencies.
+
+**Worker assignments:**
+
+| Worker | Sources | Model |
+|--------|---------|-------|
+| Worker 1 | xgh Memory + Team Pulse (lcm_search calls) | haiku |
+| Worker 2 | Slack (if available) | haiku |
+| Worker 3 | Jira/Atlassian (if available) | haiku |
+| Worker 4 | GitHub (if available) | haiku |
+| Worker 5 | Gmail + Figma (if available) | haiku |
+
+**Worker prompt template:**
+
+Each worker receives:
+- Its assigned source list
+- The project scope context (project name + scope list if project-scoped)
+- The exact tool calls to run (see Sequential Path below for per-source details)
+- Instruction: "Return a JSON object `{ source: string, items: [...] }`. Do not synthesize — just gather raw results. If a source is unavailable, return `{ source, items: [], unavailable: true }`."
+
+**After all workers complete:**
+
+Pass all worker results to the current (Sonnet) instance for the Prioritization Engine and Output Format steps. Do not spawn a separate synthesis agent — the current session handles synthesis.
+
+**Token note:** Parallel path costs ~25% more tokens than sequential but reduces wall-clock time by 3–5x. Worth it for interactive sessions; skip for background/cron invocations (use sequential path instead).
+
+### Sequential Path (TEAMS_MODE=false, or background/cron mode)
+
+Gather from each source in order. Skip unavailable sources silently.
+
+#### 1. xgh Memory (always — lossless-claude)
 
 Search for recent session state and pending work:
 
@@ -69,14 +114,14 @@ lcm_search("blocked", { limit: 2 })
 
 If project-scoped, prepend project name to search queries (e.g., "xgh last session").
 
-### 2. Slack (if available)
+#### 2. Slack (if available)
 
 ```
 slack_search_public_and_private("to:me is:unread", limit=10)
 slack_search_public_and_private("urgent OR ASAP OR blocked", limit=5)
 ```
 
-### 3. Jira/Atlassian (if available)
+#### 3. Jira/Atlassian (if available)
 
 ```
 searchJiraIssuesUsingJQL("assignee = currentUser() AND status != Done ORDER BY priority DESC", limit=10)
@@ -85,7 +130,7 @@ searchJiraIssuesUsingJQL("assignee = currentUser() AND status = 'In Progress'", 
 
 If project-scoped, append `AND project IN (KEY1, KEY2)` to JQL queries using Jira keys from in-scope projects.
 
-### 4. GitHub (if available)
+#### 4. GitHub (if available)
 
 ```
 gh pr list --author @me --state open
@@ -95,14 +140,14 @@ gh pr list --review-requested @me --state open
 
 If project-scoped, only run these commands for repos belonging to in-scope projects.
 
-### 5. Gmail (if available)
+#### 5. Gmail (if available)
 
 ```
 gmail_search_messages("to:me is:unread from:teammate", limit=10)
 gmail_search_messages("subject:deadline OR subject:urgent is:unread", limit=5)
 ```
 
-### 6. Figma (if available)
+#### 6. Figma (if available)
 
 ```
 figma_get_comments(file_key, limit=10)
@@ -110,7 +155,7 @@ figma_get_comments(file_key, limit=10)
 
 If project-scoped, only check file keys belonging to in-scope projects.
 
-### 7. Team Pulse (always — from lossless-claude workspace)
+#### 7. Team Pulse (always — from lossless-claude workspace)
 
 ```
 lcm_search("team update", { limit: 3 })
