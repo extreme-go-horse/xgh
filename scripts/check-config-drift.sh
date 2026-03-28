@@ -53,7 +53,7 @@ fi
 # ── Check 1: active ingest.yaml repos present in provider.yaml ───────────────
 # Skipped gracefully when provider.yaml is absent (non-blocking).
 if [ ! -f "$PROVIDER" ]; then
-  echo "WARN: provider.yaml not found at $PROVIDER — skipping drift check"
+  echo "WARN: provider.yaml not found at $PROVIDER — skipping provider drift check (Check 1 only)"
 else
   python3 - "$INGEST" "$PROVIDER" <<'PY' || { echo "WARN: YAML parse error — skipping drift check" >&2; }
 import sys
@@ -108,6 +108,8 @@ for project_name, project in projects.items():
     if not isinstance(project, dict):
         continue
     sources = project.get("github_sources", []) or []
+    if not isinstance(sources, list):
+        continue
     for source in sources:
         if source not in SUPPORTED:
             print(
