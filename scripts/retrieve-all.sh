@@ -5,7 +5,7 @@ set -euo pipefail
 # Finds and runs all mode:cli and mode:api fetch.sh scripts in ~/.xgh/user_providers/
 # Skips mode:mcp providers (handled by separate CronCreate prompt)
 # Called by CronCreate every 5 minutes (1 Bash turn, no Claude)
-# Retry/backoff: up to 3 attempts (1s, 2s, 4s) on failure — always exits 0 (never blocks session)
+# Retry/backoff: up to 3 attempts (1s, 2s between attempts) on failure — always exits 0 (never blocks session)
 
 PROVIDERS_DIR="${XGH_PROVIDERS_DIR:-$HOME/.xgh/user_providers}"
 INBOX_DIR="$HOME/.xgh/inbox"
@@ -59,7 +59,9 @@ PYSCOPE
 PARALLEL="${XGH_PARALLEL_RETRIEVE:-0}"
 
 # run_retrieve — core provider loop; returns non-zero on unexpected failure
+# Emits failure reason to stderr on ERR trap so retry harness can log it
 run_retrieve() {
+    trap 'echo "run_retrieve failed at line $LINENO: $BASH_COMMAND" >&2' ERR
     local total=0
     local success=0
     local failed=0
@@ -161,8 +163,10 @@ run_retrieve() {
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) retriever[$mode_label]: $total providers, $success ok, $failed failed, $new_items new items" >> "$LOG_FILE"
 }
 
-# Retry/backoff wrapper — max 3 attempts, waits: 1s, 2s, 4s
+# Retry/backoff wrapper — max 3 attempts, waits: 1s, 2s between attempts
 # Always exits 0 (never blocks session start)
+_err_file="/tmp/retrieve-all-err.$$"
+trap 'rm -f "$_err_file"' EXIT INT TERM
 _start_ts=$(date +%s)
 _max_attempts=3
 _attempt=0
@@ -172,15 +176,14 @@ _last_reason=""
 while [ "$_attempt" -lt "$_max_attempts" ]; do
     _attempt=$((_attempt + 1))
 
-    if run_retrieve 2>/tmp/retrieve-all-err.$$; then
+    if run_retrieve 2>"$_err_file"; then
         _elapsed=$(( $(date +%s) - _start_ts ))
         echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [RETRIEVE_SUCCESS: ${_elapsed}s]" >> "$LOG_FILE"
-        rm -f /tmp/retrieve-all-err.$$
         exit 0
     fi
 
-    _last_reason=$(cat /tmp/retrieve-all-err.$$ 2>/dev/null | tail -1 || echo "unknown error")
-    rm -f /tmp/retrieve-all-err.$$
+    _last_reason=$(tail -1 "$_err_file" 2>/dev/null)
+    [ -z "$_last_reason" ] && _last_reason="unknown error"
 
     if [ "$_attempt" -lt "$_max_attempts" ]; then
         echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [RETRIEVE_RETRY: attempt ${_attempt}/${_max_attempts} — ${_last_reason}]" >> "$LOG_FILE"
