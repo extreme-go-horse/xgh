@@ -137,7 +137,9 @@ fi
 # ── Strategy 2: content-hash dedup ────────────────────────────────────────────
 # Compute sha256 of the content we're about to write.
 # Compare against a hash sidecar file stored alongside each inbox item.
-# Sidecar: <inbox_dir>/.hashes/<filename>.sha256
+# Sidecar: <inbox_dir>/.hashes/<repo_slug>_<hash>.sha256
+# The repo_slug prefix prevents cross-repo hash collisions where two different
+# repos happen to produce identical content (e.g. identical release notes).
 HASH_DIR="$INBOX_DIR/.hashes"
 mkdir -p "$HASH_DIR"
 
@@ -151,7 +153,20 @@ else
 fi
 
 if [ -n "$_content_hash" ]; then
-    # Check if any existing hash sidecar matches this content hash
+    # Derive repo slug for sidecar filename scoping.
+    # Prefer source_repo from frontmatter; fall back to inbox filename prefix.
+    _hash_source_repo=$(printf '%s' "$CONTENT" | { grep "^source_repo:" || true; } | head -1 | awk '{print $2}')
+    if [ -n "$_hash_source_repo" ]; then
+        _repo_slug="${_hash_source_repo//\//_}"
+    else
+        # Fallback: use the filename without timestamp (first two underscore-segments stripped)
+        _repo_slug="${_basename#*_}"   # strip leading timestamp segment
+        _repo_slug="${_repo_slug%%_*}" # keep only next segment as disambiguator
+    fi
+
+    _sidecar_name="${_repo_slug}_${_content_hash}"
+
+    # NOTE: O(n) scan over .hashes/ — acceptable for <10k items; add indexing if performance degrades
     _hash_match=$(grep -rl "$_content_hash" "$HASH_DIR" 2>/dev/null | head -1 || true)
     if [ -n "$_hash_match" ]; then
         _matched_item=$(basename "$_hash_match" .sha256)
@@ -165,7 +180,7 @@ printf '%s' "$CONTENT" > "$DEST"
 
 # Store content hash sidecar for future dedup checks
 if [ -n "$_content_hash" ]; then
-    printf '%s' "$_content_hash" > "$HASH_DIR/$FILENAME.sha256"
+    printf '%s' "$_content_hash" > "$HASH_DIR/${_sidecar_name}.sha256"
 fi
 
 exit 0

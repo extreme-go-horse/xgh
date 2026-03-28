@@ -102,7 +102,15 @@ assert_file_exists "pr with same number as issue is NOT deduped" "$INBOX/$FNAME5
 # ── Test 6: Content-hash dedup — same content, novel filename/repo ────────────
 # Use a filename that doesn't match the number pattern so Strategy 1 is skipped
 FNAME6A="2026-03-26T18-10-11Z_github_org_repo_release_v1.0.md"
-CONTENT6="---\ntype: inbox_item\nsource_type: github_release\nsource_repo: org/repo\n---\nRelease v1.0"
+CONTENT6=$(cat <<'EOF'
+---
+type: inbox_item
+source_type: github_release
+source_repo: org/repo
+---
+Release v1.0
+EOF
+)
 run_helper "$FNAME6A" "$CONTENT6"
 assert_file_exists "first release item written" "$INBOX/$FNAME6A"
 
@@ -112,8 +120,9 @@ run_helper "$FNAME6B" "$CONTENT6"
 assert_file_absent "content-hash dedup blocks identical release re-fetch" "$INBOX/$FNAME6B"
 assert_log_contains "log records hash dedup skip" "SKIP $FNAME6B" "$LOGF"
 
-# ── Test 7: Hash sidecar file is created ─────────────────────────────────────
-assert_file_exists "hash sidecar created" "$INBOX/.hashes/$FNAME6A.sha256"
+# ── Test 7: Hash sidecar file is created (repo-scoped naming: <repo_slug>_<hash>.sha256) ─────────
+_sidecar_count=$(ls "$INBOX/.hashes/org_repo_"*.sha256 2>/dev/null | wc -l | tr -d ' ')
+assert_eq "hash sidecar created (repo-scoped)" "1" "$_sidecar_count"
 
 # ── Test 8: PR item — end-to-end write and dedup ─────────────────────────────
 FNAME8A="2026-03-26T17-06-00Z_github_Martian-Engineering_lossless-claw_pr104.md"
