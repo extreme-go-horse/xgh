@@ -38,9 +38,9 @@ Read from these sources (in order, skip each if missing):
 2. **Decisions**: all `.md` files in `.xgh/context-tree/decisions/` — first 50 lines each
 3. **Architecture**: all `.md` files in `.xgh/context-tree/architecture/` — first 100 lines each
 4. **Conventions**: all `.md` files in `.xgh/context-tree/conventions/` — first 30 lines each
-5. **lossless-claude memories** (if available):
-   - [SEARCH] → call `lcm_search("project briefing digest", { tags: ["session"], limit: 3 })`
-   - [SEARCH] → call `lcm_search("architecture decisions patterns", { limit: 3 })`
+5. **MAGI memories** (if available):
+   - [SEARCH] → call `magi_query("project briefing digest", { limit: 3 })`
+   - [SEARCH] → call `magi_query("architecture decisions patterns", { limit: 3 })`
 
 Compose a `context.md` with this structure (target: under 200 lines):
 
@@ -132,7 +132,7 @@ Display a summary table:
 Store a brief memory if memory backend available (see `_shared/references/memory-backend.md`):
 
 ```
-lcm_store("xgh-seed: seeded context into [platforms] on [date]. Context sources: [which sources were available]", ["session"])
+magi_store(path: "session/xgh-seed.md", title: "xgh-seed: seeded context into [platforms] on [date]", body: "Context sources: [which sources were available]", tags: "session")
 ```
 
 ---

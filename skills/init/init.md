@@ -576,9 +576,9 @@ xgh setup complete!
 If lossless-claude is available, store the onboarding completion:
 
 ```
-Extract key learnings as a concise summary (3-7 bullets), then call lcm_store with the
-summary text and context-appropriate tags. Do not pass raw conversation content to lcm_store.
-Use tags: ["session"]
+Extract key learnings as a concise summary (3-7 bullets), then call magi_store with the
+summary text and context-appropriate tags. Do not pass raw conversation content to magi_store.
+Use tags: "session"
 Content: "xgh init completed for <name> (<role>, <squad>). Project: <project>. Team profiles: <yes/no>. Codebase indexed: <yes/no>."
 ```
 

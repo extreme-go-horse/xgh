@@ -494,22 +494,26 @@ If capped:
    NEW_BODY=$(echo "$BODY" | sed "s/\[COPILOT_ROUND: [0-9]*\]/[NEGOTIATION_CAPPED: $ROUND rounds]/")
    gh pr edit $PR --repo $REPO --body "$NEW_BODY"
    ```
-3. **Store LCM metric:**
+3. **Store MAGI metric:**
    ```
-   lcm_store(
-     content: "PR #<N> in <repo>: Copilot negotiation capped at <ROUND> rounds. Accepted: X suggestions total, Rejected: Y suggestions total.",
-     tags: ["copilot-negotiation", "pr:<N>", "capped", "budget:rnd"]
+   magi_store(
+     path: "metrics/copilot-negotiation-<repo>-pr<N>.md",
+     title: "PR #<N> in <repo>: Copilot negotiation capped at <ROUND> rounds",
+     body: "Accepted: X suggestions total, Rejected: Y suggestions total.",
+     tags: "copilot-negotiation,pr:<N>,capped,budget:rnd"
    )
    ```
 4. Set `last_action = negotiation-capped`
 5. Print: `⚠️ PR #<N>: Copilot negotiation cap reached (<ROUND> rounds). Shipping.`
 6. Proceed directly to merge criteria (Step D) — remaining Copilot comments do not block merge.
 
-**LCM metric also stored on merge (always, when negotiation was active):**
+**MAGI metric also stored on merge (always, when negotiation was active):**
 ```
-lcm_store(
-  content: "PR #<N> in <repo>: merged after <ROUND> Copilot negotiation rounds. Accepted: X suggestions total, Rejected: Y suggestions total.",
-  tags: ["copilot-negotiation", "pr:<N>", "merged", "rounds:<N>", "budget:rnd"]
+magi_store(
+  path: "metrics/copilot-negotiation-<repo>-pr<N>-merged.md",
+  title: "PR #<N> in <repo>: merged after <ROUND> Copilot negotiation rounds",
+  body: "Accepted: X suggestions total, Rejected: Y suggestions total.",
+  tags: "copilot-negotiation,pr:<N>,merged,rounds:<N>,budget:rnd"
 )
 ```
 

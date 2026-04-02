@@ -94,7 +94,7 @@ For each active project, run `xgh:briefing` logic in parallel using background A
 
 Gather from every project:
 - GitHub: `gh pr list --state open`, `gh issue list --assignee @me --state open`, `gh pr list --review-requested @me --state open`
-- lossless-claude: [SEARCH] → call `lcm_search("in progress OR blocked OR needs review", { limit: 3 })`
+- MAGI: [SEARCH] → call `magi_query("in progress OR blocked OR needs review", { limit: 3 })`
 
 Output format adds a **project label** to every item:
 
