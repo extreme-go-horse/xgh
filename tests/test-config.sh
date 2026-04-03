@@ -88,7 +88,7 @@ assert_contains "config/project.yaml" "xgh:codex"
 # --- preferences.pr section ---
 assert_contains "config/project.yaml" "pr:"
 assert_contains "config/project.yaml" "provider: github"
-assert_contains "config/project.yaml" "repo: extreme-go-horse/xgh"
+assert_contains "config/project.yaml" "repo: tokyo-megacorp/xgh"
 assert_contains "config/project.yaml" "copilot-pull-request-reviewer\[bot\]"
 assert_contains "config/project.yaml" "reviewer_comment_author: Copilot"
 assert_contains "config/project.yaml" "merge_method: squash"
