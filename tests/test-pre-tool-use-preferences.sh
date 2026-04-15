@@ -241,6 +241,30 @@ write_gh_view_fail_stub "develop"
 OUT=$(echo '{"tool_name": "Bash", "tool_input": {"command": "gh pr merge 999 --merge"}}' | PATH="$MOCK_BIN:$PATH" bash "$HOOK" 2>/dev/null || true)
 assert_empty "explicit PR number with failed pr view bails silently (no misbinding)" "$OUT"
 
+# ── URL-selector coverage (codex review round 2) ─────────────────────────
+# `gh pr merge` accepts <number> | <url> | <branch>. The URL form must also
+# be treated as an explicit selector — no current-branch fallback.
+
+# URL form resolves to main via pr view — --merge is correct for main (no warn)
+write_gh_stub "main"
+OUT=$(echo '{"tool_name": "Bash", "tool_input": {"command": "gh pr merge https://github.com/tokyo-megacorp/xgh/pull/223 --merge"}}' | PATH="$MOCK_BIN:$PATH" bash "$HOOK" 2>/dev/null || true)
+assert_empty "URL selector: --merge to main passes silently" "$OUT"
+
+# URL form resolves to develop — --merge mismatches (develop prefers squash)
+write_gh_stub "develop"
+OUT=$(echo '{"tool_name": "Bash", "tool_input": {"command": "gh pr merge https://github.com/tokyo-megacorp/xgh/pull/10 --merge"}}' | PATH="$MOCK_BIN:$PATH" bash "$HOOK" 2>/dev/null || true)
+assert_contains "URL selector: --merge to develop warns (true positive)" "$OUT" "mismatch"
+
+# URL form but pr view fails; pr list would return a different base — must bail silently
+write_gh_view_fail_stub "main"
+OUT=$(echo '{"tool_name": "Bash", "tool_input": {"command": "gh pr merge https://github.com/tokyo-megacorp/xgh/pull/999 --squash"}}' | PATH="$MOCK_BIN:$PATH" bash "$HOOK" 2>/dev/null || true)
+assert_empty "URL selector with failed pr view bails silently (no misbinding)" "$OUT"
+
+# Malformed URL (no numeric pull id) — treated as explicit selector, bails silently
+write_gh_view_fail_stub "main"
+OUT=$(echo '{"tool_name": "Bash", "tool_input": {"command": "gh pr merge https://github.com/tokyo-megacorp/xgh/pull/abc --merge"}}' | PATH="$MOCK_BIN:$PATH" bash "$HOOK" 2>/dev/null || true)
+assert_empty "malformed URL bails silently (no current-branch fallback)" "$OUT"
+
 # ── Output format: warning has correct JSON shape ────────────────────────
 OUT=$(run_hook_mocked "develop" '{"tool_name": "Bash", "tool_input": {"command": "gh pr merge 10 --merge"}}')
 if [ -n "$OUT" ]; then
