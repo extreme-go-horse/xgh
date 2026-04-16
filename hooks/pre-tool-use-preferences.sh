@@ -129,14 +129,16 @@ fi
 _is_force_push() {
   local cmd="$1"
   echo "$cmd" | grep -q 'git push' || return 1
-  # (a) bare --force: matches --force not followed by - (excludes --force-with-lease)
-  #     and not preceded by --no (excludes --no-force); two-pass POSIX ERE.
-  if echo "$cmd" | grep -qE -- '--force([^-]|$)' && \
-     ! echo "$cmd" | grep -qE -- '(--no-force|--force-with-lease)'; then
+  # (a) bare --force: `--force([^-]|$)` is sufficient to exclude --force-with-lease
+  #     (next char is `-`) and --no-force (prefix is `--no-`, not `--force`).
+  #     No second exclusion pass needed.
+  if echo "$cmd" | grep -qE -- '--force([^-]|$)'; then
     return 0
   fi
   # (b) short flag cluster containing f: -f, -fu, -uf, etc.
-  if echo "$cmd" | grep -qE -- ' -[a-zA-Z]*f[a-zA-Z]*( |$)'; then
+  # Use `(^| |\t)` to avoid requiring a literal leading space — guards against
+  # commands passed without a preceding space token (e.g. start of string).
+  if echo "$cmd" | grep -qE -- '(^| |\t)-[a-zA-Z]*f[a-zA-Z]*( |$|\t)'; then
     return 0
   fi
   return 1

@@ -166,7 +166,6 @@ echo ""
 echo "--- Regression #229: false-positive protection ---"
 
 FP_BIN=$(mktemp -d)
-trap 'rm -rf "$FP_BIN"' EXIT
 
 # python3 stub: always returns "true" (branch is protected).
 # If the trigger fires for a false-positive flag, the warning would appear.
@@ -224,7 +223,7 @@ echo ""
 echo "--- Branch-override + output format tests (mock gh) ---"
 
 MOCK_BIN=$(mktemp -d)
-trap 'rm -rf "$EARLY_STUB" "$MOCK_BIN"' EXIT
+trap 'rm -rf "$EARLY_STUB" "$FP_BIN" "$MOCK_BIN"' EXIT
 
 # Helper: write a gh stub that returns a fixed baseRefName for `gh pr view`
 # and an empty list for `gh pr list`.
