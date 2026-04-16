@@ -441,6 +441,14 @@ assert_contains "#228 positive: gh pr merge at start — warns for main (prefers
 OUT=$(run_hook_mocked "main" '{"tool_name": "Bash", "tool_input": {"command": "git fetch && gh pr merge 42 --squash"}}')
 assert_contains "#228 positive: gh pr merge after && separator — warns for main" "$OUT" "mismatch"
 
+# ── Regression: env-prefix KEY=VAR before gh pr merge must trigger correctly ──
+# `GH_TOKEN=abc gh pr merge 42 --squash` — first token is KEY=VAR, which awk
+# correctly skips to find `gh` as the real command.  The previous grep anchor
+# `'^(\\)?gh pr merge'` ran against the raw segment starting with `GH_TOKEN=…`
+# and rejected it, causing a false-negative (enforcement gap).
+OUT=$(run_hook_mocked "main" '{"tool_name": "Bash", "tool_input": {"command": "GH_TOKEN=abc gh pr merge 42 --squash"}}')
+assert_contains "#228 env-prefix: GH_TOKEN=abc gh pr merge 42 --squash — must warn (true positive)" "$OUT" "mismatch"
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

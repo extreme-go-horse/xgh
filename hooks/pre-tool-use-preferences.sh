@@ -90,56 +90,76 @@ _command_segments() {
     | sed 's/^[[:space:]]*//'
 }
 
+# _strip_env_prefix: given a segment string, remove all leading KEY=VAR
+# tokens (e.g. `GH_TOKEN=abc GH_HOST=x gh pr merge`) so the remaining
+# string starts with the actual command word.  Portable awk (no gawk).
+_strip_env_prefix() {
+  printf '%s\n' "$1" | awk '{
+    i = 1
+    while (i <= NF && $i ~ /^[A-Z_][A-Z0-9_]*=/) i++
+    out = ""
+    for (; i <= NF; i++) out = (out == "" ? $i : out " " $i)
+    print out
+  }'
+}
+
+# _is_gh_pr_merge_segment: returns 0 if the segment (after env-prefix
+# stripping and `command`/`\gh` unwrapping) starts with `gh pr merge`.
+# All checks operate on the env-stripped form so KEY=VAR prefixes never
+# fool the grep anchor (#228 follow-up).
+_is_gh_pr_merge_segment() {
+  local seg="$1"
+  # Strip leading KEY=VAR tokens
+  local stripped
+  stripped=$(_strip_env_prefix "$seg")
+  [ -z "$stripped" ] && return 1
+  local first
+  first=$(printf '%s\n' "$stripped" | awk '{print $1}')
+  # Unwrap `command gh …` → drop "command" and recheck
+  if [ "$first" = "command" ]; then
+    stripped=$(printf '%s\n' "$stripped" | sed 's/^[[:space:]]*command[[:space:]]*//')
+    first=$(printf '%s\n' "$stripped" | awk '{print $1}')
+  fi
+  # Accept `gh` or `\gh`
+  case "$first" in
+    gh|'\gh') ;;
+    *) return 1 ;;
+  esac
+  # Verify next two tokens are `pr` and `merge` using awk (no grep anchor
+  # needed — we already know position 1 is gh after stripping)
+  printf '%s\n' "$stripped" | awk '{
+    # Strip optional leading backslash from gh
+    cmd = $1; sub(/^\\/, "", cmd)
+    if (cmd == "gh" && $2 == "pr" && ($3 == "merge" || NF == 2)) exit 0
+    exit 1
+  }'
+}
+
 # _command_has_gh_pr_merge: returns 0 if any shell-level segment is a real
 # `gh pr merge` invocation; 1 otherwise.
 _command_has_gh_pr_merge() {
   local cmd="$1"
   while IFS= read -r seg; do
     [ -z "$seg" ] && continue
-    # First real token must be gh (handles KEY=VAR gh … and \gh / command gh)
-    local first
-    first=$(printf '%s\n' "$seg" | awk '{
-      for (i=1;i<=NF;i++) { if ($i !~ /^[A-Z_][A-Z0-9_]*=/) { print $i; exit } }
-    }')
-    case "$first" in
-      gh|'\gh') ;;
-      command)
-        # `command gh pr merge …` — drop the word "command" and recheck
-        seg=$(printf '%s\n' "$seg" | sed 's/^[[:space:]]*command[[:space:]]*//')
-        first=$(printf '%s\n' "$seg" | awk '{print $1}')
-        [ "$first" = "gh" ] || continue
-        ;;
-      *) continue ;;
-    esac
-    if printf '%s\n' "$seg" | grep -qE '^(\\)?gh[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
-      return 0
-    fi
+    _is_gh_pr_merge_segment "$seg" && return 0
   done < <(_command_segments "$cmd")
   return 1
 }
 
-# _gh_pr_merge_segments: emit only the segments that are real gh pr merge
-# invocations (same logic as _command_has_gh_pr_merge, but prints matches).
+# _gh_pr_merge_segments: emit the env-stripped form of each segment that is
+# a real gh pr merge invocation (used for flag/selector extraction).
 _gh_pr_merge_segments() {
   local cmd="$1"
   while IFS= read -r seg; do
     [ -z "$seg" ] && continue
-    local first
-    first=$(printf '%s\n' "$seg" | awk '{
-      for (i=1;i<=NF;i++) { if ($i !~ /^[A-Z_][A-Z0-9_]*=/) { print $i; exit } }
-    }')
-    local check_seg="$seg"
-    case "$first" in
-      gh|'\gh') ;;
-      command)
-        check_seg=$(printf '%s\n' "$seg" | sed 's/^[[:space:]]*command[[:space:]]*//')
-        first=$(printf '%s\n' "$check_seg" | awk '{print $1}')
-        [ "$first" = "gh" ] || continue
-        ;;
-      *) continue ;;
-    esac
-    if printf '%s\n' "$check_seg" | grep -qE '^(\\)?gh[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
-      printf '%s\n' "$check_seg"
+    if _is_gh_pr_merge_segment "$seg"; then
+      # Emit the env-stripped, command-unwrapped form so callers see `gh pr merge …`
+      local stripped
+      stripped=$(_strip_env_prefix "$seg")
+      if printf '%s\n' "$stripped" | awk '{exit ($1=="command")?0:1}'; then
+        stripped=$(printf '%s\n' "$stripped" | sed 's/^[[:space:]]*command[[:space:]]*//')
+      fi
+      printf '%s\n' "$stripped"
     fi
   done < <(_command_segments "$cmd")
 }
